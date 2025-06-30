@@ -12,8 +12,7 @@
 
 ---
 
-![App Screenshot](https://user-images.githubusercontent.com/1026930/236113945-8c764c67-336c-43a5-82e7-20353c7c899c.png)
-*(Feel free to replace this with your own updated screenshot!)*
+![App Screenshot](./AppDemo.png)
 
 ## ✨ Features
 
