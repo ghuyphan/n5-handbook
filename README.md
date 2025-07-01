@@ -1,6 +1,6 @@
-# 🇯🇵 JLPT N5 Last-Minute Study App
+# 🇯🇵 JLPT N5 Handbook
 
-> A simple, interactive web application designed to help you cram for the **JLPT N5** exam. Features flashcards, quizzes, and essential grammar notes in a single, fast-loading page.
+> A simple, interactive web application designed to help you study for the **JLPT N5** exam. Features comprehensive study materials including Kana charts, Kanji & Vocabulary flashcards, essential grammar notes, and a progress tracker, all in a single, fast-loading page.
 
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
@@ -12,38 +12,47 @@
 
 ---
 
-![App Screenshot](./AppDemo.png)
+### Light & Dark Mode Preview
+
+| Light Mode | Dark Mode |
+| :---: | :---: |
+| ![App Screenshot Light](./AppDemo-Light.png) | ![App Screenshot Dark](./AppDemo-Dark.png) |
 
 ## ✨ Features
 
-This application is packed with features to make your last-minute study session as effective as possible:
+This application is packed with features to make your study session as effective as possible:
 
-* **🗂️ Interactive Flashcards:** For `Kanji` and `Vocabulary`. Just click to flip and reveal the answer.
-* **📚 Collapsible Grammar Notes:** All the essential N5 `Grammar` points are neatly organized. Click to expand and read the details.
-* **✍️ Reading & Listening Quizzes:** Test your comprehension skills with short passages (`Reading`) and dialogue scripts (`Listening`).
-* **✅ Instant Feedback:** The quizzes are self-grading. See your score immediately after you hit "Check Answers".
+* **📚 Comprehensive Content:** Covers all essential N5 topics:
+    * **🌸 Hiragana & 🤖 Katakana Charts:** Interactive and easy-to-read charts for mastering the basic Japanese alphabets.
+    * **🗓️ Time & Numbers:** Detailed tables for numbers, counters, days of the week, and months.
+    * **🗂️ Interactive Flashcards:** For `Kanji` and `Vocabulary`, categorized for focused learning. Just click to flip and reveal the answer.
+    * **📖 Collapsible Grammar Notes:** All essential N5 `Grammar` points are neatly organized. Click to expand and read the details.
+* **📊 Progress Tracking:** Mark Kanji and Vocabulary as "learned" and see your progress for each category in the real-time overview dashboard.
+* **🎨 Dual Themes:** Switch between a clean **Light Mode** and a sleek **Dark Mode** for comfortable studying, day or night. Your preference is saved locally.
+* **🔍 Universal Search:** Instantly filter content across all sections using the search bar.
+* **✅ Self-Contained & Fast:** Built as a single HTML file, it loads instantly with no backend or dependencies required.
 * **📱 Fully Responsive:** Study on your desktop, tablet, or phone. The layout adapts to any screen size.
-* **⚡ Lightning Fast:** Built as a single HTML file, it loads instantly with no backend required.
 
 ## 🛠️ How to Use
 
-Getting started is as easy as 1-2-3:
+Getting started is easy:
 
-1.  **Navigate:** Use the main tabs to switch between **Kanji**, **Vocabulary**, **Grammar**, **Reading**, and **Listening**.
+1.  **Navigate:** Use the sidebar menu to switch between **Hiragana**, **Katakana**, **Time & Numbers**, **Kanji**, **Vocabulary**, and **Grammar**.
 2.  **Interact:**
-    * Click on **cards** to flip them.
-    * Click on **grammar titles** to expand them.
-    * Select **quiz answers** by clicking on them.
-3.  **Check:** Hit the **"Check Answers"** button in the quiz sections to see how you did.
+    * Click on **flashcards** to flip them.
+    * Click the **checkmark icon** on a card to mark it as "learned" and update your progress.
+    * Click on **section titles** (like in Grammar or Kanji) to expand or collapse them.
+3.  **Track Progress:** The **Progress Overview** on the desktop sidebar shows what you've learned at a glance. Click on any category to jump directly to it.
+4.  **Switch Theme:** Use the ☀️/🌙 toggle in the header (or sidebar on mobile) to switch between light and dark modes.
 
 ## 💻 Built With
 
 * **HTML5**
-* **Tailwind CSS** - For utility-first styling.
-* **Vanilla JavaScript** - For all the interactive logic.
+* **Tailwind CSS** (via CDN) - For utility-first styling.
+* **Vanilla JavaScript** - For all the interactive logic, data rendering, and state management.
 
 ## 🌐 Deployment
 
 This project is hosted on **GitHub Pages**.
 
-To deploy your own version, simply upload the `index.html` file to a GitHub repository and enable GitHub Pages in the repository's settings (`Settings` > `Pages`).
+To deploy your own version, simply upload the `index.html` file to a GitHub repository and enable GitHub Pages in the repository's settings (`Settings` > `Pages`). No build process is needed.
