@@ -8,7 +8,7 @@
 
 ---
 
-**🚀 [View the Live Demo](https://ghuyphan.github.io/n5-study-guide/) 🚀**
+**🚀 [View the Live Demo](https://ghuyphan.github.io/n5-handbook/) 🚀**
 
 ---
 
