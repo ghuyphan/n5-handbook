@@ -3,330 +3,704 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JLPT N5 Final Prep Guide (Detailed)</title>
+    <title>JLPT N5 Learning Plan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-main: #F4F7FE;
+            --text-primary: #1a1a2e;
+            --text-secondary: #5a5a78;
+            --accent-pink: #EC4899;
+            --accent-blue: #3B82F6;
+            --accent-green: #22C55E;
+            --accent-red: #EF4444;
+            --accent-purple: #8B5CF6;
+            --accent-orange: #F97316;
+            --glass-bg: rgba(255, 255, 255, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.25);
+            --shadow-color: rgba(99, 102, 241, 0.08);
+        }
         body {
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 50%),
+                radial-gradient(at 97% 21%, hsla(340, 96%, 76%, 0.1) 0px, transparent 50%),
+                radial-gradient(at 75% 88%, hsla(240, 96%, 76%, 0.1) 0px, transparent 50%);
+            color: var(--text-primary);
         }
-        .tab-content {
-            display: none;
+        
+        .glass-effect {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
         }
-        .tab-content.active {
-            display: block;
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 260px 1fr 320px;
+            gap: 1.5rem;
         }
-        .card {
-            perspective: 1000px;
+        @media (max-width: 1200px) {
+            .main-grid { grid-template-columns: 220px 1fr; }
+            .right-sidebar { display: none; }
         }
-        .card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
+        @media (max-width: 768px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .left-sidebar {
+                position: fixed; top: 0; left: -100%; width: 250px;
+                height: 100%; z-index: 100; transition: left 0.3s ease-in-out;
+                border-radius: 0;
+            }
+            .left-sidebar.open { left: 0; }
+            .mobile-header { display: flex; }
+            .main-header { display: none; }
+            .mobile-search-bar { display: block; }
         }
-        .card.is-flipped .card-inner {
-            transform: rotateY(180deg);
+        body.sidebar-open {
+            overflow: hidden;
         }
+
+        .nav-item.active {
+            background-color: var(--accent-blue);
+            color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+        }
+        .nav-item.active svg { color: white !important; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card-container { position: relative; }
+        .card { perspective: 1200px; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
+        .card.is-flipped .card-inner { transform: rotateY(180deg); }
         .card-face {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 16px;
+        }
+        .card-face-front {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .card-face-back { transform: rotateY(180deg); color: white; padding: 1rem; flex-direction: column; justify-content: space-around; text-align: center; }
+
+        .quiz-option.selected { background-color: var(--accent-blue); color: white; border-color: var(--accent-blue); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .quiz-option.correct { background-color: var(--accent-green) !important; color: white !important; border-color: var(--accent-green) !important; }
+        .quiz-option.incorrect { background-color: var(--accent-red) !important; color: white !important; border-color: var(--accent-red) !important; }
+        
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease-out; padding: 0 1.25rem; }
+        .open + .accordion-content { max-height: 500px; padding: 0 1.25rem 1.25rem 1.25rem; }
+        .open .accordion-icon { transform: rotate(180deg); }
+        
+        .progress-circle {
+            transition: stroke-dashoffset 0.5s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        .learn-toggle {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s ease;
         }
-        .card-face-front {
-            background-color: white;
+        .learn-toggle:hover {
+            transform: scale(1.1);
         }
-        .card-face-back {
-            transform: rotateY(180deg);
+        .learn-toggle.learned {
+            background-color: var(--accent-green);
+        }
+        .learn-toggle svg {
+            color: var(--accent-green);
+        }
+        .learn-toggle.learned svg {
             color: white;
-            padding: 1rem;
-            flex-direction: column;
-        }
-        .quiz-option.selected {
-            background-color: #60a5fa; /* blue-400 */
-            color: white;
-            border-color: #3b82f6;
-        }
-        .quiz-option.correct {
-            background-color: #4ade80 !important; /* green-400 */
-            color: white !important;
-            border-color: #22c55e;
-        }
-        .quiz-option.incorrect {
-            background-color: #f87171 !important; /* red-400 */
-            color: white !important;
-            border-color: #ef4444;
-        }
-        .active-tab {
-            border-color: #dc2626; /* red-600 */
-            color: #1f2937; /* gray-800 */
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="min-h-screen">
 
-    <div class="container mx-auto max-w-5xl p-4 sm:p-6">
-        <header class="text-center mb-6">
-            <h1 class="text-3xl sm:text-4xl font-bold text-red-600">JLPT N5 直前対策</h1>
-            <p class="text-lg text-gray-600">Detailed Last-Minute N5 Prep Guide</p>
-        </header>
+    <!-- Mobile Header -->
+    <header class="mobile-header md:hidden sticky top-0 glass-effect z-40 p-4 flex items-center justify-between">
+        <h1 class="text-xl font-bold text-gray-800">JLPT N5 Prep</h1>
+        <button id="menu-toggle" class="p-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+    </header>
 
-        <!-- Tabs -->
-        <div class="mb-6 bg-white rounded-lg shadow-md p-2">
-            <nav id="tabs" class="flex flex-wrap justify-center -mb-px">
-                <button onclick="changeTab('kanji')" class="tab-btn active-tab text-gray-700 hover:text-red-600 whitespace-nowrap py-3 px-4 font-semibold border-b-2">漢字 (Kanji)</button>
-                <button onclick="changeTab('vocab')" class="tab-btn text-gray-500 hover:text-red-600 whitespace-nowrap py-3 px-4 font-semibold border-b-2 border-transparent">単語 (Vocab)</button>
-                <button onclick="changeTab('grammar')" class="tab-btn text-gray-500 hover:text-red-600 whitespace-nowrap py-3 px-4 font-semibold border-b-2 border-transparent">文法 (Grammar)</button>
-                <button onclick="changeTab('reading')" class="tab-btn text-gray-500 hover:text-red-600 whitespace-nowrap py-3 px-4 font-semibold border-b-2 border-transparent">読解 (Reading)</button>
-                <button onclick="changeTab('listening')" class="tab-btn text-gray-500 hover:text-red-600 whitespace-nowrap py-3 px-4 font-semibold border-b-2 border-transparent">聴解 (Listening)</button>
+    <div class="main-grid p-0 md:p-6 lg:p-8">
+        <!-- Left Sidebar -->
+        <aside id="sidebar" class="left-sidebar glass-effect p-6 flex-col h-full hidden md:flex rounded-2xl">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
+                    N5
+                </div>
+                <h1 class="text-2xl font-bold">JLPT Prep</h1>
+            </div>
+            <nav id="tabs" class="space-y-2">
+                <button onclick="changeTab('hiragana')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 hover:bg-blue-100 transition-all duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                    <span>ひらがな</span>
+                </button>
+                <button onclick="changeTab('katakana')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 hover:bg-blue-100 transition-all duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                    <span>カタカナ</span>
+                </button>
+                <button onclick="changeTab('kanji')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 hover:bg-blue-100 transition-all duration-200">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    <span>漢字</span>
+                </button>
+                <button onclick="changeTab('vocab')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 hover:bg-blue-100 transition-all duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg>
+                    <span>単語</span>
+                </button>
+                <button onclick="changeTab('grammar')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 hover:bg-blue-100 transition-all duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" /></svg>
+                    <span>文法</span>
+                </button>
+                <button onclick="changeTab('reading')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 hover:bg-blue-100 transition-all duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>
+                    <span>読解</span>
+                </button>
+                <button onclick="changeTab('listening')" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 hover:bg-blue-100 transition-all duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                    <span>聴解</span>
+                </button>
             </nav>
-        </div>
+        </aside>
 
-        <!-- Content Area -->
-        <main id="main-content">
-            <!-- Kanji Section -->
-            <div id="kanji" class="tab-content">
-                 <div id="kanji-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
-            </div>
-
-            <!-- Vocabulary Section -->
-            <div id="vocab" class="tab-content">
-                <div id="vocab-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-            </div>
-
-            <!-- Grammar Section -->
-            <div id="grammar" class="tab-content">
-                 <div id="grammar-container" class="space-y-4"></div>
-            </div>
-
-            <!-- Reading Section -->
-            <div id="reading" class="tab-content">
-                <div id="reading-container" class="space-y-8"></div>
-            </div>
+        <!-- Main Content -->
+        <div class="p-4 md:p-0">
+            <header class="main-header mb-8 items-center justify-between hidden md:flex">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">My Learning Plan</h1>
+                    <p class="text-gray-500">JLPT N5 Final Prep Guide</p>
+                </div>
+                <div class="relative w-full max-w-xs">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="search" id="search-input" placeholder="Search current tab..." class="w-full pl-10 pr-4 py-2.5 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition glass-effect">
+                </div>
+            </header>
             
-            <!-- Listening Section -->
-            <div id="listening" class="tab-content">
-                <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-xl font-bold mb-2">聴解練習 (Listening Practice)</h3>
-                    <p class="text-gray-600 mb-6">Read the script, then answer the question. This helps you practice picking out key information.</p>
-                    <div id="listening-container" class="space-y-8"></div>
+            <!-- Mobile Search Bar -->
+            <div class="mobile-search-bar hidden md:hidden mb-4 px-4">
+                 <div class="relative w-full">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="search" id="mobile-search-input" placeholder="Search current tab..." class="w-full pl-10 pr-4 py-2.5 rounded-xl transition glass-effect border-none">
                 </div>
             </div>
-        </main>
+
+            <main id="main-content" class="px-4 md:px-0">
+                <div id="hiragana" class="tab-content"></div>
+                <div id="katakana" class="tab-content"></div>
+                <div id="kanji" class="tab-content"></div>
+                <div id="vocab" class="tab-content"><div id="vocab-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4"></div></div>
+                <div id="grammar" class="tab-content"><div id="grammar-container" class="space-y-4"></div></div>
+                <div id="reading" class="tab-content"><div id="reading-container" class="space-y-8"></div></div>
+                <div id="listening" class="tab-content"><div id="listening-container" class="space-y-8"></div></div>
+            </main>
+        </div>
+
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <div class="sticky top-8">
+                <div id="progress-overview" class="glass-effect p-6 rounded-2xl">
+                    <!-- Progress will be injected here by JS -->
+                </div>
+            </div>
+        </aside>
     </div>
+    <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden md:hidden"></div>
 
 <script>
 // --- DATA ---
-const kanjiData = [
-    { kanji: '一', onyomi: 'イチ', kunyomi: 'ひと', meaning: 'One' }, { kanji: '二', onyomi: 'ニ', kunyomi: 'ふた', meaning: 'Two' }, { kanji: '三', onyomi: 'サン', kunyomi: 'み', meaning: 'Three' }, { kanji: '四', onyomi: 'シ', kunyomi: 'よん, よ', meaning: 'Four' }, { kanji: '五', onyomi: 'ゴ', kunyomi: 'いつ', meaning: 'Five' }, { kanji: '六', onyomi: 'ロク', kunyomi: 'む', meaning: 'Six' }, { kanji: '七', onyomi: 'シチ', kunyomi: 'なな', meaning: 'Seven' }, { kanji: '八', onyomi: 'ハチ', kunyomi: 'や', meaning: 'Eight' }, { kanji: '九', onyomi: 'キュウ, ク', kunyomi: 'ここの', meaning: 'Nine' }, { kanji: '十', onyomi: 'ジュウ', kunyomi: 'とお', meaning: 'Ten' }, { kanji: '百', onyomi: 'ヒャク', kunyomi: '', meaning: 'Hundred' }, { kanji: '千', onyomi: 'セン', kunyomi: 'ち', meaning: 'Thousand' }, { kanji: '万', onyomi: 'マン', kunyomi: '', meaning: '10,000' }, { kanji: '円', onyomi: 'エン', kunyomi: 'まる', meaning: 'Yen, Circle' }, { kanji: '日', onyomi: 'ニチ', kunyomi: 'ひ, -び', meaning: 'Day, Sun' }, { kanji: '月', onyomi: 'ゲツ, ガツ', kunyomi: 'つき', meaning: 'Month, Moon' }, { kanji: '火', onyomi: 'カ', kunyomi: 'ひ', meaning: 'Fire' }, { kanji: '水', onyomi: 'スイ', kunyomi: 'みず', meaning: 'Water' }, { kanji: '木', onyomi: 'モク', kunyomi: 'き', meaning: 'Tree, Wood' }, { kanji: '金', onyomi: 'キン', kunyomi: 'かね', meaning: 'Gold, Money' }, { kanji: '土', onyomi: 'ド', kunyomi: 'つち', meaning: 'Soil, Earth' }, { kanji: '人', onyomi: 'ジン, ニン', kunyomi: 'ひと', meaning: 'Person' }, { kanji: '時', onyomi: 'ジ', kunyomi: 'とき', meaning: 'Time, Hour' }, { kanji: '分', onyomi: 'フン, プン', kunyomi: 'わける', meaning: 'Minute, Part' }, { kanji: '半', onyomi: 'ハン', kunyomi: 'なかば', meaning: 'Half' }, { kanji: '上', onyomi: 'ジョウ', kunyomi: 'うえ', meaning: 'Up, Above' }, { kanji: '下', onyomi: 'カ, ゲ', kunyomi: 'した', meaning: 'Down, Below' }, { kanji: '中', onyomi: 'チュウ', kunyomi: 'なか', meaning: 'Middle, In' }, { kanji: '前', onyomi: 'ゼン', kunyomi: 'まえ', meaning: 'Before, Front' }, { kanji: '後', onyomi: 'ゴ', kunyomi: 'うしろ, あと', meaning: 'After, Back' }, { kanji: '何', onyomi: 'カ', kunyomi: 'なに, なん', meaning: 'What' }, { kanji: '学', onyomi: 'ガク', kunyomi: 'まなぶ', meaning: 'Study' }, { kanji: '校', onyomi: 'コウ', kunyomi: '', meaning: 'School' }, { kanji: '生', onyomi: 'セイ', kunyomi: 'うまれる', meaning: 'Life, Birth' }, { kanji: '先', onyomi: 'セン', kunyomi: 'さき', meaning: 'Ahead' }, { kanji: '私', onyomi: 'シ', kunyomi: 'わたし', meaning: 'I, Private' }, { kanji: '友', onyomi: 'ユウ', kunyomi: 'とも', meaning: 'Friend' }, { kanji: '本', onyomi: 'ホン', kunyomi: 'もと', meaning: 'Book, Origin' }, { kanji: '語', onyomi: 'ゴ', kunyomi: 'かたる', meaning: 'Language' }, { kanji: '大', onyomi: 'ダイ', kunyomi: 'おおきい', meaning: 'Big' }, { kanji: '小', onyomi: 'ショウ', kunyomi: 'ちいさい', meaning: 'Small' }, { kanji: '高', onyomi: 'コウ', kunyomi: 'たかい', meaning: 'High' }, { kanji: '安', onyomi: 'アン', kunyomi: 'やすい', meaning: 'Cheap, Safe' }, { kanji: '新', onyomi: 'シン', kunyomi: 'あたらしい', meaning: 'New' }, { kanji: '古', onyomi: 'コ', kunyomi: 'ふるい', meaning: 'Old' }, { kanji: '行', onyomi: 'コウ', kunyomi: 'いく', meaning: 'Go' }, { kanji: '来', onyomi: 'ライ', kunyomi: 'くる', meaning: 'Come' }, { kanji: '見', onyomi: 'ケン', kunyomi: 'みる', meaning: 'See' }, { kanji: '食', onyomi: 'ショク', kunyomi: 'たべる', meaning: 'Eat' }, { kanji: '飲', onyomi: 'イン', kunyomi: 'のむ', meaning: 'Drink' }, { kanji: '買', onyomi: 'バイ', kunyomi: 'かう', meaning: 'Buy' }, { kanji: '聞', onyomi: 'ブン', kunyomi: 'きく', meaning: 'Hear, Ask' }, { kanji: '読', onyomi: 'ドク', kunyomi: 'よむ', meaning: 'Read' }, { kanji: '書', onyomi: 'ショ', kunyomi: 'かく', meaning: 'Write' }, { kanji: '話', onyomi: 'ワ', kunyomi: 'はなす', meaning: 'Speak' }, { kanji: '車', onyomi: 'シャ', kunyomi: 'くるま', meaning: 'Car' }, { kanji: '駅', onyomi: 'エキ', kunyomi: '', meaning: 'Station' }, { kanji: '道', onyomi: 'ドウ', kunyomi: 'みち', meaning: 'Road' }, { kanji: '会', onyomi: 'カイ', kunyomi: 'あう', meaning: 'Meet' }, { kanji: '社', onyomi: 'シャ', kunyomi: 'やしろ', meaning: 'Company' },
-    { kanji: '名', onyomi: 'メイ', kunyomi: 'な', meaning: 'Name' }, { kanji: '電', onyomi: 'デン', kunyomi: '', meaning: 'Electricity' }, { kanji: '気', onyomi: 'キ, ケ', kunyomi: '', meaning: 'Spirit, Air' }, { kanji: '外', onyomi: 'ガイ', kunyomi: 'そと', meaning: 'Outside' }, { kanji: '国', onyomi: 'コク', kunyomi: 'くに', meaning: 'Country' }, { kanji: '男', onyomi: 'ダン, ナン', kunyomi: 'おとこ', meaning: 'Man' }, { kanji: '女', onyomi: 'ジョ, ニョ', kunyomi: 'おんな', meaning: 'Woman' }, { kanji: '子', onyomi: 'シ', kunyomi: 'こ', meaning: 'Child' }, { kanji: '川', onyomi: 'セン', kunyomi: 'かわ', meaning: 'River' }, { kanji: '山', onyomi: 'サン', kunyomi: 'やま', meaning: 'Mountain' }, { kanji: '花', onyomi: 'カ', kunyomi: 'はな', meaning: 'Flower' }, { kanji: '天', onyomi: 'テン', kunyomi: 'あめ', meaning: 'Heaven, Sky' }, { kanji: '雨', onyomi: 'ウ', kunyomi: 'あめ', meaning: 'Rain' }, { kanji: '東', onyomi: 'トウ', kunyomi: 'ひがし', meaning: 'East' }, { kanji: '西', onyomi: 'セイ, サイ', kunyomi: 'にし', meaning: 'West' }, { kanji: '南', onyomi: 'ナン', kunyomi: 'みなみ', meaning: 'South' }, { kanji: '北', onyomi: 'ホク', kunyomi: 'きた', meaning: 'North' }, { kanji: '左', onyomi: 'サ', kunyomi: 'ひだり', meaning: 'Left' }, { kanji: '右', onyomi: 'ウ, ユウ', kunyomi: 'みぎ', meaning: 'Right' }, { kanji: '店', onyomi: 'テン', kunyomi: 'みせ', meaning: 'Shop' }, { kanji: '毎', onyomi: 'マイ', kunyomi: 'ごと', meaning: 'Every' }, { kanji: '年', onyomi: 'ネン', kunyomi: 'とし', meaning: 'Year' }
-];
+const hiraganaData = { "Monographs (あ-ん)": [ {kana: 'あ', romaji: 'a'}, {kana: 'い', romaji: 'i'}, {kana: 'う', romaji: 'u'}, {kana: 'え', romaji: 'e'}, {kana: 'お', romaji: 'o'}, {kana: 'か', romaji: 'ka'}, {kana: 'き', romaji: 'ki'}, {kana: 'く', romaji: 'ku'}, {kana: 'け', romaji: 'ke'}, {kana: 'こ', romaji: 'ko'}, {kana: 'さ', romaji: 'sa'}, {kana: 'し', romaji: 'shi'}, {kana: 'す', romaji: 'su'}, {kana: 'せ', romaji: 'se'}, {kana: 'そ', romaji: 'so'}, {kana: 'た', romaji: 'ta'}, {kana: 'ち', romaji: 'chi'}, {kana: 'つ', romaji: 'tsu'}, {kana: 'て', romaji: 'te'}, {kana: 'と', romaji: 'to'}, {kana: 'な', romaji: 'na'}, {kana: 'に', romaji: 'ni'}, {kana: 'ぬ', romaji: 'nu'}, {kana: 'ね', romaji: 'ne'}, {kana: 'の', romaji: 'no'}, {kana: 'は', romaji: 'ha'}, {kana: 'ひ', romaji: 'hi'}, {kana: 'ふ', romaji: 'fu'}, {kana: 'へ', romaji: 'he'}, {kana: 'ほ', romaji: 'ho'}, {kana: 'ま', romaji: 'ma'}, {kana: 'み', romaji: 'mi'}, {kana: 'む', romaji: 'mu'}, {kana: 'め', romaji: 'me'}, {kana: 'も', romaji: 'mo'}, {kana: 'や', romaji: 'ya'}, {kana: 'ゆ', romaji: 'yu'}, {kana: 'よ', romaji: 'yo'}, {kana: 'ら', romaji: 'ra'}, {kana: 'り', romaji: 'ri'}, {kana: 'る', romaji: 'ru'}, {kana: 'れ', romaji: 're'}, {kana: 'ろ', romaji: 'ro'}, {kana: 'わ', romaji: 'wa'}, {kana: 'を', romaji: 'wo'}, {kana: 'ん', romaji: 'n'} ], "Diacritics (濁点/半濁点)": [ {kana: 'が', romaji: 'ga'}, {kana: 'ぎ', romaji: 'gi'}, {kana: 'ぐ', romaji: 'gu'}, {kana: 'げ', romaji: 'ge'}, {kana: 'ご', romaji: 'go'}, {kana: 'ざ', romaji: 'za'}, {kana: 'じ', romaji: 'ji'}, {kana: 'ず', romaji: 'zu'}, {kana: 'ぜ', romaji: 'ze'}, {kana: 'ぞ', romaji: 'zo'}, {kana: 'だ', romaji: 'da'}, {kana: 'ぢ', romaji: 'ji'}, {kana: 'づ', romaji: 'zu'}, {kana: 'で', romaji: 'de'}, {kana: 'ど', romaji: 'do'}, {kana: 'ば', romaji: 'ba'}, {kana: 'び', romaji: 'bi'}, {kana: 'ぶ', romaji: 'bu'}, {kana: 'べ', romaji: 'be'}, {kana: 'ぼ', romaji: 'bo'}, {kana: 'ぱ', romaji: 'pa'}, {kana: 'ぴ', romaji: 'pi'}, {kana: 'ぷ', romaji: 'pu'}, {kana: 'ぺ', romaji: 'pe'}, {kana: 'ぽ', romaji: 'po'} ], "Digraphs (拗音)": [ {kana: 'きゃ', romaji: 'kya'}, {kana: 'きゅ', romaji: 'kyu'}, {kana: 'きょ', romaji: 'kyo'}, {kana: 'しゃ', romaji: 'sha'}, {kana: 'しゅ', romaji: 'shu'}, {kana: 'しょ', romaji: 'sho'}, {kana: 'ちゃ', romaji: 'cha'}, {kana: 'ちゅ', romaji: 'chu'}, {kana: 'ちょ', romaji: 'cho'}, {kana: 'にゃ', romaji: 'nya'}, {kana: 'にゅ', romaji: 'nyu'}, {kana: 'にょ', romaji: 'nyo'}, {kana: 'ひゃ', romaji: 'hya'}, {kana: 'ひゅ', romaji: 'hyu'}, {kana: 'ひょ', romaji: 'hyo'}, {kana: 'みゃ', romaji: 'mya'}, {kana: 'みゅ', romaji: 'myu'}, {kana: 'みょ', romaji: 'myo'}, {kana: 'りゃ', romaji: 'rya'}, {kana: 'りゅ', romaji: 'ryu'}, {kana: 'りょ', romaji: 'ryo'}, {kana: 'ぎゃ', romaji: 'gya'}, {kana: 'ぎゅ', romaji: 'gyu'}, {kana: 'ぎょ', romaji: 'gyo'}, {kana: 'じゃ', romaji: 'ja'}, {kana: 'じゅ', romaji: 'ju'}, {kana: 'じょ', romaji: 'jo'}, {kana: 'びゃ', romaji: 'bya'}, {kana: 'びゅ', romaji: 'byu'}, {kana: 'びょ', romaji: 'byo'}, {kana: 'ぴゃ', romaji: 'pya'}, {kana: 'ぴゅ', romaji: 'pyu'}, {kana: 'ぴょ', romaji: 'pyo'} ] };
+const katakanaData = { "Monographs (ア-ン)": [ {kana: 'ア', romaji: 'a'}, {kana: 'イ', romaji: 'i'}, {kana: 'ウ', romaji: 'u'}, {kana: 'エ', romaji: 'e'}, {kana: 'オ', romaji: 'o'}, {kana: 'カ', romaji: 'ka'}, {kana: 'キ', romaji: 'ki'}, {kana: 'ク', romaji: 'ku'}, {kana: 'ケ', romaji: 'ke'}, {kana: 'コ', romaji: 'ko'}, {kana: 'サ', romaji: 'sa'}, {kana: 'シ', romaji: 'shi'}, {kana: 'ス', romaji: 'su'}, {kana: 'セ', romaji: 'se'}, {kana: 'ソ', romaji: 'so'}, {kana: 'タ', romaji: 'ta'}, {kana: 'チ', romaji: 'chi'}, {kana: 'ツ', romaji: 'tsu'}, {kana: 'テ', romaji: 'te'}, {kana: 'ト', romaji: 'to'}, {kana: 'ナ', romaji: 'na'}, {kana: 'ニ', romaji: 'ni'}, {kana: 'ヌ', romaji: 'nu'}, {kana: 'ネ', romaji: 'ne'}, {kana: 'ノ', romaji: 'no'}, {kana: 'ハ', romaji: 'ha'}, {kana: 'ヒ', romaji: 'hi'}, {kana: 'フ', romaji: 'fu'}, {kana: 'ヘ', romaji: 'he'}, {kana: 'ホ', romaji: 'ho'}, {kana: 'マ', romaji: 'ma'}, {kana: 'ミ', romaji: 'mi'}, {kana: 'ム', romaji: 'mu'}, {kana: 'メ', romaji: 'me'}, {kana: 'モ', romaji: 'mo'}, {kana: 'ヤ', romaji: 'ya'}, {kana: 'ユ', romaji: 'yu'}, {kana: 'ヨ', romaji: 'yo'}, {kana: 'ラ', romaji: 'ra'}, {kana: 'リ', romaji: 'ri'}, {kana: 'ル', romaji: 'ru'}, {kana: 'レ', romaji: 're'}, {kana: 'ロ', romaji: 'ro'}, {kana: 'ワ', romaji: 'wa'}, {kana: 'ヲ', romaji: 'wo'}, {kana: 'ン', romaji: 'n'} ], "Diacritics (濁点/半濁点)": [ {kana: 'ガ', romaji: 'ga'}, {kana: 'ギ', romaji: 'gi'}, {kana: 'グ', romaji: 'gu'}, {kana: 'ゲ', romaji: 'ge'}, {kana: 'ゴ', romaji: 'go'}, {kana: 'ザ', romaji: 'za'}, {kana: 'ジ', romaji: 'ji'}, {kana: 'ズ', romaji: 'zu'}, {kana: 'ゼ', romaji: 'ze'}, {kana: 'ゾ', romaji: 'zo'}, {kana: 'ダ', romaji: 'da'}, {kana: 'ヂ', romaji: 'ji'}, {kana: 'ヅ', romaji: 'zu'}, {kana: 'デ', romaji: 'de'}, {kana: 'ド', romaji: 'do'}, {kana: 'バ', romaji: 'ba'}, {kana: 'ビ', romaji: 'bi'}, {kana: 'ブ', romaji: 'bu'}, {kana: 'ベ', romaji: 'be'}, {kana: 'ボ', romaji: 'bo'}, {kana: 'パ', romaji: 'pa'}, {kana: 'ピ', romaji: 'pi'}, {kana: 'プ', romaji: 'pu'}, {kana: 'ペ', romaji: 'pe'}, {kana: 'ポ', romaji: 'po'} ], "Digraphs (拗音)": [ {kana: 'キャ', romaji: 'kya'}, {kana: 'キュ', romaji: 'kyu'}, {kana: 'キョ', romaji: 'kyo'}, {kana: 'シャ', romaji: 'sha'}, {kana: 'シュ', romaji: 'shu'}, {kana: 'ショ', romaji: 'sho'}, {kana: 'チャ', romaji: 'cha'}, {kana: 'チュ', romaji: 'chu'}, {kana: 'チョ', romaji: 'cho'}, {kana: 'ニャ', romaji: 'nya'}, {kana: 'ニュ', romaji: 'nyu'}, {kana: 'ニョ', romaji: 'nyo'}, {kana: 'ヒャ', romaji: 'hya'}, {kana: 'ヒュ', romaji: 'hyu'}, {kana: 'ヒョ', romaji: 'hyo'}, {kana: 'ミャ', romaji: 'mya'}, {kana: 'ミュ', romaji: 'myu'}, {kana: 'ミョ', romaji: 'myo'}, {kana: 'リャ', romaji: 'rya'}, {kana: 'リュ', romaji: 'ryu'}, {kana: 'リョ', romaji: 'ryo'}, {kana: 'ギャ', romaji: 'gya'}, {kana: 'ギュ', romaji: 'gyu'}, {kana: 'ギョ', romaji: 'gyo'}, {kana: 'ジャ', romaji: 'ja'}, {kana: 'ジュ', romaji: 'ju'}, {kana: 'ジョ', romaji: 'jo'}, {kana: 'ビャ', romaji: 'bya'}, {kana: 'ビュ', romaji: 'byu'}, {kana: 'ビョ', romaji: 'byo'}, {kana: 'ピャ', romaji: 'pya'}, {kana: 'ピュ', romaji: 'pyu'}, {kana: 'ピョ', romaji: 'pyo'} ] };
+const kanjiData = {
+    "Numbers 🔢": [
+        { id: 'k1', kanji: '一', onyomi: 'イチ, イツ', kunyomi: 'ひと', meaning: 'One' },
+        { id: 'k2', kanji: '二', onyomi: 'ニ', kunyomi: 'ふた', meaning: 'Two' },
+        { id: 'k3', kanji: '三', onyomi: 'サン', kunyomi: 'み', meaning: 'Three' },
+        { id: 'k4', kanji: '四', onyomi: 'シ', kunyomi: 'よん, よ', meaning: 'Four' },
+        { id: 'k5', kanji: '五', onyomi: 'ゴ', kunyomi: 'いつ', meaning: 'Five' },
+        { id: 'k6', kanji: '六', onyomi: 'ロク', kunyomi: 'む', meaning: 'Six' },
+        { id: 'k7', kanji: '七', onyomi: 'シチ', kunyomi: 'なな', meaning: 'Seven' },
+        { id: 'k8', kanji: '八', onyomi: 'ハチ', kunyomi: 'や', meaning: 'Eight' },
+        { id: 'k9', kanji: '九', onyomi: 'キュウ, ク', kunyomi: 'ここの', meaning: 'Nine' },
+        { id: 'k10', kanji: '十', onyomi: 'ジュウ', kunyomi: 'とお', meaning: 'Ten' },
+        { id: 'k11', kanji: '百', onyomi: 'ヒャク', kunyomi: 'もも', meaning: 'Hundred' },
+        { id: 'k12', kanji: '千', onyomi: 'セン', kunyomi: 'ち', meaning: 'Thousand' },
+        { id: 'k13', kanji: '万', onyomi: 'マン', kunyomi: 'よろず', meaning: 'Ten Thousand' },
+        { id: 'k14', kanji: '円', onyomi: 'エン', kunyomi: 'まるい', meaning: 'Yen, Circle' }
+    ],
+    "Time & Calendar 🗓️": [
+        { id: 'k15', kanji: '日', onyomi: 'ニチ, ジツ', kunyomi: 'ひ, -び, -か', meaning: 'Day, Sun' },
+        { id: 'k16', kanji: '月', onyomi: 'ゲツ, ガツ', kunyomi: 'つき', meaning: 'Month, Moon' },
+        { id: 'k17', kanji: '火', onyomi: 'カ', kunyomi: 'ひ, -び', meaning: 'Fire' },
+        { id: 'k18', kanji: '水', onyomi: 'スイ', kunyomi: 'みず', meaning: 'Water' },
+        { id: 'k19', kanji: '木', onyomi: 'モク, ボク', kunyomi: 'き', meaning: 'Tree, Wood' },
+        { id: 'k20', kanji: '金', onyomi: 'キン', kunyomi: 'かね', meaning: 'Gold, Money' },
+        { id: 'k21', kanji: '土', onyomi: 'ド, ト', kunyomi: 'つち', meaning: 'Soil, Earth' },
+        { id: 'k22', kanji: '年', onyomi: 'ネン', kunyomi: 'とし', meaning: 'Year' },
+        { id: 'k23', kanji: '毎', onyomi: 'マイ', kunyomi: 'ごと', meaning: 'Every' },
+        { id: 'k24', kanji: '時', onyomi: 'ジ', kunyomi: 'とき', meaning: 'Time, Hour' },
+        { id: 'k25', kanji: '間', onyomi: 'カン, ケン', kunyomi: 'あいだ, ま', meaning: 'Interval, Between' },
+        { id: 'k26', kanji: '分', onyomi: 'フン, ブン, プン', kunyomi: 'わける', meaning: 'Minute, Part' },
+        { id: 'k27', kanji: '半', onyomi: 'ハン', kunyomi: 'なかば', meaning: 'Half' },
+        { id: 'k28', kanji: '午', onyomi: 'ゴ', kunyomi: 'うま', meaning: 'Noon' },
+        { id: 'k29', kanji: '今', onyomi: 'コン, キン', kunyomi: 'いま', meaning: 'Now' },
+        { id: 'k30', kanji: '週', onyomi: 'シュウ', kunyomi: '', meaning: 'Week' },
+        { id: 'k31', kanji: '曜', onyomi: 'ヨウ', kunyomi: '', meaning: 'Day of the week' }
+    ],
+    "People & Family 👨‍👩‍👧‍👦": [
+        { id: 'k32', kanji: '人', onyomi: 'ジン, ニン', kunyomi: 'ひと', meaning: 'Person' },
+        { id: 'k33', kanji: '子', onyomi: 'シ, ス', kunyomi: 'こ', meaning: 'Child' },
+        { id: 'k34', kanji: '女', onyomi: 'ジョ, ニョ', kunyomi: 'おんな', meaning: 'Woman' },
+        { id: 'k35', kanji: '男', onyomi: 'ダン, ナン', kunyomi: 'おとこ', meaning: 'Man' },
+        { id: 'k36', kanji: '父', onyomi: 'フ', kunyomi: 'ちち', meaning: 'Father' },
+        { id: 'k37', kanji: '母', onyomi: 'ボ', kunyomi: 'はは', meaning: 'Mother' },
+        { id: 'k38', kanji: '友', onyomi: 'ユウ', kunyomi: 'とも', meaning: 'Friend' },
+        { id: 'k39', kanji: '先', onyomi: 'セン', kunyomi: 'さき', meaning: 'Ahead, Previous' },
+        { id: 'k40', kanji: '生', onyomi: 'セイ, ショウ', kunyomi: 'うまれる, いきる, なま', meaning: 'Life, Birth' },
+        { id: 'k41', kanji: '私', onyomi: 'シ', kunyomi: 'わたし', meaning: 'I, Private' },
+        { id: 'k42', kanji: '兄', onyomi: 'ケイ, キョウ', kunyomi: 'あに', meaning: 'Older Brother' },
+        { id: 'k43', kanji: '姉', onyomi: 'シ', kunyomi: 'あね', meaning: 'Older Sister' },
+        { id: 'k44', kanji: '弟', onyomi: 'テイ, ダイ', kunyomi: 'おとうと', meaning: 'Younger Brother' },
+        { id: 'k45', kanji: '妹', onyomi: 'マイ', kunyomi: 'いもうと', meaning: 'Younger Sister' }
+    ],
+    "Body Parts 💪": [
+        { id: 'k47', kanji: '目', onyomi: 'モク', kunyomi: 'め', meaning: 'Eye' },
+        { id: 'k48', kanji: '口', onyomi: 'コウ', kunyomi: 'くち', meaning: 'Mouth' },
+        { id: 'k49', kanji: '耳', onyomi: 'ジ', kunyomi: 'みみ', meaning: 'Ear' },
+        { id: 'k50', kanji: '手', onyomi: 'シュ', kunyomi: 'て', meaning: 'Hand' },
+        { id: 'k51', kanji: '足', onyomi: 'ソク', kunyomi: 'あし', meaning: 'Leg, Foot' }
+    ],
+    "Basic Verbs 🏃": [
+        { id: 'k52', kanji: '見', onyomi: 'ケン', kunyomi: 'みる', meaning: 'See, Look' },
+        { id: 'k53', kanji: '聞', onyomi: 'ブン, モン', kunyomi: 'きく', meaning: 'Hear, Ask' },
+        { id: 'k54', kanji: '言', onyomi: 'ゲン, ゴン', kunyomi: 'いう', meaning: 'Say' },
+        { id: 'k55', kanji: '話', onyomi: 'ワ', kunyomi: 'はなす', meaning: 'Speak, Talk' },
+        { id: 'k56', kanji: '食', onyomi: 'ショク', kunyomi: 'たべる', meaning: 'Eat' },
+        { id: 'k57', kanji: '飲', onyomi: 'イン', kunyomi: 'のむ', meaning: 'Drink' },
+        { id: 'k58', kanji: '買', onyomi: 'バイ', kunyomi: 'かう', meaning: 'Buy' },
+        { id: 'k59', kanji: '行', onyomi: 'コウ, ギョウ', kunyomi: 'いく', meaning: 'Go' },
+        { id: 'k60', kanji: '来', onyomi: 'ライ', kunyomi: 'くる', meaning: 'Come' },
+        { id: 'k61', kanji: '帰', onyomi: 'キ', kunyomi: 'かえる', meaning: 'Return' },
+        { id: 'k62', kanji: '休', onyomi: 'キュウ', kunyomi: 'やすむ', meaning: 'Rest' },
+        { id: 'k63', kanji: '学', onyomi: 'ガク', kunyomi: 'まなぶ', meaning: 'Study, Learn' },
+        { id: 'k64', kanji: '読', onyomi: 'ドク', kunyomi: 'よむ', meaning: 'Read' },
+        { id: 'k65', kanji: '書', onyomi: 'ショ', kunyomi: 'かく', meaning: 'Write' },
+        { id: 'k66', kanji: '会', onyomi: 'カイ', kunyomi: 'あう', meaning: 'Meet' },
+        { id: 'k67', kanji: '出', onyomi: 'シュツ', kunyomi: 'でる, だす', meaning: 'Go out, Put out' },
+        { id: 'k68', kanji: '入', onyomi: 'ニュウ', kunyomi: 'はいる, いれる', meaning: 'Enter, Put in' },
+        { id: 'k69', kanji: '立', onyomi: 'リツ', kunyomi: 'たつ', meaning: 'Stand' },
+        { id: 'k70', kanji: '知', onyomi: 'チ', kunyomi: 'しる', meaning: 'Know' },
+        { id: 'k71', kanji: '思', onyomi: 'シ', kunyomi: 'おもう', meaning: 'Think' },
+        { id: 'k72', kanji: '作', onyomi: 'サク, サ', kunyomi: 'つくる', meaning: 'Make' },
+        { id: 'k73', kanji: '使', onyomi: 'シ', kunyomi: 'つかう', meaning: 'Use' },
+        { id: 'k74', kanji: '持', onyomi: 'ジ', kunyomi: 'もつ', meaning: 'Hold, Have' },
+        { id: 'k75', kanji: '待', onyomi: 'タイ', kunyomi: 'まつ', meaning: 'Wait' },
+        { id: 'k76', kanji: '住', onyomi: 'ジュウ', kunyomi: 'すむ', meaning: 'Live' },
+        { id: 'k77', kanji: '売', onyomi: 'バイ', kunyomi: 'うる', meaning: 'Sell' },
+        { id: 'k78', kanji: '教', onyomi: 'キョウ', kunyomi: 'おしえる', meaning: 'Teach' },
+        { id: 'k79', kanji: '勉', onyomi: 'ベン', kunyomi: 'つとめる', meaning: 'Strive' },
+        { id: 'k80', kanji: '強', onyomi: 'キョウ', kunyomi: 'つよい', meaning: 'Strong' }
+    ],
+    "Basic Adjectives ✨": [
+        { id: 'k81', kanji: '大', onyomi: 'ダイ, タイ', kunyomi: 'おおきい', meaning: 'Big' },
+        { id: 'k82', kanji: '小', onyomi: 'ショウ', kunyomi: 'ちいさい', meaning: 'Small' },
+        { id: 'k83', kanji: '高', onyomi: 'コウ', kunyomi: 'たかい', meaning: 'High, Expensive' },
+        { id: 'k84', kanji: '安', onyomi: 'アン', kunyomi: 'やすい', meaning: 'Cheap, Safe' },
+        { id: 'k85', kanji: '新', onyomi: 'シン', kunyomi: 'あたらしい', meaning: 'New' },
+        { id: 'k86', kanji: '古', onyomi: 'コ', kunyomi: 'ふるい', meaning: 'Old' },
+        { id: 'k87', kanji: '長', onyomi: 'チョウ', kunyomi: 'ながい', meaning: 'Long' },
+        { id: 'k88', kanji: '多', onyomi: 'タ', kunyomi: 'おおい', meaning: 'Many, Much' },
+        { id: 'k89', kanji: '少', onyomi: 'ショウ', kunyomi: 'すくない, すこし', meaning: 'Few, A little' },
+        { id: 'k90', kanji: '白', onyomi: 'ハク', kunyomi: 'しろい', meaning: 'White' },
+        { id: 'k91', kanji: '赤', onyomi: 'セキ', kunyomi: 'あかい', meaning: 'Red' },
+        { id: 'k92', kanji: '青', onyomi: 'セイ', kunyomi: 'あおい', meaning: 'Blue' },
+        { id: 'k93', kanji: '早', onyomi: 'ソウ', kunyomi: 'はやい', meaning: 'Early, Fast' },
+        { id: 'k94', kanji: '明', onyomi: 'メイ', kunyomi: 'あかるい', meaning: 'Bright' },
+        { id: 'k95', kanji: '好', onyomi: 'コウ', kunyomi: 'すき', meaning: 'Like' },
+        { id: 'k96', kanji: '元', onyomi: 'ゲン, ガン', kunyomi: 'もと', meaning: 'Origin, Healthy' },
+        { id: 'k97', kanji: '近', onyomi: 'キン', kunyomi: 'ちかい', meaning: 'Near' },
+        { id: 'k98', kanji: '遠', onyomi: 'エン', kunyomi: 'とおい', meaning: 'Far' }
+    ],
+    "Places & Directions 🗺️": [
+        { id: 'k99', kanji: '上', onyomi: 'ジョウ', kunyomi: 'うえ', meaning: 'Up, Above' },
+        { id: 'k100', kanji: '下', onyomi: 'カ, ゲ', kunyomi: 'した', meaning: 'Down, Below' },
+        { id: 'k101', kanji: '中', onyomi: 'チュウ', kunyomi: 'なか', meaning: 'Middle, In' },
+        { id: 'k102', kanji: '外', onyomi: 'ガイ, ゲ', kunyomi: 'そと', meaning: 'Outside' },
+        { id: 'k103', kanji: '右', onyomi: 'ウ, ユウ', kunyomi: 'みぎ', meaning: 'Right' },
+        { id: 'k104', kanji: '左', onyomi: 'サ', kunyomi: 'ひだり', meaning: 'Left' },
+        { id: 'k105', kanji: '東', onyomi: 'トウ', kunyomi: 'ひがし', meaning: 'East' },
+        { id: 'k106', kanji: '西', onyomi: 'セイ, サイ', kunyomi: 'にし', meaning: 'West' },
+        { id: 'k107', kanji: '南', onyomi: 'ナン', kunyomi: 'みなみ', meaning: 'South' },
+        { id: 'k108', kanji: '北', onyomi: 'ホク', kunyomi: 'きた', meaning: 'North' },
+        { id: 'k109', kanji: '前', onyomi: 'ゼン', kunyomi: 'まえ', meaning: 'Before, Front' },
+        { id: 'k110', kanji: '後', onyomi: 'ゴ, コウ', kunyomi: 'うしろ, あと', meaning: 'After, Back' },
+        { id: 'k111', kanji: '校', onyomi: 'コウ', kunyomi: '', meaning: 'School' },
+        { id: 'k112', kanji: '店', onyomi: 'テン', kunyomi: 'みせ', meaning: 'Shop' },
+        { id: 'k113', kanji: '駅', onyomi: 'エキ', kunyomi: '', meaning: 'Station' },
+        { id: 'k114', kanji: '道', onyomi: 'ドウ', kunyomi: 'みち', meaning: 'Road' },
+        { id: 'k115', kanji: '国', onyomi: 'コク', kunyomi: 'くに', meaning: 'Country' },
+        { id: 'k116', kanji: '社', onyomi: 'シャ', kunyomi: 'やしろ', meaning: 'Company, Shrine' },
+        { id: 'k117', kanji: '家', onyomi: 'カ, ケ', kunyomi: 'いえ, うち', meaning: 'House' }
+    ],
+    "Nature & Objects 🌳": [
+        { id: 'k118', kanji: '山', onyomi: 'サン', kunyomi: 'やま', meaning: 'Mountain' },
+        { id: 'k119', kanji: '川', onyomi: 'セン', kunyomi: 'かわ', meaning: 'River' },
+        { id: 'k120', kanji: '花', onyomi: 'カ', kunyomi: 'はな', meaning: 'Flower' },
+        { id: 'k121', kanji: '雨', onyomi: 'ウ', kunyomi: 'あめ', meaning: 'Rain' },
+        { id: 'k122', kanji: '空', onyomi: 'クウ', kunyomi: 'そら', meaning: 'Sky' },
+        { id: 'k123', kanji: '天', onyomi: 'テン', kunyomi: 'あま', meaning: 'Heaven' },
+        { id: 'k124', kanji: '気', onyomi: 'キ, ケ', kunyomi: 'いき', meaning: 'Spirit, Air' },
+        { id: 'k125', kanji: '電', onyomi: 'デン', kunyomi: '', meaning: 'Electricity' },
+        { id: 'k126', kanji: '車', onyomi: 'シャ', kunyomi: 'くるま', meaning: 'Car, Vehicle' },
+        { id: 'k127', kanji: '魚', onyomi: 'ギョ', kunyomi: 'さかな', meaning: 'Fish' },
+        { id: 'k128', kanji: '肉', onyomi: 'ニク', kunyomi: 'しし', meaning: 'Meat' },
+        { id: 'k129', kanji: '茶', onyomi: 'チャ, サ', kunyomi: 'た', meaning: 'Tea' },
+        { id: 'k130', kanji: '犬', onyomi: 'ケン', kunyomi: 'いぬ', meaning: 'Dog' },
+        { id: 'k131', kanji: '本', onyomi: 'ホン', kunyomi: 'もと', meaning: 'Book, Origin' },
+        { id: 'k132', kanji: '名', onyomi: 'メイ, ミョウ', kunyomi: 'な', meaning: 'Name' },
+        { id: 'k133', kanji: '英', onyomi: 'エイ', kunyomi: '', meaning: 'England, English' },
+        { id: 'k134', kanji: '語', onyomi: 'ゴ', kunyomi: 'かたる', meaning: 'Language, Word' }
+    ]
+};
+const vocabData = [ { id: 'v1', word: 'わたし', reading: 'watashi', meaning: 'I, me' }, { id: 'v2', word: 'あなた', reading: 'anata', meaning: 'you' }, { id: 'v3', word: 'これ', reading: 'kore', meaning: 'this' }, { id: 'v4', word: 'それ', reading: 'sore', meaning: 'that' }, { id: 'v5', word: 'あれ', reading: 'are', meaning: 'that over there' }, { id: 'v6', word: 'がっこう', reading: 'gakkou', meaning: 'school' }, { id: 'v7', word: 'せんせい', reading: 'sensei', meaning: 'teacher' }, { id: 'v8', word: 'がくせい', reading: 'gakusei', meaning: 'student' }, { id: 'v9', word: 'ほん', reading: 'hon', meaning: 'book' }, { id: 'v10', word: 'えんぴつ', reading: 'enpitsu', meaning: 'pencil' }, { id: 'v11', word: 'とけい', reading: 'tokei', meaning: 'clock, watch' }, { id: 'v12', word: 'かさ', reading: 'kasa', meaning: 'umbrella' }, { id: 'v13', word: 'つくえ', reading: 'tsukue', meaning: 'desk' }, { id: 'v14', word: 'いす', reading: 'isu', meaning: 'chair' }, { id: 'v15', word: 'たべます', reading: 'tabemasu', meaning: 'to eat' }, { id: 'v16', word: 'のみます', reading: 'nomimasu', meaning: 'to drink' }, { id: 'v17', word: 'いきます', reading: 'ikimasu', meaning: 'to go' }, { id: 'v18', word: 'きます', reading: 'kimasu', meaning: 'to come' }, { id: 'v19', word: 'かえります', reading: 'kaerimasu', meaning: 'to return' }, { id: 'v20', word: 'みます', reading: 'mimasu', meaning: 'to see, watch' }, { id: 'v21', word: 'ききます', reading: 'kikimasu', meaning: 'to listen, ask' }, { id: 'v22', word: 'よみます', reading: 'yomimasu', meaning: 'to read' }, { id: 'v23', word: 'かきます', reading: 'kakimasu', meaning: 'to write' }, { id: 'v24', word: 'かいます', reading: 'kaimasu', meaning: 'to buy' }, { id: 'v25', word: 'はなします', reading: 'hanashimasu', meaning: 'to speak'}, { id: 'v26', word: 'べんきょうします', reading: 'benkyou shimasu', meaning: 'to study'}, { id: 'v27', word: 'あります', reading: 'arimasu', meaning: 'to exist (inanimate)'}, { id: 'v28', word: 'います', reading: 'imasu', meaning: 'to exist (animate)'}, { id: 'v29', word: 'おはよう', reading: 'ohayou', meaning: 'good morning' }, { id: 'v30', word: 'こんにちは', reading: 'konnichiwa', meaning: 'hello' }, { id: 'v31', word: 'こんばんは', reading: 'konbanwa', meaning: 'good evening' }, { id: 'v32', word: 'さようなら', reading: 'sayounara', meaning: 'goodbye' }, { id: 'v33', word: 'おやすみ', reading: 'oyasumi', meaning: 'good night' }, { id: 'v34', word: 'ありがとう', reading: 'arigatou', meaning: 'thank you' }, { id: 'v35', word: 'すみません', reading: 'sumimasen', meaning: 'excuse me' }, { id: 'v36', word: 'おおきい', reading: 'ookii', meaning: 'big' }, { id: 'v37', word: 'ちいさい', reading: 'chiisai', meaning: 'small' }, { id: 'v38', word: 'あたらしい', reading: 'atarashii', meaning: 'new' }, { id: 'v39', word: 'ふるい', reading: 'furui', meaning: 'old' }, { id: 'v40', word: 'いい', reading: 'ii / yoi', meaning: 'good' }, { id: 'v41', word: 'わるい', reading: 'warui', meaning: 'bad' }, { id: 'v42', word: 'たかい', reading: 'takai', meaning: 'expensive, high' }, { id: 'v43', word: 'やすい', reading: 'yasui', meaning: 'cheap' }, { id: 'v44', word: 'おいしい', reading: 'oishii', meaning: 'delicious' }, { id: 'v45', word: 'いそがしい', reading: 'isogashii', meaning: 'busy' }, { id: 'v46', word: 'たのしい', reading: 'tanoshii', meaning: 'fun' }, { id: 'v47', word: 'おもしろい', reading: 'omoshiroi', meaning: 'interesting' }, { id: 'v48', word: 'むずかしい', reading: 'muzukashii', meaning: 'difficult' }, { id: 'v49', word: 'やさしい', reading: 'yasashii', meaning: 'easy' }, { id: 'v50', word: 'あつい', reading: 'atsui', meaning: 'hot (weather/thing)' }, { id: 'v51', word: 'さむい', reading: 'samui', meaning: 'cold (weather)' }, { id: 'v52', word: 'つめたい', reading: 'tsumetai', meaning: 'cold (to touch)' }, { id: 'v53', word: 'きれい', reading: 'kirei', meaning: 'beautiful, clean' }, { id: 'v54', word: 'げんき', reading: 'genki', meaning: 'healthy, lively' }, { id: 'v55', word: 'しずか', reading: 'shizuka', meaning: 'quiet' }, { id: 'v56', word: 'にぎやか', reading: 'nigiyaka', meaning: 'bustling, lively' }, { id: 'v57', word: 'かぞく', reading: 'kazoku', meaning: 'family' }, { id: 'v58', word: 'えいが', reading: 'eiga', meaning: 'movie' }, { id: 'v59', word: 'おんがく', reading: 'ongaku', meaning: 'music' }, { id: 'v60', word: 'スポーツ', reading: 'supootsu', meaning: 'sports' } ];
+const grammarData = [ { title: 'Aは Bです (A is B)', content: 'This is the most basic sentence structure. It identifies A as B.<br><b>Example:</b> わたしは　がくせいです。 (Watashi wa gakusei desu.) - I am a student.' }, { title: 'Particles: は, が, を, の, も', content: '<b>は (wa)</b>: topic marker. <b>が (ga)</b>: subject marker. <b>を (o)</b>: object marker. <b>の (no)</b>: possessive marker. <b>も (mo)</b>: "also", "too".<br><b>Example (も):</b> やまださんも　がくせいです。(Yamada-san mo gakusei desu.) - Mr. Yamada is also a student.'}, { title: 'Particles: に, へ, で (Location/Time)', content: '<b>に (ni)</b>: Marks a specific time (e.g., ６時に), a destination (e.g., がっこうに　いきます), or existence (e.g., つくえのうえに　あります).<br><b>へ (e)</b>: Marks direction of travel (interchangeable with に for movement).<br><b>で (de)</b>: Marks the location of an action (e.g., としょかんで　べんきょうします) or the means (e.g., でんしゃで　いきます).'}, { title: 'Particles: から, まで (From, Until)', content: 'Used to mark a starting point (から) and an ending point (まで) in time or space.<br><b>Example:</b> ぎんこうは　９じから　３じまでです。(Ginkou wa kuji kara sanji made desu.) - The bank is open from 9:00 to 3:00.'}, { title: 'Verb Conjugation: ます/ません/ました/ませんでした', content: 'The four basic verb forms. Present Affirmative (ます), Present Negative (ません), Past Affirmative (ました), Past Negative (ませんでした).<br><b>Example:</b> きのう、テレビを　みませんでした。(Kinou, terebi o mimasen deshita.) - I did not watch TV yesterday.' }, { title: 'Place に Thing が あります / います', content: 'Used to say something exists. Use あります (arimasu) for inanimate objects and います (imasu) for animate things (people, animals).<br><b>Example (inanimate):</b> へやに　テレビが　あります。(Heya ni terebi ga arimasu.) - There is a TV in the room.<br><b>Example (animate):</b> こうえんに　こどもが　います。(Kouen ni kodomo ga imasu.) - There are children in the park.'}, { title: 'Adjective Conjugation', content: '<b>い-adjectives:</b> Negative (くない), Past (かった), Past Negative (くなかった).<br><b>な-adjectives:</b> Use with です. Negative (じゃないです), Past (でした), Past Negative (じゃなかったです).<br><b>Example (い-adj):</b> きのうは　あつかったです。(Kinou wa atsukatta desu.) - Yesterday was hot.<br><b>Example (な-adj):</b> このへやは　しずかじゃないです。(Kono heya wa shizuka janai desu.) - This room is not quiet.'}, { title: 'Verb Te-form + ください (Please do)', content: 'A polite request. You must learn Te-form conjugation rules for different verb groups.<br><b>Example:</b> ちょっと　まって　ください。(Chotto matte kudasai.) - Please wait a moment.'} ];
+const readingPassages = [ { id: 'reading1', title: '読解練習 1: 田中さんの日', passage: 'わたしは　たなかです。まいにち　しちじに　おきます。あさごはんを　たべます。パンと　コーヒーを　のみます。はちじに　うちを　でます。でんしゃで　かいしゃへ　いきます。かいしゃは　くじから　ごじまでです。しごとは　いそがしいですが、たのしいです。<br><br>よる、うちへ　かえります。ばんごはんを　たべて、テレビを　みます。じゅうにじに　ねます。', questions: [ { question: "1. たなかさんは　なんじに　おきますか。", options: ["ごじ", "しちじ", "はちじ", "くじ"], answer: "しちじ" }, { question: "2. なんで　かいしゃへ　いきますか。", options: ["バス", "くるま", "じてんしゃ", "でんしゃ"], answer: "でんしゃ" } ] }, { id: 'reading2', title: '読解練習 2: きのうの休み', passage: 'きのうは　やすみでした。わたしは　ともだちと　きょうとへ　いきました。きょうとは　ふるいまちです。きれいな　おてらが　たくさん　ありました。わたしたちは　しゃしんを　たくさん　とりました。それから、あたらしいみせで　ひるごはんを　たべました。とても　おいしかったです。でも、とても　あつかったです。よる　うちへ　かえりました。とても　たのしい　いちにちでした。', questions: [ { question: "1. きのう　だれと　どこへ　いきましたか。", options: ["ひとりで　ならへ", "ともだちと　きょうとへ", "かぞくと　おおさかへ", "ともだちと　とうきょうへ"], answer: "ともだちと　きょうとへ" }, { question: "2. きょうとで　なにを　しましたか。", options: ["ほんを　よみました", "えいがを　みました", "しゃしんを　とりました", "かいものを　しました"], answer: "しゃしんを　とりました" } ] } ];
+const listeningData = [ { id: 'listening1', title: '聴解練習 1: 買い物', dialogue: '<b>女の人：</b>すみません、そのくろいかさ、いくらですか。<br><b>男の人：</b>これですか。これは、せんにひゃくえんです。<br><b>女の人：</b>じゃあ、これをください。', question: '女の人は　なにを　かいましたか。', options: ["しろいかさ", "くろいかさ", "あおいかさ", "かばん"], answer: "くろいかさ" }, { id: 'listening2', title: '聴解練習 2: 時間', dialogue: '<b>男の人：</b>いま　なんじですか。<br><b>女の人：</b>えーと、ごじじゅっぷんです。<br><b>男の人：</b>そうですか。ありがとうございます。えいがは　ごじはんからですね。いそぎましょう。', question: 'えいがは　なんじからですか。', options: ["ごじ", "ごじじゅっぷん", "ごじはん", "ろくじ"], answer: "ごじはん" } ];
 
-const vocabData = [
-    { word: 'わたし', reading: 'watashi', meaning: 'I, me' }, { word: 'あなた', reading: 'anata', meaning: 'you' }, { word: 'これ', reading: 'kore', meaning: 'this' }, { word: 'それ', reading: 'sore', meaning: 'that' }, { word: 'あれ', reading: 'are', meaning: 'that over there' }, { word: 'がっこう', reading: 'gakkou', meaning: 'school' }, { word: 'せんせい', reading: 'sensei', meaning: 'teacher' }, { word: 'がくせい', reading: 'gakusei', meaning: 'student' }, { word: 'ほん', reading: 'hon', meaning: 'book' }, { word: 'えんぴつ', reading: 'enpitsu', meaning: 'pencil' }, { word: 'とけい', reading: 'tokei', meaning: 'clock, watch' }, { word: 'かさ', reading: 'kasa', meaning: 'umbrella' }, { word: 'つくえ', reading: 'tsukue', meaning: 'desk' }, { word: 'いす', reading: 'isu', meaning: 'chair' }, { word: 'たべます', reading: 'tabemasu', meaning: 'to eat' }, { word: 'のみます', reading: 'nomimasu', meaning: 'to drink' }, { word: 'いきます', reading: 'ikimasu', meaning: 'to go' }, { word: 'きます', reading: 'kimasu', meaning: 'to come' }, { word: 'かえります', reading: 'kaerimasu', meaning: 'to return' }, { word: 'みます', reading: 'mimasu', meaning: 'to see, watch' }, { word: 'ききます', reading: 'kikimasu', meaning: 'to listen' }, { word: 'よみます', reading: 'yomimasu', meaning: 'to read' }, { word: 'かきます', reading: 'kakimasu', meaning: 'to write' }, { word: 'かいます', reading: 'kaimasu', meaning: 'to buy' }, { word: 'はなします', reading: 'hanashimasu', meaning: 'to speak'}, { word: 'べんきょうします', reading: 'benkyou shimasu', meaning: 'to study'}, { word: 'あります', reading: 'arimasu', meaning: 'to exist (inanimate)'}, { word: 'います', reading: 'imasu', meaning: 'to exist (animate)'}, { word: 'おはよう', reading: 'ohayou', meaning: 'good morning' }, { word: 'こんにちは', reading: 'konnichiwa', meaning: 'hello' }, { word: 'こんばんは', reading: 'konbanwa', meaning: 'good evening' }, { word: 'さようなら', reading: 'sayounara', meaning: 'goodbye' }, { word: 'おやすみ', reading: 'oyasumi', meaning: 'good night' }, { word: 'ありがとう', reading: 'arigatou', meaning: 'thank you' }, { word: 'すみません', reading: 'sumimasen', meaning: 'excuse me' }, { word: 'おおきい', reading: 'ookii', meaning: 'big' }, { word: 'ちいさい', reading: 'chiisai', meaning: 'small' }, { word: 'あたらしい', reading: 'atarashii', meaning: 'new' }, { word: 'ふるい', reading: 'furui', meaning: 'old' }, { word: 'いい', reading: 'ii', meaning: 'good' }, { word: 'わるい', reading: 'warui', meaning: 'bad' }, { word: 'たかい', reading: 'takai', meaning: 'expensive, high' }, { word: 'やすい', reading: 'yasui', meaning: 'cheap' }, { word: 'おいしい', reading: 'oishii', meaning: 'delicious' }, { word: 'いそがしい', reading: 'isogashii', meaning: 'busy' }, { word: 'たのしい', reading: 'tanoshii', meaning: 'fun' }, { word: 'おもしろい', reading: 'omoshiroi', meaning: 'interesting' }, { word: 'むずかしい', reading: 'muzukashii', meaning: 'difficult' }, { word: 'やさしい', reading: 'yasashii', meaning: 'easy' }, { word: 'あつい', reading: 'atsui', meaning: 'hot (weather)' }, { word: 'さむい', reading: 'samui', meaning: 'cold (weather)' }, { word: 'きれい', reading: 'kirei', meaning: 'beautiful, clean' }, { word: 'げんき', reading: 'genki', meaning: 'healthy, lively' }, { word: 'しずか', reading: 'shizuka', meaning: 'quiet' }, { word: 'にぎやか', reading: 'nigiyaka', meaning: 'bustling, lively' }, { word: 'なまえ', reading: 'namae', meaning: 'name' }, { word: 'でんわ', reading: 'denwa', meaning: 'telephone' }, { word: 'てんき', reading: 'tenki', meaning: 'weather' }, { word: 'くに', reading: 'kuni', meaning: 'country' }, { word: 'おとこのひと', reading: 'otoko no hito', meaning: 'man' }, { word: 'おんなのひと', reading: 'onna no hito', meaning: 'woman' }, { word: 'こども', reading: 'kodomo', meaning: 'child' }, { word: 'やま', reading: 'yama', meaning: 'mountain' }, { word: 'かわ', reading: 'kawa', meaning: 'river' }, { word: 'はな', reading: 'hana', meaning: 'flower' }, { word: 'みせ', reading: 'mise', meaning: 'shop, store' }, { word: 'まいにち', reading: 'mainichi', meaning: 'every day' }, { word: 'いつも', reading: 'itsumo', meaning: 'always' }, { word: 'ときどき', reading: 'tokidoki', meaning: 'sometimes' }, { word: 'そして', reading: 'soshite', meaning: 'and then' }, { word: 'それから', reading: 'sorekara', meaning: 'after that' }, { word: 'でも', reading: 'demo', meaning: 'but, however' },
-];
+// --- PROGRESS TRACKING ---
+let progress = {
+    kanji: [],
+    vocab: []
+};
 
-const grammarData = [
-    { title: 'Aは Bです (A is B)', content: 'This is the most basic sentence structure. It identifies A as B.<br><b>Example:</b> わたしは　がくせいです。 (Watashi wa gakusei desu.) - I am a student.' },
-    { title: 'Negatives: Nouns/Na-adjectives', content: 'To make a noun or na-adjective negative, change です to じゃないです (or じゃありません).<br><b>Example:</b> わたしは　せんせいじゃないです。 (Watashi wa sensei janai desu.) - I am not a teacher.' },
-    { title: 'Negatives: I-adjectives', content: 'To make an i-adjective negative, remove the final い and add くないです.<br><b>Example:</b> このほんは　おもしろくないです。 (Kono hon wa omoshirokunai desu.) - This book is not interesting.' },
-    { title: 'Negatives: Verbs', content: 'To make a verb negative, change the 〜ます ending to 〜ません.<br><b>Example:</b> わたしは　コーヒーを　のみません。 (Watashi wa koohii o nomimasen.) - I do not drink coffee.' },
-    { title: 'Past Tense: Nouns/Verbs', content: 'For nouns, change です to でした. For verbs, change 〜ます to 〜ました.<br><b>Example (Noun):</b> きのうは　あめでした。 (Kinou wa ame deshita.) - Yesterday was rainy.<br><b>Example (Verb):</b> きのう　えいがを　みました。 (Kinou eiga o mimashita.) - I watched a movie yesterday.'},
-    { title: 'Particles: は, が, を, の', content: '<b>は (wa)</b>: topic marker. <b>が (ga)</b>: subject marker. <b>を (o)</b>: object marker. <b>の (no)</b>: possessive marker.<br><b>Review:</b> The basics! Make sure you know what each one does.'},
-    { title: 'Particles: に, へ, で (Location/Time)', content: '<b>に (ni)</b>: Marks a specific time (e.g., ６時に), a destination (e.g., がっこうに　いきます), or existence (e.g., つくえのうえに　あります).<br><b>へ (e)</b>: Marks direction of travel (interchangeable with に for movement).<br><b>で (de)</b>: Marks the location of an action (e.g., としょかんで　べんきょうします) or the means (e.g., でんしゃで　いきます).'},
-    { title: 'Place に Thing が あります / います', content: 'Used to say something exists. Use あります (arimasu) for inanimate objects and います (imasu) for animate things (people, animals).<br><b>Example (inanimate):</b> へやに　テレビが　あります。(Heya ni terebi ga arimasu.) - There is a TV in the room.<br><b>Example (animate):</b> こうえんに　こどもが　います。(Kouen ni kodomo ga imasu.) - There are children in the park.'},
-    { title: 'Verb Stem + たいです (Want to do)', content: 'To express what you want to do, remove ます from the verb and add たいです.<br><b>Example:</b> わたしは　にほんへ　いきたいです。(Watashi wa Nihon e ikitai desu.) - I want to go to Japan.'},
-    { title: 'Connectors: そして, それから, でも', content: '<b>そして (soshite):</b> And, and then (connects sentences).<br><b>それから (sorekara):</b> After that, and then (indicates sequence).<br><b>でも (demo):</b> But, however (shows contrast).'}
-];
-
-const readingPassages = [
-    {
-        id: 'reading1',
-        title: '読解練習 1 (Reading Practice 1)',
-        passage: 'わたしは　たなかです。まいにち　しちじに　おきます。あさごはんを　たべます。パンと　コーヒーを　のみます。はちじに　うちを　でます。でんしゃで　かいしゃへ　いきます。かいしゃは　くじから　ごじまでです。しごとは　いそがしいですが、たのしいです。<br><br>よる、うちへ　かえります。ばんごはんを　たべて、テレビを　みます。じゅうにじに　ねます。',
-        questions: [
-            { question: "1. たなかさんは　なんじに　おきますか。", options: ["ごじ", "しちじ", "はちじ", "くじ"], answer: "しちじ" },
-            { question: "2. あさごはんを　なにを　たべますか。", options: ["ごはん", "パン", "たまご", "さかな"], answer: "パン" },
-            { question: "3. なんで　かいしゃへ　いきますか。", options: ["バス", "くるま", "じてんしゃ", "でんしゃ"], answer: "でんしゃ" },
-            { question: "4. しごとは　どうですか。", options: ["ひまです", "いそがしいですが、たのしいです", "つまらないです", "むずかしいです"], answer: "いそがしいですが、たのしいです" }
-        ]
-    },
-    {
-        id: 'reading2',
-        title: '読解練習 2 (Reading Practice 2)',
-        passage: 'きのうは　やすみでした。わたしは　ともだちと　きょうとへ　いきました。きょうとは　ふるいまちです。きれいな　おてらが　たくさん　ありました。わたしたちは　しゃしんを　たくさん　とりました。それから、あたらしいみせで　ひるごはんを　たべました。とても　おいしかったです。でも、とても　あつかったです。よる　うちへ　かえりました。とても　たのしい　いちにちでした。',
-        questions: [
-            { question: "1. きのう　どこへ　いきましたか。", options: ["おおさか", "なら", "きょうと", "とうきょう"], answer: "きょうと" },
-            { question: "2. きょうとは　どんなまちですか。", options: ["あたらしいまち", "にぎやかなまち", "しずかなまち", "ふるいまち"], answer: "ふるいまち" },
-            { question: "3. ひるごはんは　どうでしたか。", options: ["やすかったです", "おいしかったです", "たかくなかったです", "おいしくなかったです"], answer: "おいしかったです" },
-            { question: "4. きのうのてんきは　どうでしたか。", options: ["さむかったです", "すずしかったです", "あつかったです", "よくなかったです"], answer: "あつかったです" }
-        ]
+function loadProgress() {
+    const savedProgress = localStorage.getItem('jlptN5Progress');
+    if (savedProgress) {
+        progress = JSON.parse(savedProgress);
     }
-];
+}
 
-const listeningData = [
-    {
-        id: 'listening1',
-        title: '聴解練習 1',
-        dialogue: '<b>女の人：</b>すみません、そのくろいかさ、いくらですか。<br><b>男の人：</b>これですか。これは、せんにひゃくえんです。<br><b>女の人：</b>じゃあ、これをください。',
-        question: '女の人は　なにを　かいましたか。',
-        options: ["しろいかさ", "くろいかさ", "あおいかさ", "かばん"],
-        answer: "くろいかさ"
-    },
-    {
-        id: 'listening2',
-        title: '聴解練習 2',
-        dialogue: '<b>男の人：</b>いま　なんじですか。<br><b>女の人：</b>えーと、ごじじゅっぷんです。<br><b>男の人：</b>そうですか。ありがとうございます。えいがは　ごじはんからですね。いそぎましょう。',
-        question: 'えいがは　なんじからですか。',
-        options: ["ごじ", "ごじじゅっぷん", "ごじはん", "ろくじ"],
-        answer: "ごじはん"
+function saveProgress() {
+    localStorage.setItem('jlptN5Progress', JSON.stringify(progress));
+    updateProgressDashboard();
+}
+
+function toggleLearned(category, id, element) {
+    const index = progress[category].indexOf(id);
+    if (index > -1) {
+        progress[category].splice(index, 1); // Remove if already learned
+        element.classList.remove('learned');
+    } else {
+        progress[category].push(id); // Add if not learned
+        element.classList.add('learned');
     }
-];
+    saveProgress();
+}
 
-// --- FUNCTIONS ---
+// --- UI RENDERING ---
+/**
+ * Initializes the Speech Synthesis API.
+ * This function "warms up" the API by fetching the list of voices.
+ */
+function initSpeechSynthesis() {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                console.log("Speech synthesis voices loaded.");
+            };
+        }
+    }
+}
+
+function pronounceWord(word, event) {
+    if (event) event.stopPropagation();
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+    } else {
+        alert("Text-to-speech not supported by your browser.");
+    }
+}
 
 function changeTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(tabName).classList.add('active');
-    document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('active-tab', 'text-gray-700');
-        b.classList.add('border-transparent', 'text-gray-500');
-    });
-    const activeButton = document.querySelector(`.tab-btn[onclick="changeTab('${tabName}')"]`);
-    activeButton.classList.add('active-tab', 'text-gray-700');
-    activeButton.classList.remove('border-transparent', 'text-gray-500');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.nav-item[onclick="changeTab('${tabName}')"]`).classList.add('active');
+    
+    document.getElementById('search-input').value = '';
+    document.getElementById('mobile-search-input').value = '';
+    handleSearch();
+    
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        overlay.classList.add('hidden');
+        document.body.classList.remove('sidebar-open');
+    }
 }
 
-const createCard = (front, back, backColor) => `
-    <div class="card h-40 cursor-pointer" onclick="this.classList.toggle('is-flipped')">
-        <div class="card-inner">
-            <div class="card-face card-face-front"><p class="text-6xl">${front}</p></div>
-            <div class="card-face card-face-back" style="background-color: ${backColor};">${back}</div>
-        </div>
-    </div>`;
-
-const createGrammarPoint = (g) => `
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <button class="w-full text-left p-4 font-bold text-lg bg-gray-50 hover:bg-gray-100 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-            <span>${g.title}</span><span class="text-xl transform transition-transform">↓</span>
-        </button>
-        <div class="p-4 border-t border-gray-200 hidden"><p class="text-gray-700">${g.content}</p></div>
-    </div>`;
-
-const createQuiz = (item) => {
-    let questionsHtml;
-    // Check if the item is a reading passage (has a 'questions' array) or a listening item.
-    const isReadingPassage = Array.isArray(item.questions);
-
-    if (isReadingPassage) {
-        // Logic for reading passages with multiple questions
-        questionsHtml = item.questions.map((q, index) => {
-            const optionsHtml = q.options.map((option, i) => `
-                <button class="quiz-option w-full text-left p-3 border rounded-lg hover:bg-blue-100 transition-colors" data-question-id="${item.id}-q${index}" data-answer="${option}">
-                    ${String.fromCharCode(97 + i)}. ${option}
-                </button>`).join('');
-            return `<div class="question-block" data-correct-answer="${q.answer}">
-                <p class="font-semibold mb-3">${q.question}</p>
-                <div class="space-y-2">${optionsHtml}</div>
-            </div>`;
-        }).join('');
-    } else {
-        // Logic for listening items with a single question
-        const optionsHtml = item.options.map((option, i) => `
-            <button class="quiz-option w-full text-left p-3 border rounded-lg hover:bg-blue-100 transition-colors" data-question-id="${item.id}-q0" data-answer="${option}">
-                ${String.fromCharCode(97 + i)}. ${option}
-            </button>`).join('');
-        questionsHtml = `<div class="question-block" data-correct-answer="${item.answer}">
-            <p class="font-semibold mb-3">${item.question}</p>
-            <div class="space-y-2">${optionsHtml}</div>
-        </div>`;
+const createCard = (item, category, backGradient) => {
+    const isLearned = progress[category].includes(item.id);
+    let frontContent;
+    if (category === 'kanji') {
+        frontContent = `<p class="text-5xl sm:text-6xl font-bold font-noto-jp">${item.kanji}</p>`;
+    } else { // vocab
+        frontContent = `<div class="text-center">
+                            <p class="text-3xl sm:text-4xl font-semibold font-noto-jp">${item.word}</p>
+                            <button onclick="pronounceWord('${item.word}', event)" class="mt-2 text-gray-400 hover:text-blue-500 transition-colors">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a.5.5 0 01.707 0A9.957 9.957 0 0118 10a9.957 9.957 0 01-2.636 7.071.5.5 0 01-.707-.707A8.957 8.957 0 0017 10a8.957 8.957 0 00-2.343-6.364.5.5 0 010-.707z" clip-rule="evenodd"></path><path d="M16.293 4.343a.5.5 0 01.707 0A6.957 6.957 0 0118 10a6.957 6.957 0 01-1.001 3.657.5.5 0 01-.894-.448A5.957 5.957 0 0017 10a5.957 5.957 0 00-.894-3.436.5.5 0 01.187-.82z"></path></svg>
+                            </button>
+                        </div>`;
     }
+    
+    const backContent = `<p class="text-xl font-bold">${category === 'kanji' ? item.meaning : item.reading}</p><p>${category === 'kanji' ? `On: ${item.onyomi}<br>Kun: ${item.kunyomi || '–'}` : item.meaning}</p>`;
+    const searchTerms = `${item.kanji || item.word} ${item.onyomi || ''} ${item.kunyomi || ''} ${item.reading || ''} ${item.meaning}`.toLowerCase();
 
-    // Use item.passage for reading text, or item.dialogue for listening text
-    const passageOrDialogue = item.passage || item.dialogue;
-
-    return `
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h3 class="text-xl font-bold mb-4">${item.title}</h3>
-            <div class="mb-6 p-4 border-l-4 border-red-400 bg-red-50">${passageOrDialogue}</div>
-            <div id="${item.id}-quiz" class="space-y-6">${questionsHtml}</div>
-            <div class="mt-6 text-center">
-                <button onclick="checkAnswers('${item.id}')" class="bg-red-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-600 transition-colors">Check Answers</button>
-                <p id="${item.id}-result" class="mt-4 font-semibold"></p>
-            </div>
-        </div>`;
+    return `<div class="card-container h-40" data-search="${searchTerms}">
+                <div class="learn-toggle ${isLearned ? 'learned' : ''}" onclick="toggleLearned('${category}', '${item.id}', this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div class="card h-full cursor-pointer" onclick="this.classList.toggle('is-flipped')">
+                    <div class="card-inner">
+                        <div class="card-face card-face-front p-2">${frontContent}</div>
+                        <div class="card-face card-face-back" style="background: ${backGradient};">${backContent}</div>
+                    </div>
+                </div>
+            </div>`;
 };
 
 
-function checkAnswers(quizId) {
-    const quizContainer = document.getElementById(`${quizId}-quiz`);
-    if (!quizContainer) return;
-    
+const createKanjiSection = (data) => {
+    let html = '';
+    for (const section in data) {
+        html += `<div class="glass-effect rounded-2xl p-5 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-gray-700">${section}</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">`;
+        data[section].forEach(k => {
+            html += createCard(k, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)');
+        });
+        html += `</div></div>`;
+    }
+    return html;
+};
+
+const createVocabGrid = (data) => {
+    let html = '';
+    data.forEach(v => {
+        html += createCard(v, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)');
+    });
+    document.getElementById('vocab-grid').innerHTML = html;
+};
+
+const createKanaChart = (data, icon, color) => {
+    let html = '';
+    for (const section in data) {
+        html += `<div class="glass-effect rounded-2xl p-5 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-gray-700 flex items-center gap-2"><span class="text-2xl">${icon}</span> ${section}</h3>
+                    <div class="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-3">`;
+        data[section].forEach(item => {
+            const searchTerms = `${item.kana} ${item.romaji}`.toLowerCase();
+            html += `<div class="kana-item flex flex-col items-center justify-center p-2 bg-white/50 rounded-xl border border-white/30 h-28 text-center" data-search="${searchTerms}">
+                        <p class="text-4xl font-noto-jp" style="color:${color};">${item.kana}</p>
+                        <p class="text-sm text-gray-500">${item.romaji}</p>
+                        <button onclick="pronounceWord('${item.kana}', event)" class="mt-1 text-gray-400 hover:text-blue-500 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a.5.5 0 01.707 0A9.957 9.957 0 0118 10a9.957 9.957 0 01-2.636 7.071.5.5 0 01-.707-.707A8.957 8.957 0 0017 10a8.957 8.957 0 00-2.343-6.364.5.5 0 010-.707z" clip-rule="evenodd"></path><path d="M16.293 4.343a.5.5 0 01.707 0A6.957 6.957 0 0118 10a6.957 6.957 0 01-1.001 3.657.5.5 0 01-.894-.448A5.957 5.957 0 0017 10a5.957 5.957 0 00-.894-3.436.5.5 0 01.187-.82z"></path></svg>
+                        </button>
+                    </div>`;
+        });
+        html += `</div></div>`;
+    }
+    return html;
+};
+
+const createGrammarPoint = (g) => {
+    const searchTerms = `${g.title} ${g.content.replace(/<[^>]*>?/gm, '')}`.toLowerCase();
+    return `<div class="grammar-item glass-effect rounded-2xl overflow-hidden" data-search="${searchTerms}"><button class="w-full text-left p-5 font-semibold text-lg hover:bg-white/20 flex justify-between items-center transition-colors" onclick="this.classList.toggle('open')"><span>${g.title}</span><span class="accordion-icon text-xl transform transition-transform duration-300 text-gray-400"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span></button><div class="accordion-content"><div class="p-5 pt-0 text-gray-600 leading-relaxed">${g.content}</div></div></div>`;
+};
+
+const createQuiz = (item) => {
+    const questionsHtml = (item.questions || [{...item}]).map((q) => {
+        const optionsHtml = q.options.map((option, i) => `<button class="quiz-option w-full text-left p-3 border-2 border-gray-200 rounded-lg bg-white hover:border-blue-300 transition-all duration-200" data-answer="${option}"><span class="font-semibold mr-2">${String.fromCharCode(97 + i)}.</span> ${option}</button>`).join('');
+        return `<div class="question-block" data-correct-answer="${q.answer}"><p class="font-semibold mb-3 text-lg">${q.question}</p><div class="space-y-3">${optionsHtml}</div></div>`;
+    }).join('<hr class="my-6 border-gray-200/80">');
+    const passageOrDialogue = item.passage || item.dialogue;
+    const searchTerms = `${item.title} ${passageOrDialogue.replace(/<[^>]*>?/gm, '')}`.toLowerCase();
+    return `<div class="quiz-item glass-effect p-6 sm:p-8 rounded-2xl" data-search="${searchTerms}"><h3 class="text-xl font-bold mb-4">${item.title}</h3><div class="mb-6 p-4 rounded-lg bg-gray-50/70 border-l-4 border-blue-400">${passageOrDialogue}</div><div class="quiz-container space-y-6">${questionsHtml}</div><div class="mt-8 text-center"><button onclick="checkAnswers(this)" class="bg-blue-500 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">Check Answers</button><p class="result-text mt-4 font-semibold text-lg"></p></div></div>`;
+};
+
+function checkAnswers(button) {
+    button.disabled = true;
+    const quizContainer = button.closest('.quiz-item').querySelector('.quiz-container');
     let score = 0;
     const questionBlocks = quizContainer.querySelectorAll('.question-block');
-    const total = questionBlocks.length;
-
     questionBlocks.forEach(block => {
         const correctAnswer = block.dataset.correctAnswer;
         const selectedOption = block.querySelector('.quiz-option.selected');
-        
-        block.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('correct', 'incorrect'));
-        
+        block.querySelectorAll('.quiz-option').forEach(opt => { opt.disabled = true; });
         if (selectedOption) {
-            if (selectedOption.dataset.answer === correctAnswer) {
-                score++;
-                selectedOption.classList.add('correct');
-            } else {
-                selectedOption.classList.add('incorrect');
-                block.querySelector(`.quiz-option[data-answer="${correctAnswer}"]`).classList.add('correct');
-            }
+            if (selectedOption.dataset.answer === correctAnswer) { score++; selectedOption.classList.add('correct'); }
+            else { selectedOption.classList.add('incorrect'); block.querySelector(`.quiz-option[data-answer="${correctAnswer}"]`).classList.add('correct'); }
+        } else { block.querySelector(`.quiz-option[data-answer="${correctAnswer}"]`).classList.add('correct'); }
+    });
+    const resultEl = button.closest('.quiz-item').querySelector('.result-text');
+    resultEl.textContent = `You got ${score} out of ${questionBlocks.length} correct!`;
+    resultEl.style.color = (score === questionBlocks.length) ? 'var(--accent-green)' : 'var(--accent-red)';
+}
+
+function handleSearch(event) {
+    const query = event ? event.target.value.toLowerCase().trim() : "";
+    const activeTab = document.querySelector('.tab-content.active');
+    if (!activeTab) return;
+
+    const items = activeTab.querySelectorAll('[data-search]');
+    items.forEach(item => {
+        const searchData = item.dataset.search;
+        if (searchData.includes(query)) {
+            item.style.display = '';
         } else {
-            block.querySelector(`.quiz-option[data-answer="${correctAnswer}"]`).classList.add('correct');
+            item.style.display = 'none';
         }
     });
-
-    const resultEl = document.getElementById(`${quizId}-result`);
-    resultEl.textContent = `You got ${score} out of ${total} correct.`;
-    resultEl.style.color = (score === total) ? '#16a34a' : '#dc2626';
 }
+
+function createProgressCircle(progress, total, color, label, emoji) {
+    const percentage = total > 0 ? (progress / total) * 100 : 0;
+    const radius = 30;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (percentage / 100) * circumference;
+
+    return `
+        <div class="flex items-center gap-4">
+            <div class="relative">
+                <svg class="w-20 h-20">
+                    <circle class="text-gray-200/60" stroke-width="6" stroke="currentColor" fill="transparent" r="${radius}" cx="40" cy="40" />
+                    <circle class="progress-circle" stroke-width="6" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+                        stroke-linecap="round" stroke="url(#${color}-gradient)" fill="transparent" r="${radius}" cx="40" cy="40" />
+                </svg>
+                <span class="absolute text-lg font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">${Math.round(percentage)}%</span>
+            </div>
+            <div>
+                <p class="font-bold text-lg">${emoji} ${label}</p>
+                <p class="text-sm text-gray-600">${progress} / ${total} learned</p>
+            </div>
+        </div>
+    `;
+}
+
+function updateProgressDashboard() {
+    const overviewContainer = document.getElementById('progress-overview');
+    const totalKanji = Object.values(kanjiData).flat().length;
+    const totalVocab = vocabData.length;
+
+    const kanjiProgress = progress.kanji.length;
+    const vocabProgress = progress.vocab.length;
+
+    overviewContainer.innerHTML = `
+        <h2 class="text-xl font-bold mb-5">Progress Overview</h2>
+        <div class="space-y-5">
+            ${createProgressCircle(kanjiProgress, totalKanji, 'purple', 'N5 Kanji', '🎴')}
+            ${createProgressCircle(vocabProgress, totalVocab, 'green', 'N5 Vocabulary', '📗')}
+        </div>
+        <svg width="0" height="0">
+            <defs>
+                <linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#A78BFA" />
+                    <stop offset="100%" stop-color="#8B5CF6" />
+                </linearGradient>
+                <linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4ADE80" />
+                    <stop offset="100%" stop-color="#22C55E" />
+                </linearGradient>
+            </defs>
+        </svg>
+    `;
+}
+
 
 // --- INITIALIZATION ---
 window.onload = function() {
+    initSpeechSynthesis();
+    loadProgress();
+
+    // Populate Kana
+    document.getElementById('hiragana').innerHTML = createKanaChart(hiraganaData, '🌸', 'var(--accent-pink)');
+    document.getElementById('katakana').innerHTML = createKanaChart(katakanaData, '🤖', 'var(--accent-blue)');
+
     // Populate Kanji
-    document.getElementById('kanji-grid').innerHTML = kanjiData.map(k => createCard(k.kanji, `<p class="text-lg font-bold">${k.meaning}</p><p class="text-sm">On: ${k.onyomi}</p><p class="text-sm">Kun: ${k.kunyomi}</p>`, '#ef4444')).join('');
+    document.getElementById('kanji').innerHTML = createKanjiSection(kanjiData);
 
     // Populate Vocab
-    document.getElementById('vocab-grid').innerHTML = vocabData.map(v => createCard(`<span class="text-2xl font-semibold">${v.word}</span>`, `<p class="text-lg font-bold">${v.reading}</p><p>${v.meaning}</p>`, '#3b82f6')).join('');
+    createVocabGrid(vocabData);
     
-    // Populate Grammar
     document.getElementById('grammar-container').innerHTML = grammarData.map(createGrammarPoint).join('');
-
-    // Populate Reading Passages
     document.getElementById('reading-container').innerHTML = readingPassages.map(createQuiz).join('');
-
-    // Populate Listening Scripts
     document.getElementById('listening-container').innerHTML = listeningData.map(createQuiz).join('');
 
-    // Add event listeners for all quiz options
     document.querySelectorAll('.quiz-option').forEach(option => {
         option.addEventListener('click', () => {
-            const questionId = option.dataset.questionId;
-            document.querySelectorAll(`.quiz-option[data-question-id="${questionId}"]`).forEach(opt => opt.classList.remove('selected'));
+            if (option.disabled) return;
+            const questionBlock = option.closest('.question-block');
+            questionBlock.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
             option.classList.add('selected');
         });
     });
 
-    // Set default tab
-    changeTab('kanji');
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('hidden');
+        document.body.classList.toggle('sidebar-open');
+    });
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.add('hidden');
+        document.body.classList.remove('sidebar-open');
+    });
+
+    // Search event listener
+    document.getElementById('search-input').addEventListener('input', handleSearch);
+    document.getElementById('mobile-search-input').addEventListener('input', handleSearch);
+
+    // Initial UI setup
+    updateProgressDashboard();
+    changeTab('hiragana');
 };
 </script>
 
