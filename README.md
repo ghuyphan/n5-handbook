@@ -17,7 +17,6 @@
 | Light Mode | Dark Mode |
 | :---: | :---: |
 | ![App Screenshot Light](./AppDemo-Light.png) | ![App Screenshot Dark](./AppDemo-Dark.png) |
-> *Note: Previews do not yet reflect the latest UI updates, including the new language switcher.*
 
 ## ✨ Features
 
