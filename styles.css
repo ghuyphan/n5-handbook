@@ -21,6 +21,8 @@
     --search-focus-ring: #3B82F6;
     --table-header-bg: rgba(243, 244, 246, 0.7);
     --lang-inactive-color: #1F2937;
+     --pin-color: #3B82F6;      /* blue-500 */
+    --pin-unpinned: #6B7280;   /* gray-500 */
 }
 
 body.dark-mode {
@@ -39,6 +41,8 @@ body.dark-mode {
     --search-focus-ring: #60A5FA;
     --table-header-bg: rgba(55, 65, 81, 0.7);
     --lang-inactive-color: #E5E7EB;
+    --pin-color: #60A5FA;      /* blue-400 or your preferred */
+    --pin-unpinned: #9CA3AF;   /* gray-400 or your preferred */
 }
 
 html {
@@ -604,7 +608,7 @@ input:checked+.slider:before {
 
 /* --- Pin State Animation --- */
 #pin-toggle.pinned {
-    background: var(--accent-blue);
+    background: #fff;
     color: #fff;
     border-color: var(--accent-blue);
     box-shadow: 0 8px 24px var(--shadow-color);
