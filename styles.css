@@ -62,17 +62,6 @@ html {
     /* For example, scale down on smaller desktop screens */
     /* font-size: 16px; /* Default on larger screens */
 }
-/* You might add more breakpoints here for `html` font-size if you want more granular global scaling */
-/* @media (max-width: 1440px) {
-    html {
-        font-size: 15px; /* Slightly smaller base font for slightly smaller screens */
-    }
-} */
-/* @media (max-width: 1024px) {
-    html {
-        font-size: 14px; /* Even smaller base font for tablet landscape / small laptops */
-    }
-} */
 
 
 body {
