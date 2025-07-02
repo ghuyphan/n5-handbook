@@ -48,7 +48,7 @@ function moveLangPill(switcherContainer) {
 function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('n5HandbookLang', lang);
-    
+
     const uiStrings = appData.ui; // Use loaded UI strings from appData
 
     document.querySelectorAll('[data-lang-key]').forEach(el => {
@@ -117,7 +117,7 @@ function changeTab(tabName, buttonElement) {
     if (window.innerWidth <= 768 && targetButton) {
         const titleSpan = targetButton.querySelector('span');
         const titleKey = titleSpan.dataset.langKey;
-        const titleText = titleKey ? appData.ui[currentLang][titleKey] : titleSpan.textContent;
+        const titleText = titleKey ? appData.ui[currentLang][titleKey] || titleSpan.textContent : titleSpan.textContent;
         document.getElementById('mobile-header-title').textContent = titleText;
     }
 
@@ -130,34 +130,35 @@ function changeTab(tabName, buttonElement) {
 
 function closeSidebar() {
     document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('overlay').classList.add('hidden');
+document.getElementById('overlay').classList.remove('active');
     document.body.classList.remove('sidebar-open');
 }
 
 function jumpToSection(tabName, sectionTitleKey) {
-    // If jumping to progress, handle it differently
-    if (tabName === 'progress') {
-        changeTab('progress');
-        closeSidebar();
-        return;
-    }
-    
     changeTab(tabName);
     setTimeout(() => {
         const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
         if (sectionHeader) {
+            // If the section is a collapsed accordion, open it first
             if (sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
                 sectionHeader.click();
             }
+            // Scroll the section into view
             sectionHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    }, 100);
+    }, 100); // Small delay to ensure tab content is visible and accordion is open
 }
 
 const handleSearch = debounce(() => {
     const query = (window.innerWidth <= 768 ? document.getElementById('mobile-search-input').value : document.getElementById('search-input').value).toLowerCase().trim();
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
+
+    // Hide search bar if in progress tab
+    const mobileSearch = document.querySelector('.mobile-search-bar');
+    if (mobileSearch) {
+        mobileSearch.style.display = activeTab.id === 'progress' ? 'none' : '';
+    }
 
     activeTab.querySelectorAll('.search-wrapper').forEach(wrapper => {
         const items = wrapper.querySelectorAll('[data-search-item]');
@@ -227,7 +228,7 @@ const createCard = (item, category, backGradient) => {
         : `<div class="text-center p-2"><p class="text-xl sm:text-2xl font-semibold noto-sans">${item.word}</p></div>`;
 
     const backContent = `<p class="text-lg sm:text-xl font-bold">${category === 'kanji' ? meaningText : item.reading}</p><p class="text-sm">${category === 'kanji' ? `On: ${item.onyomi}<br>Kun: ${item.kunyomi || '–'}` : meaningText}</p>`;
-    
+
     const enMeaning = item.meaning ? item.meaning.en : '';
     const viMeaning = item.meaning ? item.meaning.vi : '';
     const searchTerms = `${item.kanji || item.word} ${item.onyomi || ''} ${item.kunyomi || ''} ${item.reading || ''} ${enMeaning} ${viMeaning}`.toLowerCase();
@@ -276,10 +277,10 @@ const createStaticSection = (data, icon, color) => {
 
 function updateProgressDashboard() {
     const overviewContainer = document.getElementById('progress-overview');
-    const overviewContainerMobile = document.getElementById('progress-overview-mobile');
-    if (!overviewContainer && !overviewContainerMobile) return;
+    const progressTabContainer = document.getElementById('progress');
+    if (!overviewContainer || !appData.ui) return;
 
-    let progressHTML = `<h2 class="text-xl font-bold mb-5" data-lang-key="progressOverview">${appData.ui[currentLang].progressOverview}</h2><div class="space-y-4">`;
+    let progressHTML = `<h2 class="text-xl font-bold mb-5" data-lang-key="progressOverview">${appData.ui[currentLang]?.progressOverview || 'Progress Overview'}</h2><div class="space-y-4">`;
 
     for (const key in appData.kanji) {
         const category = appData.kanji[key];
@@ -299,9 +300,9 @@ function updateProgressDashboard() {
                      <linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient>
                      <linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient>
                  </defs></svg>`;
-    
+
     if (overviewContainer) overviewContainer.innerHTML = progressHTML;
-    if (overviewContainerMobile) overviewContainerMobile.innerHTML = progressHTML;
+    if (progressTabContainer) progressTabContainer.innerHTML = progressHTML;
 }
 
 function createProgressItem(tab, title, learned, total, color, titleKey) {
@@ -313,16 +314,13 @@ function createProgressItem(tab, title, learned, total, color, titleKey) {
     const cleanTitle = emojiMatch ? title.replace(emojiMatch[0], '') : title;
     const emoji = emojiMatch ? emojiMatch[1] : '';
 
-    // The jump should go to the 'progress' tab if clicked from the sidebar.
-    const jumpTargetTab = (document.getElementById('sidebar').classList.contains('open') || window.innerWidth <= 768) ? tab : 'progress';
-
     return `
-    <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-500/10 cursor-pointer" onclick="jumpToSection('${jumpTargetTab}', '${titleKey}')">
+    <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-500/10 cursor-pointer glass-effect" onclick="jumpToSection('${tab}', '${titleKey}')">
         <div class="relative w-12 h-12 flex-shrink-0">
-            <svg class="w-full h-full">
-                <circle stroke-width="4" stroke="var(--progress-track-color)" fill="transparent" r="${radius}" cx="50%" cy="50%" />
+            <svg class="w-full h-full" viewBox="0 0 50 50">
+                <circle stroke-width="4" stroke="var(--progress-track-color)" fill="transparent" r="${radius}" cx="25" cy="25" />
                 <circle class="progress-circle" stroke-width="4" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
-                    stroke-linecap="round" stroke="url(#${color}-gradient)" fill="transparent" r="${radius}" cx="50%" cy="50%" />
+                    stroke-linecap="round" stroke="url(#${color}-gradient)" fill="transparent" r="${radius}" cx="25" cy="25" transform="rotate(-90 25 25)" />
             </svg>
             <span class="absolute text-xs font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">${Math.round(percentage)}%</span>
         </div>
@@ -398,7 +396,7 @@ function getLangSwitcherHTML() {
 function setupEventListeners() {
     document.getElementById('menu-toggle').addEventListener('click', () => {
         document.getElementById('sidebar').classList.add('open');
-        document.getElementById('overlay').classList.remove('hidden');
+        document.getElementById('overlay').classList.add('active');
         document.body.classList.add('sidebar-open');
     });
 
@@ -436,10 +434,10 @@ async function loadAllData(level) {
         const files = ['ui', 'hiragana', 'katakana', 'kanji', 'vocab', 'grammar', 'timeNumbers'];
         const fetchPromises = files.map(file =>
             fetch(`${config.dataPath}/${level}/${file}.json`)
-            .then(response => {
-                if (!response.ok) throw new Error(`Failed to load ${file}.json`);
-                return response.json();
-            })
+                .then(response => {
+                    if (!response.ok) throw new Error(`Failed to load ${file}.json`);
+                    return response.json();
+                })
         );
         const [ui, hiragana, katakana, kanji, vocab, grammar, timeNumbers] = await Promise.all(fetchPromises);
         appData = { ui, hiragana, katakana, kanji, vocab, grammar, timeNumbers };
@@ -461,13 +459,14 @@ async function init() {
         setupEventListeners();
         setupTheme();
         setLanguage(currentLang);
-        // Default to progress tab on mobile, hiragana on desktop
-        const initialTab = window.innerWidth <= 768 ? 'progress' : 'hiragana';
-        changeTab(initialTab);
 
         setTimeout(() => {
+            const initialTab = window.innerWidth <= 768 ? 'hiragana' : 'hiragana';
+            changeTab(initialTab);
+
             document.querySelectorAll('.lang-switch').forEach(switcher => moveLangPill(switcher));
         }, 50);
+
     } catch (error) {
         console.error("Initialization failed.", error);
     }

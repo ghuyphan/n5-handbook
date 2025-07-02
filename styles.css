@@ -1,3 +1,16 @@
+/* Add this new class */
+.content-wrapper {
+    padding: 1.5rem; /* 24px */
+}
+
+/* For smaller screens, you might want less padding */
+@media (max-width: 640px) {
+    .content-wrapper {
+        padding: 1rem; /* 16px */
+    }
+}
+
+
 :root {
     --bg-main: #F4F7FE;
     --text-primary: #1a1a2e;
@@ -74,6 +87,8 @@ body {
     grid-template-columns: 260px 1fr 280px;
     gap: 1.5rem;
     align-items: start;
+    padding: 0 2rem;
+    transition: filter 0.3s ease-in-out;
 }
 
 .left-sidebar {
@@ -84,7 +99,6 @@ body {
     scrollbar-gutter: stable;
 }
 
-/* FIX: This ensures the right sidebar scrolls correctly if content overflows */
 .right-sidebar {
     position: sticky;
     top: 1.5rem;
@@ -99,10 +113,11 @@ body {
     -ms-overflow-style: none;
 }
 
-
+/* Mobile-first responsive design */
 @media (max-width: 1200px) {
     .main-grid {
         grid-template-columns: 220px 1fr;
+        padding: 0 1.5rem;
     }
 
     .right-sidebar {
@@ -114,41 +129,116 @@ body {
     .main-grid {
         grid-template-columns: 1fr;
         padding: 0;
+        gap: 0;
     }
 
     #sidebar {
         position: fixed;
-        top: 0;
+        top: 1rem;
+        height: calc(100vh - 2rem);
         left: -100%;
-        width: 250px;
-        height: 100%;
+        width: 280px;
         z-index: 100;
         transition: left 0.3s ease-in-out;
-        border-radius: 0;
-        max-height: 100vh;
+        border-radius: 1rem;
+        max-height: none;
+        margin: 0;
     }
 
     #sidebar.open {
-        left: 0;
-    }
-
-    #main-content {
-        padding-left: 0;
-        padding-right: 0;
+        left: 1rem;
     }
 
     .mobile-header {
         display: flex;
+        padding: 1rem;
+        margin: 0;
+        transition: filter 0.3s ease-in-out;
     }
 
     .main-header {
         display: none;
+    }
+
+    .mobile-search-bar {
+        padding: 0 1rem;
+        margin: 0 0 1rem 0;
+    }
+
+    #main-content {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        margin: 0;
+        width: 100%;
+    }
+
+    .tab-content {
+        margin: 0;
+        padding: 0;
+    }
+
+    footer {
+        padding: 2rem 1rem;
+        margin: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-grid {
+        padding: 0;
+    }
+
+    .mobile-header,
+    .mobile-search-bar,
+    #main-content {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    #sidebar {
+        width: 260px;
+        top: 0.75rem;
+        height: calc(100vh - 1.5rem);
+    }
+
+    #sidebar.open {
+        left: 0.75rem;
+    }
+
+    .grid {
+        gap: 0.5rem;
     }
 }
 
 body.sidebar-open {
     overflow: hidden;
 }
+
+/* --- Changes Start Here --- */
+
+#overlay {
+    position: fixed;
+    inset: 0;
+    /* Removed dark background color */
+    background-color: rgba(255, 255, 255, 0.1);
+    /* Added backdrop blur effect */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    /* Updated transition to include backdrop-filter */
+    transition: opacity 0.3s ease, visibility 0s 0.3s, backdrop-filter 0.3s ease;
+}
+
+#overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+/* --- Changes End Here --- */
+
 
 .nav-item.active {
     background-color: var(--accent-blue);
@@ -220,19 +310,21 @@ body.sidebar-open {
 }
 
 .accordion-button {
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1.25rem;
+}
+
+.accordion-button span {
+    font-size: 20px;
 }
 
 .accordion-content {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-    padding: 0 1.25rem;
 }
 
 .open+.accordion-content {
     max-height: 5000px;
-    padding: 1.5rem;
 }
 
 .open .accordion-icon {
@@ -328,16 +420,13 @@ input:checked+.slider:before {
     content: "🌙";
 }
 
-/* CORRECTED Language Switcher Styles */
 .lang-switch {
     position: relative;
     background-color: var(--search-bg);
     border: 1px solid var(--glass-border);
     padding: 0;
-    /* Let buttons create the internal spacing */
     border-radius: 9999px;
     display: inline-flex;
-    /* Use inline-flex */
     align-items: center;
 }
 
@@ -351,15 +440,12 @@ input:checked+.slider:before {
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
     transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 1;
-    /* Sits below button text */
 }
 
 .lang-switch button {
     position: relative;
     z-index: 2;
-    /* Sits above pill */
     padding: 0.5rem 1rem;
-    /* Generous padding for a better look */
     border-radius: 9999px;
     font-weight: 600;
     font-size: 0.875rem;
@@ -418,5 +504,9 @@ input:checked+.slider:before {
 }
 
 #progress-overview::-webkit-scrollbar {
-  display: none; /* For Chrome, Safari, and Opera */
+    display: none;
+}
+
+[data-lang-key="progressOverview"] {
+    margin-top: 1rem; /* 16px - You can adjust this value */
 }

@@ -5,26 +5,26 @@
     "timeAndNumbers": "Time & Numbers",
     "vocabulary": "Vocabulary",
     "grammar": "Grammar",
-    "progress": "Progress",
+    "progress": "Your Progress",
     "progressOverview": "Progress Overview",
     "searchPlaceholder": "Search anything...",
-    "searchTabPlaceholder": "Search current tab...",
+    "searchTabPlaceholder": "Search in this tab...",
     "theme": "Theme",
     "language": "Language",
-    "footerText": "Made with ❤️ in Vietnam"
+    "footerText": "Made with ❤️ from Vietnam"
   },
   "vi": {
-    "dashboard": "Bảng điều khiển",
+    "dashboard": "Dashboard",
     "dashboardSubtitle": "Sổ tay N5 của bạn",
-    "timeAndNumbers": "Thời gian & Chữ số",
+    "timeAndNumbers": "Thời gian & Số đếm",
     "vocabulary": "Từ vựng",
     "grammar": "Ngữ pháp",
-    "progress": "Tiến độ",
-    "progressOverview": "Tổng quan Tiến độ",
-    "searchPlaceholder": "Tìm kiếm mọi thứ...",
-    "searchTabPlaceholder": "Tìm trong tab này...",
-    "theme": "Giao diện",
+    "progress": "Tiến độ của bạn",
+    "progressOverview": "Tổng quan tiến độ",
+    "searchPlaceholder": "Tìm kiếm bất cứ thứ gì...",
+    "searchTabPlaceholder": "Tìm trong mục này...",
+    "theme": "Chủ đề",
     "language": "Ngôn ngữ",
-    "footerText": "Làm bằng ❤️ tại Việt Nam"
+    "footerText": "Làm bằng ❤️ từ Việt Nam"
   }
 }

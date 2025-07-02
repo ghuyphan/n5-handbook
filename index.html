@@ -22,7 +22,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
             </svg>
         </button>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 min-w-0">
             <div
                 class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-md shadow-lg shadow-blue-500/30 flex-shrink-0">
                 N5</div>
@@ -33,13 +33,24 @@
     <div class="main-grid p-0 md:p-6 lg:p-8">
         <aside id="sidebar" class="left-sidebar glass-effect p-6 flex flex-col md:rounded-2xl">
             <div class="flex-grow">
-                <div class="flex items-center gap-3 mb-10">
+                <div class="flex items-center gap-3 mb-6 md:mb-10">
                     <div
                         class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
                         N5</div>
                     <h1 class="text-2xl font-bold">Handbook</h1>
                 </div>
                 <nav id="tabs" class="space-y-2">
+                    <button onclick="changeTab('progress', this)"
+                        class="nav-item md:hidden mt-4 w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 transition-all duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                        </svg>
+                        <span data-lang-key="progress">Progress</span>
+                    </button>
                     <button onclick="changeTab('hiragana', this)"
                         class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 transition-all duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-pink-500" fill="none"
@@ -100,9 +111,9 @@
 
         <div class="flex flex-col min-w-0">
             <header class="main-header mb-8 items-start justify-between hidden md:flex">
-                <div>
+                <div class="min-w-0">
                     <h1 class="text-3xl font-bold text-header" data-lang-key="dashboard"></h1>
-                    <p class="text-secondary" data-lang-key="dashboardSubtitle"></p>
+                    <p class="text-secondary truncate" data-lang-key="dashboardSubtitle"></p>
                 </div>
                 <div class="header-controls-wrapper glass-effect flex items-center gap-2 p-1.5 rounded-full">
                     <div class="relative">
@@ -123,8 +134,8 @@
                 </div>
             </header>
 
-            <div class="mobile-search-bar md:hidden mt-4 mb-5 px-4">
-                <div class="relative w-full glass-effect rounded-xl">
+            <div class="mobile-search-bar md:hidden mt-4 mb-5 px-3">
+                <div class="relative w-full glass-effect rounded-full">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -132,19 +143,242 @@
                         </svg>
                     </div>
                     <input type="search" id="mobile-search-input"
-                        class="w-full pl-12 pr-4 py-3 rounded-xl transition border-none text-primary bg-transparent"
+                        class="w-full pl-12 pr-4 py-3 rounded-full transition border-none text-primary bg-transparent"
                         data-lang-placeholder-key="searchTabPlaceholder">
                 </div>
             </div>
 
             <main id="main-content" class="px-4 sm:px-0">
-                <div id="hiragana" class="tab-content"></div>
-                <div id="katakana" class="tab-content"></div>
-                <div id="time_numbers" class="tab-content"></div>
-                <div id="kanji" class="tab-content"></div>
-                <div id="vocab" class="tab-content"></div>
+                <div id="progress" class="tab-content">
+                    <div id="progress-content-wrapper" class="content-wrapper glass-effect rounded-xl"></div>
+                </div>
+                <div id="hiragana" class="tab-content">
+                    <div class="content-wrapper glass-effect rounded-xl">
+                        <h2 class="text-2xl font-bold mb-6">Hiragana - Gojuon</h2>
+                        <div class="grid grid-cols-5 gap-2 md:gap-4 text-center">
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">あ</p>
+                                <p class="text-xs text-secondary">a</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">い</p>
+                                <p class="text-xs text-secondary">i</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">う</p>
+                                <p class="text-xs text-secondary">u</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">え</p>
+                                <p class="text-xs text-secondary">e</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">お</p>
+                                <p class="text-xs text-secondary">o</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">か</p>
+                                <p class="text-xs text-secondary">ka</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">き</p>
+                                <p class="text-xs text-secondary">ki</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">く</p>
+                                <p class="text-xs text-secondary">ku</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">け</p>
+                                <p class="text-xs text-secondary">ke</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">こ</p>
+                                <p class="text-xs text-secondary">ko</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="katakana" class="tab-content">
+                    <div class="content-wrapper glass-effect rounded-xl">
+                        <h2 class="text-2xl font-bold mb-6">Katakana - Gojuon</h2>
+                        <div class="grid grid-cols-5 gap-2 md:gap-4 text-center">
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">ア</p>
+                                <p class="text-xs text-secondary">a</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">イ</p>
+                                <p class="text-xs text-secondary">i</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">ウ</p>
+                                <p class="text-xs text-secondary">u</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">エ</p>
+                                <p class="text-xs text-secondary">e</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">オ</p>
+                                <p class="text-xs text-secondary">o</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">カ</p>
+                                <p class="text-xs text-secondary">ka</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">キ</p>
+                                <p class="text-xs text-secondary">ki</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">ク</p>
+                                <p class="text-xs text-secondary">ku</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">ケ</p>
+                                <p class="text-xs text-secondary">ke</p>
+                            </div>
+                            <div class="cell-bg rounded-lg p-3">
+                                <p class="text-2xl">コ</p>
+                                <p class="text-xs text-secondary">ko</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="time_numbers" class="tab-content">
+                    <div class="content-wrapper glass-effect rounded-xl">
+                        <h2 class="text-2xl font-bold mb-6">Numbers</h2>
+                        <div class="space-y-3">
+                            <div class="cell-bg rounded-lg p-4 flex justify-between items-center">
+                                <span class="font-bold text-lg">1</span>
+                                <span class="text-secondary noto-sans">いち (ichi)</span>
+                            </div>
+                            <div class="cell-bg rounded-lg p-4 flex justify-between items-center">
+                                <span class="font-bold text-lg">2</span>
+                                <span class="text-secondary noto-sans">に (ni)</span>
+                            </div>
+                            <div class="cell-bg rounded-lg p-4 flex justify-between items-center">
+                                <span class="font-bold text-lg">3</span>
+                                <span class="text-secondary noto-sans">さん (san)</span>
+                            </div>
+                            <div class="cell-bg rounded-lg p-4 flex justify-between items-center">
+                                <span class="font-bold text-lg">4</span>
+                                <span class="text-secondary noto-sans">よん / し (yon / shi)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="kanji" class="tab-content">
+                    <div class="content-wrapper glass-effect rounded-xl">
+                        <h2 class="text-2xl font-bold mb-6">N5 Kanji</h2>
+                        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <div
+                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
+                                <p class="text-4xl font-bold">一</p>
+                                <p class="text-secondary mt-1 text-sm">ichi (one)</p>
+                            </div>
+                            <div
+                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
+                                <p class="text-4xl font-bold">二</p>
+                                <p class="text-secondary mt-1 text-sm">ni (two)</p>
+                            </div>
+                            <div
+                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
+                                <p class="text-4xl font-bold">人</p>
+                                <p class="text-secondary mt-1 text-sm">jin / hito</p>
+                            </div>
+                            <div
+                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
+                                <p class="text-4xl font-bold">日</p>
+                                <p class="text-secondary mt-1 text-sm">nichi / hi</p>
+                            </div>
+                            <div
+                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
+                                <p class="text-4xl font-bold">大</p>
+                                <p class="text-secondary mt-1 text-sm">dai / oo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="vocab" class="tab-content">
+                    <div class="content-wrapper glass-effect rounded-xl">
+                        <h2 class="text-2xl font-bold mb-6">N5 Vocabulary</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="card h-40 cursor-pointer" onclick="this.classList.toggle('is-flipped')">
+                                <div class="card-inner">
+                                    <div class="card-face card-face-front p-4">
+                                        <p class="text-3xl font-semibold noto-sans">こんにちは</p>
+                                    </div>
+                                    <div class="card-face card-face-back bg-blue-500">
+                                        <div class="text-center">
+                                            <p class="text-xl font-bold">Hello</p>
+                                            <p class="font-light opacity-80">Konnichiwa</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card h-40 cursor-pointer" onclick="this.classList.toggle('is-flipped')">
+                                <div class="card-inner">
+                                    <div class="card-face card-face-front p-4">
+                                        <p class="text-3xl font-semibold noto-sans">ありがとう</p>
+                                    </div>
+                                    <div class="card-face card-face-back bg-pink-500">
+                                        <div class="text-center">
+                                            <p class="text-xl font-bold">Thank You</p>
+                                            <p class="font-light opacity-80">Arigatou</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="grammar" class="tab-content">
-                    <div id="grammar-container" class="space-y-4"></div>
+                    <div class="content-wrapper glass-effect rounded-xl">
+                        <div id="grammar-container" class="space-y-4">
+                            <div class="cell-bg rounded-xl overflow-hidden">
+                                <button
+                                    class="accordion-button w-full flex justify-between items-center text-left font-semibold text-lg text-primary">
+                                    <span>What is the particle は (wa)?</span>
+                                    <svg class="accordion-icon w-5 h-5 transition-transform duration-300 flex-shrink-0"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div class="accordion-content px-5">
+                                    <div class="py-4 border-t border-slate-200/50">
+                                        <p class="text-secondary">The particle は (wa) is a topic marker. It indicates
+                                            what the sentence is about.
+                                            For example, in 「わたしはがくせいです」(Watashi wa gakusei desu), "わたし" (I) is the
+                                            topic
+                                            of the sentence.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="cell-bg rounded-xl overflow-hidden">
+                                <button
+                                    class="accordion-button w-full flex justify-between items-center text-left font-semibold text-lg text-primary">
+                                    <span>What is the particle も (mo)?</span>
+                                    <svg class="accordion-icon w-5 h-5 transition-transform duration-300 flex-shrink-0"
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div class="accordion-content px-5">
+                                    <div class="py-4 border-t border-slate-200/50">
+                                        <p class="text-secondary">The particle も (mo) means "too" or "also". It is used
+                                            to indicate that something
+                                            that has been said about one item also applies to another. For example,
+                                            「わたしもがくせいです」(Watashi mo gakusei desu) means "I am also a student."</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </main>
 
@@ -155,10 +389,49 @@
 
         <aside class="right-sidebar">
             <div id="progress-overview" class="glass-effect p-6 rounded-2xl h-full">
+                <h2 class="text-xl font-bold mb-4" data-lang-key="progressOverview">Progress Overview</h2>
+                <div class="space-y-5">
+                    <div>
+                        <div class="flex justify-between items-end mb-1">
+                            <h3 class="font-semibold text-sm">ひらがな</h3>
+                            <p class="text-sm text-secondary">46/46</p>
+                        </div>
+                        <div class="w-full bg-gray-200/60 rounded-full h-2.5">
+                            <div class="bg-pink-500 h-2.5 rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-end mb-1">
+                            <h3 class="font-semibold text-sm">カタカナ</h3>
+                            <p class="text-sm text-secondary">30/46</p>
+                        </div>
+                        <div class="w-full bg-gray-200/60 rounded-full h-2.5">
+                            <div class="bg-blue-500 h-2.5 rounded-full" style="width: 65%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-end mb-1">
+                            <h3 class="font-semibold text-sm">N5 漢字</h3>
+                            <p class="text-sm text-secondary">12/103</p>
+                        </div>
+                        <div class="w-full bg-gray-200/60 rounded-full h-2.5">
+                            <div class="bg-purple-500 h-2.5 rounded-full" style="width: 11%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-end mb-1">
+                            <h3 class="font-semibold text-sm">N5 語彙</h3>
+                            <p class="text-sm text-secondary">88/800</p>
+                        </div>
+                        <div class="w-full bg-gray-200/60 rounded-full h-2.5">
+                            <div class="bg-green-500 h-2.5 rounded-full" style="width: 11%"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </aside>
     </div>
-    <div id="overlay" class="fixed inset-0 bg-black/60 z-50 hidden"></div>
+    <div id="overlay"></div>
     <script src="script.js"></script>
 
 </body>
