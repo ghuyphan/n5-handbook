@@ -1,0 +1,99 @@
+{
+    "basicNumbers": { 
+        "en": "Basic Numbers (数)", "vi": "Số đếm cơ bản (数)", 
+        "type": "table", 
+        "content": [
+            { "Number": "1", "Kanji": "一", "Reading": "いち" }, 
+            { "Number": "2", "Kanji": "二", "Reading": "に" },
+            { "Number": "3", "Kanji": "三", "Reading": "さん" },
+            { "Number": "4", "Kanji": "四", "Reading": "よん / し" },
+            { "Number": "5", "Kanji": "五", "Reading": "ご" },
+            { "Number": "6", "Kanji": "六", "Reading": "ろく" },
+            { "Number": "7", "Kanji": "七", "Reading": "なな / しち" },
+            { "Number": "8", "Kanji": "八", "Reading": "はち" },
+            { "Number": "9", "Kanji": "九", "Reading": "きゅう / く" },
+            { "Number": "10", "Kanji": "十", "Reading": "じゅう" },
+            { "Number": "100", "Kanji": "百", "Reading": "ひゃく" },
+            { "Number": "1,000", "Kanji": "千", "Reading": "せん" },
+            { "Number": "10,000", "Kanji": "万", "Reading": "まん" }
+        ] 
+    },
+    "counters": { 
+        "en": "Counters (助数詞)", "vi": "Lượng từ (助数詞)", 
+        "type": "table", 
+        "content": [
+            { "Counter": "～つ", "Usage": "General objects", "Example": "ひとつ, ふたつ, みっつ..." },
+            { "Counter": "～人 (にん)", "Usage": "People", "Example": "ひとり, ふたり, さんにん..." },
+            { "Counter": "～枚 (まい)", "Usage": "Flat, thin objects", "Example": "いちまい, にまい..." },
+            { "Counter": "～本 (ほん)", "Usage": "Long, cylindrical objects", "Example": "いっぽん, にほん, さんぼん..." },
+            { "Counter": "～冊 (さつ)", "Usage": "Bound volumes (books)", "Example": "いっさつ, にさつ..." },
+            { "Counter": "～歳 (さい)", "Usage": "Age", "Example": "いっさい, にさい..." },
+            { "Counter": "～分 (ふん/ぷん)", "Usage": "Minutes", "Example": "いっぷん, にふん..." },
+            { "Counter": "～時 (じ)", "Usage": "Hours", "Example": "いちじ, にじ..." }
+        ] 
+    },
+    "time": { 
+        "en": "Time (時間)", "vi": "Thời gian (時間)", 
+        "type": "table-grid", 
+        "content": [
+            { 
+                "title": { "en": "Hours (時 - じ)", "vi": "Giờ (時 - じ)" }, 
+                "data": [
+                    { "Number": "1:00", "Reading": "いちじ" }, { "Number": "2:00", "Reading": "にじ" },
+                    { "Number": "4:00", "Reading": "よじ" }, { "Number": "7:00", "Reading": "しちじ" },
+                    { "Number": "9:00", "Reading": "くじ" }
+                ] 
+            }, 
+            { 
+                "title": { "en": "Minutes (分 - ふん/ぷん)", "vi": "Phút (分 - ふん/ぷん)" }, 
+                "data": [
+                    { "Number": "1 min", "Reading": "いっぷん" }, { "Number": "5 min", "Reading": "ごふん" },
+                    { "Number": "10 min", "Reading": "じゅっぷん/じっぷん" }, { "Number": "30 min", "Reading": "さんじゅっぷん / はん" }
+                ] 
+            }, 
+            { 
+                "title": { "en": "Time Words", "vi": "Từ chỉ thời gian" }, 
+                "data": [
+                    { "Number": "AM", "Reading": "ごぜん" }, { "Number": "PM", "Reading": "ごご" },
+                    { "Number": "Half", "Reading": "はん" }, { "Number": "Hour", "Reading": "じかん" }
+                ] 
+            }
+        ] 
+    },
+    "calendar": { 
+        "en": "Calendar (カレンダー)", "vi": "Lịch (カレンダー)", 
+        "type": "table-grid", 
+        "content": [
+            { 
+                "title": { "en": "Days of the Week (曜日)", "vi": "Các ngày trong tuần (曜日)" }, 
+                "data": [
+                    { "Number": "Sunday", "Kanji": "日曜日", "Reading": "にちようび" },
+                    { "Number": "Monday", "Kanji": "月曜日", "Reading": "げつようび" },
+                    { "Number": "Tuesday", "Kanji": "火曜日", "Reading": "かようび" },
+                    { "Number": "Wednesday", "Kanji": "水曜日", "Reading": "すいようび" },
+                    { "Number": "Thursday", "Kanji": "木曜日", "Reading": "もくようび" },
+                    { "Number": "Friday", "Kanji": "金曜日", "Reading": "きんようび" },
+                    { "Number": "Saturday", "Kanji": "土曜日", "Reading": "どようび" }
+                ] 
+            }, 
+            { 
+                "title": { "en": "Months (月)", "vi": "Các tháng (月)" }, 
+                "data": [
+                    { "Number": "Jan", "Kanji": "一月", "Reading": "いちがつ" },
+                    { "Number": "Apr", "Kanji": "四月", "Reading": "しがつ" },
+                    { "Number": "Jul", "Kanji": "七月", "Reading": "しちがつ" },
+                    { "Number": "Sep", "Kanji": "九月", "Reading": "くがつ" }
+                ] 
+            },
+            {
+                "title": { "en": "Days of the Month (日)", "vi": "Các ngày trong tháng (日)" },
+                "data": [
+                    { "Number": "1st", "Reading": "ついたち" }, { "Number": "2nd", "Reading": "ふつか" },
+                    { "Number": "3rd", "Reading": "みっか" }, { "Number": "4th", "Reading": "よっか" },
+                    { "Number": "8th", "Reading": "ようか" }, { "Number": "10th", "Reading": "とおか" },
+                    { "Number": "20th", "Reading": "はつか" }, { "Number": "Other", "Reading": "Number + にち" }
+                ]
+            }
+        ] 
+    }
+}

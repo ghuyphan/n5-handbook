@@ -1,0 +1,30 @@
+{
+  "en": {
+    "dashboard": "Dashboard",
+    "dashboardSubtitle": "Your N5 Handbook",
+    "timeAndNumbers": "Time & Numbers",
+    "vocabulary": "Vocabulary",
+    "grammar": "Grammar",
+    "progress": "Progress",
+    "progressOverview": "Progress Overview",
+    "searchPlaceholder": "Search anything...",
+    "searchTabPlaceholder": "Search current tab...",
+    "theme": "Theme",
+    "language": "Language",
+    "footerText": "Made with ❤️ in Vietnam"
+  },
+  "vi": {
+    "dashboard": "Bảng điều khiển",
+    "dashboardSubtitle": "Sổ tay N5 của bạn",
+    "timeAndNumbers": "Thời gian & Chữ số",
+    "vocabulary": "Từ vựng",
+    "grammar": "Ngữ pháp",
+    "progress": "Tiến độ",
+    "progressOverview": "Tổng quan Tiến độ",
+    "searchPlaceholder": "Tìm kiếm mọi thứ...",
+    "searchTabPlaceholder": "Tìm trong tab này...",
+    "theme": "Giao diện",
+    "language": "Ngôn ngữ",
+    "footerText": "Làm bằng ❤️ tại Việt Nam"
+  }
+}
