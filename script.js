@@ -9,7 +9,7 @@
     // --- GLOBAL STATE & APP DATA ---
     let appData = {};
     let progress = { kanji: [], vocab: [] };
-    let currentLang = 'en';
+    let currentLang = 'vi';
     let pinnedTab = null; // New state variable for pinned tab
 
     // --- UTILS ---
@@ -157,62 +157,62 @@
     }
 
     // New: Update Pin Button UI
-function updatePinButtonState(activeTabId) {
-    const pinButton = document.getElementById('pin-toggle');
-    if (!pinButton) return;
+    function updatePinButtonState(activeTabId) {
+        const pinButton = document.getElementById('pin-toggle');
+        if (!pinButton) return;
 
-    // Remove old SVG
-    pinButton.innerHTML = '';
+        // Remove old SVG
+        pinButton.innerHTML = '';
 
-    // Your SVG path
-    const pinSVG = `
+        // Your SVG path
+        const pinSVG = `
         <svg height="24" width="24" viewBox="0 0 519.657 1024" xmlns="http://www.w3.org/2000/svg">
             <path d="M196.032 704l64 320 64-320c-20.125 2-41.344 3.188-62.281 3.188C239.22 707.188 217.47 706.312 196.032 704zM450.032 404.688c-16.188-15.625-40.312-44.375-62-84.688v-64c7.562-12.406 12.25-39.438 23.375-51.969 15.25-13.375 24-28.594 24-44.875 0-53.094-61.062-95.156-175.375-95.156-114.25 0-182.469 42.062-182.469 95.094 0 16 8.469 31.062 23.375 44.312 13.438 14.844 22.719 38 31.094 52.594v64c-32.375 62.656-82 96.188-82 96.188h0.656C18.749 437.876 0 464.126 0 492.344 0.063 566.625 101.063 640.062 260.032 640c159 0.062 259.625-73.375 259.625-147.656C519.657 458.875 493.407 428.219 450.032 404.688z"/>
         </svg>
     `;
 
-    // Create a wrapper div to set color via class
-    const wrapper = document.createElement('span');
-    wrapper.innerHTML = pinSVG;
+        // Create a wrapper div to set color via class
+        const wrapper = document.createElement('span');
+        wrapper.innerHTML = pinSVG;
 
-    // Get the svg element
-    const svg = wrapper.querySelector('svg');
+        // Get the svg element
+        const svg = wrapper.querySelector('svg');
 
-if (activeTabId === pinnedTab) {
-    svg.style.fill = 'var(--pin-color)';
-    pinButton.classList.add('pinned');
-} else {
-    svg.style.fill = 'var(--pin-unpinned)';
-    pinButton.classList.remove('pinned');
-}
+        if (activeTabId === pinnedTab) {
+            svg.style.fill = 'var(--pin-color)';
+            pinButton.classList.add('pinned');
+        } else {
+            svg.style.fill = 'var(--pin-unpinned)';
+            pinButton.classList.remove('pinned');
+        }
 
-    // Optionally, you can add a little rotation for unpinned:
-    // if (activeTabId !== pinnedTab) svg.style.transform = 'rotate(-25deg)';
+        // Optionally, you can add a little rotation for unpinned:
+        // if (activeTabId !== pinnedTab) svg.style.transform = 'rotate(-25deg)';
 
-    // Set width/height for consistency
-    svg.style.width = '1.5em';
-    svg.style.height = '1.5em';
+        // Set width/height for consistency
+        svg.style.width = '1.5em';
+        svg.style.height = '1.5em';
 
-    pinButton.appendChild(svg);
-}
-
-function togglePin() {
-    const activeTab = $('.tab-content.active');
-    if (!activeTab) return;
-
-    const tabId = activeTab.id;
-    if (pinnedTab === tabId) {
-        pinnedTab = null;
-        savePinnedTab(null);
-    } else {
-        pinnedTab = tabId;
-        savePinnedTab(tabId);
+        pinButton.appendChild(svg);
     }
-    // --- Force UI update ---
-    updatePinButtonState(tabId);
-    // Optionally, update the header title if needed
-    // (re-run the code that sets #mobile-header-title if you want)
-}
+
+    function togglePin() {
+        const activeTab = $('.tab-content.active');
+        if (!activeTab) return;
+
+        const tabId = activeTab.id;
+        if (pinnedTab === tabId) {
+            pinnedTab = null;
+            savePinnedTab(null);
+        } else {
+            pinnedTab = tabId;
+            savePinnedTab(tabId);
+        }
+        // --- Force UI update ---
+        updatePinButtonState(tabId);
+        // Optionally, update the header title if needed
+        // (re-run the code that sets #mobile-header-title if you want)
+    }
 
 
     function closeSidebar() {
@@ -285,30 +285,32 @@ function togglePin() {
       </div>
     </div>`;
     }
-
     function createStyledList(items) {
-        return `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      ${items
-                .map((item) => {
-                    const title = item.Kanji || item.Reading || Object.values(item)[0];
-                    const subtitle =
-                        item.Reading && title !== item.Reading ? item.Reading : '';
-                    let translation = '';
-                    if (currentLang === 'vi' && item.vi) {
-                        translation = `<span style="color: var(--accent-yellow)">${item.vi}</span>`;
-                    } else if (currentLang === 'en' && item.en) {
-                        translation = `<span style="color: var(--accent-yellow)">${item.en}</span>`;
-                    }
-                    return `<div class="cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24" data-search-item="${Object.values(item).join(' ').toLowerCase()}">
-            <div class="font-bold text-primary text-base sm:text-lg noto-sans">${title}</div>
-            ${subtitle ? `<div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${subtitle}</div>` : ''}
-            <div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${translation}</div>
-          </div>`;
-                })
-                .join('')}
-    </div>`;
-    }
+        let content = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">`;
+        content += items.map(item => {
+            // Main title: Kanji or Reading
+            const title = item.Kanji || item.Reading || Object.values(item)[0];
+            let subtitle = '';
+            if (item.Reading && title !== item.Reading) subtitle = item.Reading;
 
+            // Show only the relevant translation
+            let translation = '';
+            if (currentLang === 'vi' && item.vi) {
+                translation = `<span style="color: var(--accent-yellow)">${item.vi}</span>`;
+            } else if (currentLang === 'en' && item.Number) {
+                translation = `<span style="color: var(--accent-yellow)">${item.Number}</span>`;
+            }
+
+            // Compose the cell
+            return `<div class="cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24" data-search-item="${Object.values(item).join(' ').toLowerCase()}">
+                    <div class="font-bold text-primary text-base sm:text-lg noto-sans">${title}</div>
+                    ${subtitle ? `<div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${subtitle}</div>` : ''}
+                    <div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${translation}</div>
+                </div>`;
+        }).join('');
+        content += '</div>';
+        return content;
+    }
     const createCard = (item, category, backGradient) => {
         const isLearned = progress[category]?.includes(item.id);
         const meaningText = item.meaning?.[currentLang] || item.meaning?.en || '';
