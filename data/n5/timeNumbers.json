@@ -26,48 +26,56 @@
     "content": [
       {
         "Counter": "～つ",
+        "en": "General objects",
         "Usage": "General objects",
         "Example": "ひとつ, ふたつ, みっつ...",
         "vi": "Vật nói chung"
       },
       {
         "Counter": "～人 (にん)",
+        "en": "People",
         "Usage": "People",
         "Example": "ひとり, ふたり, さんにん...",
         "vi": "Người"
       },
       {
         "Counter": "～枚 (まい)",
+        "en": "Flat, thin objects",
         "Usage": "Flat, thin objects",
         "Example": "いちまい, にまい...",
         "vi": "Vật mỏng, phẳng (tờ, tấm, miếng...)"
       },
       {
         "Counter": "～本 (ほん)",
+        "en": "Long, cylindrical objects",
         "Usage": "Long, cylindrical objects",
         "Example": "いっぽん, にほん, さんぼん...",
         "vi": "Vật dài, thon (chai, bút, cây...)"
       },
       {
         "Counter": "～冊 (さつ)",
+        "en": "Bound volumes (books)",
         "Usage": "Bound volumes (books)",
         "Example": "いっさつ, にさつ...",
         "vi": "Quyển (sách, vở...)"
       },
       {
         "Counter": "～歳 (さい)",
+        "en": "Age",
         "Usage": "Age",
         "Example": "いっさい, にさい...",
         "vi": "Tuổi"
       },
       {
         "Counter": "～分 (ふん/ぷん)",
+        "en": "Minutes",
         "Usage": "Minutes",
         "Example": "いっぷん, にふん...",
         "vi": "Phút"
       },
       {
         "Counter": "～時 (じ)",
+        "en": "Hours",
         "Usage": "Hours",
         "Example": "いちじ, にじ...",
         "vi": "Giờ"

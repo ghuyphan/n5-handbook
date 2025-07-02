@@ -11,7 +11,9 @@
     "searchTabPlaceholder": "Search in this tab...",
     "theme": "Theme",
     "language": "Language",
-    "footerText": "Made with ❤️ from Vietnam"
+    "footerText": "Made with ❤️ from Vietnam",
+"pinTab": "Pin Tab",
+    "unpinTab": "Unpin Tab"
   },
   "vi": {
     "dashboard": "Dashboard",
@@ -25,6 +27,8 @@
     "searchTabPlaceholder": "Tìm trong mục này...",
     "theme": "Chủ đề",
     "language": "Ngôn ngữ",
-    "footerText": "Làm bằng ❤️ từ Việt Nam"
+    "footerText": "Làm bằng ❤️ từ Việt Nam",
+    "pinTab": "Ghim tab",
+    "unpinTab": "Bỏ ghim"
   }
 }

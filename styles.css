@@ -27,7 +27,7 @@ body.dark-mode {
     --bg-main: #111827;
     --text-primary: #E5E7EB;
     --text-secondary: #9CA3AF;
-    --glass-bg: rgba(31, 41, 55, 0.7);
+    --glass-bg: rgba(31, 41, 55, 0.75);
     --glass-border: rgba(55, 65, 81, 0.25);
     --shadow-color: rgba(31, 41, 55, 0.1);
     --card-front-bg: rgba(55, 65, 81, 0.8);
@@ -147,7 +147,7 @@ body {
     }
     .mobile-header {
         display: flex;
-        padding: 1rem;
+        padding: 0.75rem;
         margin: 0;
         transition: filter 0.3s ease-in-out;
     }
@@ -458,4 +458,191 @@ input:checked+.slider:before {
 
 [data-lang-key="progressOverview"] {
     margin-top: 1rem;
+}
+
+/* ==========================================================================
+   CSS Fixes for Responsiveness and Aspect Ratio
+   ========================================================================== */
+
+/*
+ * Fix 1: Icon Scaling
+ * Ensures any container with this class is a perfect square and the image/SVG
+ * inside scales correctly without distortion.
+ *
+ * How to use: <div class="square-icon-container"><img src="n5.svg" alt="N5"></div>
+ */
+.square-icon-container {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%; /* Or set a specific max-width if needed */
+}
+
+.square-icon-container > img,
+.square-icon-container > svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Prevents the image from being stretched or squashed */
+}
+
+/*
+ * Fix 2: Handbook Responsiveness
+ * The following rules make content sections like the "handbook" more adaptive.
+ */
+
+/*
+ * Use this for any grid layout in the handbook to make it wrap on smaller screens.
+ * How to use: <div class="responsive-grid">...grid items...</div>
+ */
+.responsive-grid {
+    display: grid;
+    /* This creates columns that are at least 280px wide, and adds more columns as space allows. */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .responsive-grid {
+        gap: 1rem;
+    }
+}
+
+/*
+ * If the handbook contains tables, wrap them in a div with this class to
+ * prevent page overflow on mobile.
+ * How to use: <div class="table-responsive-wrapper"><table>...</table></div>
+ */
+.table-responsive-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch; /* Adds momentum scrolling on iOS */
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    margin: 1rem 0; /* Add some space around the table */
+}
+
+.table-responsive-wrapper table {
+    width: 100%;
+    min-width: 600px; /* Set a min-width so the table requires scrolling on small screens */
+    border-collapse: collapse;
+}
+
+/*
+ * This helps prevent very long words (like URLs or specific terms)
+ * from breaking out of their container. Apply to your main content block.
+ * How to use: <div class="handbook-content">...text...</div>
+ */
+.handbook-content {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+#pin-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 1rem;
+    min-height: 2rem;
+    min-width: 2rem;
+    font-weight: 600;
+    color: white;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    box-shadow: 0 4px 14px var(--shadow-color);
+    cursor: pointer;
+    transition:
+        background 0.25s,
+        color 0.25s,
+        box-shadow 0.25s,
+        border-color 0.25s,
+        transform 0.15s;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+    will-change: background, color, box-shadow, transform;
+}
+
+#pin-toggle svg {
+    transition:
+        color 0.25s,
+        fill 0.25s,
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 1.25em;
+    height: 1.25em;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#pin-toggle span {
+    transition: color 0.25s;
+    user-select: none;
+}
+
+/* Hover/focus: match nav-item hover and card hover */
+#pin-toggle:hover,
+#pin-toggle:focus-visible {
+    background: var(--nav-hover-bg);
+    color: var(--accent-blue);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    border-color: var(--accent-blue);
+    transform: scale(1.03);
+}
+
+#pin-toggle:hover svg,
+#pin-toggle:focus-visible svg {
+    color: var(--accent-blue);
+    fill: var(--accent-blue);
+}
+
+#pin-toggle:hover span,
+#pin-toggle:focus-visible span {
+    color: var(--accent-blue);
+}
+
+/* --- Pin State Animation --- */
+#pin-toggle.pinned {
+    background: var(--accent-blue);
+    color: #fff;
+    border-color: var(--accent-blue);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    animation: pin-pop 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#pin-toggle.pinned svg {
+    color: #fff;
+    fill: #fff;
+}
+
+#pin-toggle.pinned span {
+    color: #fff;
+}
+
+@keyframes pin-pop {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.05);
+    }
+    60% {
+        transform: scale(1.13);
+        box-shadow: 0 12px 32px rgba(59, 130, 246, 0.18);
+    }
+    100% {
+        transform: scale(1.03);
+        box-shadow: 0 8px 24px var(--shadow-color);
+    }
+}
+
+/* Responsive: Make sure it fits on mobile */
+@media (max-width: 480px) {
+    #pin-toggle {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+    }
+    #pin-toggle svg {
+        width: 1.1em;
+        height: 1.1em;
+    }
 }
