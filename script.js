@@ -464,7 +464,7 @@ async function init() {
         setLanguage(currentLang);
 
         setTimeout(() => {
-            const initialTab = window.innerWidth <= 768 ? 'hiragana' : 'hiragana';
+            const initialTab = window.innerWidth <= 768 ? 'progress' : 'hiragana';
             changeTab(initialTab);
 
             document.querySelectorAll('.lang-switch').forEach(switcher => moveLangPill(switcher));
