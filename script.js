@@ -130,7 +130,7 @@ function changeTab(tabName, buttonElement) {
 
 function closeSidebar() {
     document.getElementById('sidebar').classList.remove('open');
-document.getElementById('overlay').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
     document.body.classList.remove('sidebar-open');
 }
 
@@ -186,7 +186,7 @@ const handleSearch = debounce(() => {
 function createAccordion(title, contentHTML, searchData, titleKey) {
     return `<div class="search-wrapper accordion-wrapper" data-search="${searchData}">
               <div class="glass-effect rounded-2xl overflow-hidden mb-4">
-                  <button class="accordion-button w-full text-left font-semibold text-base sm:text-lg hover:bg-white/10 flex justify-between items-center transition-colors text-primary" onclick="this.classList.toggle('open')" data-section-title-key="${titleKey}">
+                  <button class="accordion-button w-full text-left font-semibold text-lg hover:bg-white/10 flex justify-between items-center transition-colors text-primary" onclick="this.classList.toggle('open')" data-section-title-key="${titleKey}">
                       <span>${title}</span>
                       <span class="accordion-icon text-xl transform transition-transform duration-300 text-secondary"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span>
                   </button>
@@ -266,7 +266,7 @@ const createStaticSection = (data, icon, color) => {
         </div>`;
 
         html += `<div class="search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6" data-search="${searchTerms}">
-                     <h3 class="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${section}">
+                     <h3 class="text-lg sm:text-lg font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${section}">
                          <span class="text-2xl">${icon}</span> ${section}
                      </h3>
                      ${content}

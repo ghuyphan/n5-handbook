@@ -1,12 +1,14 @@
 /* Add this new class */
 .content-wrapper {
-    padding: 1.5rem; /* 24px */
+    padding: 1.5rem;
+    /* 24px */
 }
 
 /* For smaller screens, you might want less padding */
 @media (max-width: 640px) {
     .content-wrapper {
-        padding: 1rem; /* 16px */
+        padding: 1rem;
+        /* 16px */
     }
 }
 
@@ -48,7 +50,6 @@ body.dark-mode {
     --progress-track-color: rgba(75, 85, 99, 0.6);
     --nav-hover-bg: #1F2937;
     --header-text: #F9FAFB;
-    --search-bg: rgba(55, 65, 81, 0.7);
     --search-focus-ring: #60A5FA;
     --table-header-bg: rgba(55, 65, 81, 0.7);
     --lang-inactive-color: #9CA3AF;
@@ -56,7 +57,23 @@ body.dark-mode {
 
 html {
     scroll-behavior: smooth;
+    /* Optional: Implement fluid font size on the root element for overall scaling */
+    /* This will scale ALL rem units proportionally */
+    /* For example, scale down on smaller desktop screens */
+    /* font-size: 16px; /* Default on larger screens */
 }
+/* You might add more breakpoints here for `html` font-size if you want more granular global scaling */
+/* @media (max-width: 1440px) {
+    html {
+        font-size: 15px; /* Slightly smaller base font for slightly smaller screens */
+    }
+} */
+/* @media (max-width: 1024px) {
+    html {
+        font-size: 14px; /* Even smaller base font for tablet landscape / small laptops */
+    }
+} */
+
 
 body {
     font-family: 'Inter', 'Noto Sans JP', sans-serif;
@@ -84,7 +101,9 @@ body {
 
 .main-grid {
     display: grid;
-    grid-template-columns: 260px 1fr 280px;
+    /* CHANGE: Use a percentage or vw for a more fluid sidebar on larger screens */
+    /* This allows the sidebar to scale proportionally */
+    grid-template-columns: 18% 1fr 280px; /* Example: 18% of viewport width for sidebar */
     gap: 1.5rem;
     align-items: start;
     padding: 0 2rem;
@@ -97,6 +116,7 @@ body {
     max-height: calc(100vh - 3rem);
     overflow-y: auto;
     scrollbar-gutter: stable;
+    /* You don't need a fixed width here if the grid-template-columns handles it */
 }
 
 .right-sidebar {
@@ -116,7 +136,8 @@ body {
 /* Mobile-first responsive design */
 @media (max-width: 1200px) {
     .main-grid {
-        grid-template-columns: 220px 1fr;
+        /* CHANGE: Adjust grid for medium screens */
+        grid-template-columns: 20% 1fr; /* Example: 20% width for sidebar on medium screens */
         padding: 0 1.5rem;
     }
 
@@ -137,12 +158,19 @@ body {
         top: 1rem;
         height: calc(100vh - 2rem);
         left: -100%;
-        width: 280px;
+        /* CHANGE: Use vw for mobile sidebar width for better scaling */
+        width: 70vw; /* Example: 70% of viewport width */
+        max-width: 280px; /* Optional: Set a max-width to prevent it from getting too wide on larger tablets */
         z-index: 100;
         transition: left 0.3s ease-in-out;
         border-radius: 1rem;
         max-height: none;
         margin: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        /* CHANGE: Adjust padding for smaller screens if needed */
+        padding: 1rem; /* Smaller padding for smaller sidebar */
     }
 
     #sidebar.open {
@@ -188,7 +216,10 @@ body {
         padding: 0;
     }
 
-    .mobile-header,
+    .mobile-header {
+        padding: 0.75rem;
+    }
+
     .mobile-search-bar,
     #main-content {
         padding-left: 0.75rem;
@@ -196,7 +227,8 @@ body {
     }
 
     #sidebar {
-        width: 260px;
+        /* On very small screens, make it slightly narrower relative to viewport */
+        width: 80vw; /* Example: Even narrower on very small screens */
         top: 0.75rem;
         height: calc(100vh - 1.5rem);
     }
@@ -314,7 +346,7 @@ body.sidebar-open {
 }
 
 .accordion-button span {
-    font-size: 20px;
+    /* font-size: 20px; */
 }
 
 .accordion-content {
@@ -465,6 +497,11 @@ input:checked+.slider:before {
     color: var(--text-primary);
 }
 
+/* CHANGE HERE: New class added to ensure consistent font usage */
+.font-jp {
+    font-family: 'Noto Sans JP', 'Inter', sans-serif;
+}
+
 .noto-sans {
     font-family: 'Noto Sans JP', sans-serif;
 }
@@ -508,5 +545,6 @@ input:checked+.slider:before {
 }
 
 [data-lang-key="progressOverview"] {
-    margin-top: 1rem; /* 16px - You can adjust this value */
+    margin-top: 1rem;
+    /* 16px - You can adjust this value */
 }
