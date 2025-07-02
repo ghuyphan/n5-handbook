@@ -129,6 +129,9 @@
                             data-lang-placeholder-key="searchPlaceholder">
                     </div>
                     <div id="lang-switcher-desktop" class="lang-switch">
+                        <div class="lang-switch-pill"></div>
+                        <button data-lang="en" class="text-xs md:text-sm">EN</button>
+                        <button data-lang="vi" class="text-xs md:text-sm">VI</button>
                     </div>
                     <div id="header-theme-toggle"></div>
                 </div>
@@ -149,237 +152,14 @@
             </div>
 
             <main id="main-content" class="px-4 sm:px-0">
-                <div id="progress" class="tab-content">
-                    <div id="progress-content-wrapper" class="content-wrapper glass-effect rounded-xl"></div>
-                </div>
-                <div id="hiragana" class="tab-content">
-                    <div class="content-wrapper glass-effect rounded-xl">
-                        <h2 class="text-xl font-bold mb-6">Hiragana - Gojuon</h2>
-                        <div class="grid grid-cols-5 gap-2 md:gap-4 text-center">
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">あ</p>
-                                <p class="text-xs text-secondary">a</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">い</p>
-                                <p class="text-xs text-secondary">i</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">う</p>
-                                <p class="text-xs text-secondary">u</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">え</p>
-                                <p class="text-xs text-secondary">e</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">お</p>
-                                <p class="text-xs text-secondary">o</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">か</p>
-                                <p class="text-xs text-secondary">ka</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">き</p>
-                                <p class="text-xs text-secondary">ki</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">く</p>
-                                <p class="text-xs text-secondary">ku</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">け</p>
-                                <p class="text-xs text-secondary">ke</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">こ</p>
-                                <p class="text-xs text-secondary">ko</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="katakana" class="tab-content">
-                    <div class="content-wrapper glass-effect rounded-xl">
-                        <h2 class="text-2xl font-bold mb-6">Katakana - Gojuon</h2>
-                        <div class="grid grid-cols-5 gap-2 md:gap-4 text-center">
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">ア</p>
-                                <p class="text-xs text-secondary">a</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">イ</p>
-                                <p class="text-xs text-secondary">i</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">ウ</p>
-                                <p class="text-xs text-secondary">u</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">エ</p>
-                                <p class="text-xs text-secondary">e</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">オ</p>
-                                <p class="text-xs text-secondary">o</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">カ</p>
-                                <p class="text-xs text-secondary">ka</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">キ</p>
-                                <p class="text-xs text-secondary">ki</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">ク</p>
-                                <p class="text-xs text-secondary">ku</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">ケ</p>
-                                <p class="text-xs text-secondary">ke</p>
-                            </div>
-                            <div class="cell-bg rounded-lg p-3">
-                                <p class="text-2xl">コ</p>
-                                <p class="text-xs text-secondary">ko</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="time_numbers" class="tab-content">
-                    <div class="content-wrapper glass-effect rounded-xl">
-                        <h2 class="text-2xl font-bold mb-6">Numbers</h2>
-                        <div class="space-y-3">
-                            <div class="cell-bg rounded-lg p-4 flex justify-between items-center">
-                                <span class="font-bold text-lg">1</span>
-                                <span class="text-secondary noto-sans">いち (ichi)</span>
-                            </div>
-                            <div class="cell-bg rounded-lg p-4 flex justify-between items-center">
-                                <span class="font-bold text-lg">2</span>
-                                <span class="text-secondary noto-sans">に (ni)</span>
-                            </div>
-                            <div class="cell-bg rounded-lg p-4 flex justify-between items-center">
-                                <span class="font-bold text-lg">3</span>
-                                <span class="text-secondary noto-sans">さん (san)</span>
-                            </div>
-                            <div class="cell-bg rounded-lg p-4 flex justify-between items-center">
-                                <span class="font-bold text-lg">4</span>
-                                <span class="text-secondary noto-sans">よん / し (yon / shi)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="kanji" class="tab-content">
-                    <div class="content-wrapper glass-effect rounded-xl">
-                        <h2 class="text-2xl font-bold mb-6">N5 Kanji</h2>
-                        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            <div
-                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
-                                <p class="text-4xl font-bold">一</p>
-                                <p class="text-secondary mt-1 text-sm">ichi (one)</p>
-                            </div>
-                            <div
-                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
-                                <p class="text-4xl font-bold">二</p>
-                                <p class="text-secondary mt-1 text-sm">ni (two)</p>
-                            </div>
-                            <div
-                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
-                                <p class="text-4xl font-bold">人</p>
-                                <p class="text-secondary mt-1 text-sm">jin / hito</p>
-                            </div>
-                            <div
-                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
-                                <p class="text-4xl font-bold">日</p>
-                                <p class="text-secondary mt-1 text-sm">nichi / hi</p>
-                            </div>
-                            <div
-                                class="cell-bg rounded-lg p-4 flex flex-col items-center justify-center aspect-square text-center">
-                                <p class="text-4xl font-bold">大</p>
-                                <p class="text-secondary mt-1 text-sm">dai / oo</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="vocab" class="tab-content">
-                    <div class="content-wrapper glass-effect rounded-xl">
-                        <h2 class="text-2xl font-bold mb-6">N5 Vocabulary</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="card h-40 cursor-pointer" onclick="this.classList.toggle('is-flipped')">
-                                <div class="card-inner">
-                                    <div class="card-face card-face-front p-4">
-                                        <p class="text-3xl font-semibold noto-sans">こんにちは</p>
-                                    </div>
-                                    <div class="card-face card-face-back bg-blue-500">
-                                        <div class="text-center">
-                                            <p class="text-xl font-bold">Hello</p>
-                                            <p class="font-light opacity-80">Konnichiwa</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card h-40 cursor-pointer" onclick="this.classList.toggle('is-flipped')">
-                                <div class="card-inner">
-                                    <div class="card-face card-face-front p-4">
-                                        <p class="text-3xl font-semibold noto-sans">ありがとう</p>
-                                    </div>
-                                    <div class="card-face card-face-back bg-pink-500">
-                                        <div class="text-center">
-                                            <p class="text-xl font-bold">Thank You</p>
-                                            <p class="font-light opacity-80">Arigatou</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div id="progress" class="tab-content"></div>
+                <div id="hiragana" class="tab-content"></div>
+                <div id="katakana" class="tab-content"></div>
+                <div id="time_numbers" class="tab-content"></div>
+                <div id="kanji" class="tab-content"></div>
+                <div id="vocab" class="tab-content"></div>
                 <div id="grammar" class="tab-content">
-                    <div class="content-wrapper glass-effect rounded-xl">
-                        <div id="grammar-container" class="space-y-4">
-                            <div class="cell-bg rounded-xl overflow-hidden">
-                                <button
-                                    class="accordion-button w-full flex justify-between items-center text-left font-semibold text-lg text-primary"
-                                >
-                                    <span>What is the particle は (wa)?</span>
-                                    <svg class="accordion-icon w-5 h-5 transition-transform duration-300 flex-shrink-0"
-                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                                <div class="accordion-content px-5">
-                                    <div class="py-4 border-t border-slate-200/50">
-                                        <p class="text-secondary">The particle は (wa) is a topic marker. It indicates
-                                            what the sentence is about.
-                                            For example, in 「わたしはがくせいです」(Watashi wa gakusei desu), "わたし" (I) is the
-                                            topic
-                                            of the sentence.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="cell-bg rounded-xl overflow-hidden">
-                                <button
-                                    class="accordion-button w-full flex justify-between items-center text-left font-semibold text-lg text-primary">
-                                    <span>What is the particle も (mo)?</span>
-                                    <svg class="accordion-icon w-5 h-5 transition-transform duration-300 flex-shrink-0"
-                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                                <div class="accordion-content px-5">
-                                    <div class="py-4 border-t border-slate-200/50">
-                                        <p class="text-secondary">The particle も (mo) means "too" or "also". It is used
-                                            to indicate that something
-                                            that has been said about one item also applies to another. For example,
-                                            「わたしもがくせいです」(Watashi mo gakusei desu) means "I am also a student."</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="grammar-container" class="space-y-4"></div>
                 </div>
             </main>
 
@@ -434,7 +214,6 @@
     </div>
     <div id="overlay"></div>
     <script src="script.js"></script>
-
 </body>
 
 </html>

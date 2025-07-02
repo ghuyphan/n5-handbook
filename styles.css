@@ -1,18 +1,3 @@
-/* Add this new class */
-.content-wrapper {
-    padding: 1.5rem;
-    /* 24px */
-}
-
-/* For smaller screens, you might want less padding */
-@media (max-width: 640px) {
-    .content-wrapper {
-        padding: 1rem;
-        /* 16px */
-    }
-}
-
-
 :root {
     --bg-main: #F4F7FE;
     --text-primary: #1a1a2e;
@@ -24,7 +9,7 @@
     --accent-purple: #8B5CF6;
     --accent-orange: #F97316;
     --accent-yellow: #F59E0B;
-    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.25);
     --shadow-color: rgba(99, 102, 241, 0.08);
     --card-front-bg: rgba(255, 255, 255, 0.8);
@@ -42,7 +27,7 @@ body.dark-mode {
     --bg-main: #111827;
     --text-primary: #E5E7EB;
     --text-secondary: #9CA3AF;
-    --glass-bg: rgba(31, 41, 55, 0.55);
+    --glass-bg: rgba(31, 41, 55, 0.7);
     --glass-border: rgba(55, 65, 81, 0.25);
     --shadow-color: rgba(31, 41, 55, 0.1);
     --card-front-bg: rgba(55, 65, 81, 0.8);
@@ -50,19 +35,15 @@ body.dark-mode {
     --progress-track-color: rgba(75, 85, 99, 0.6);
     --nav-hover-bg: #1F2937;
     --header-text: #F9FAFB;
+    --search-bg: rgba(31, 41, 55, 0.7);
     --search-focus-ring: #60A5FA;
     --table-header-bg: rgba(55, 65, 81, 0.7);
-    --lang-inactive-color: #9CA3AF;
+    --lang-inactive-color: #E5E7EB;
 }
 
 html {
     scroll-behavior: smooth;
-    /* Optional: Implement fluid font size on the root element for overall scaling */
-    /* This will scale ALL rem units proportionally */
-    /* For example, scale down on smaller desktop screens */
-    /* font-size: 16px; /* Default on larger screens */
 }
-
 
 body {
     font-family: 'Inter', 'Noto Sans JP', sans-serif;
@@ -73,6 +54,15 @@ body {
         radial-gradient(at 75% 88%, hsla(240, 96%, 76%, 0.1) 0px, transparent 50%);
     color: var(--text-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.content-wrapper {
+    padding: 1.5rem;
+}
+@media (max-width: 640px) {
+    .content-wrapper {
+        padding: 1rem;
+    }
 }
 
 .glass-effect {
@@ -90,9 +80,7 @@ body {
 
 .main-grid {
     display: grid;
-    /* CHANGE: Use a percentage or vw for a more fluid sidebar on larger screens */
-    /* This allows the sidebar to scale proportionally */
-    grid-template-columns: 18% 1fr 280px; /* Example: 18% of viewport width for sidebar */
+    grid-template-columns: 18% 1fr 280px;
     gap: 1.5rem;
     align-items: start;
     padding: 0 2rem;
@@ -105,7 +93,6 @@ body {
     max-height: calc(100vh - 3rem);
     overflow-y: auto;
     scrollbar-gutter: stable;
-    /* You don't need a fixed width here if the grid-template-columns handles it */
 }
 
 .right-sidebar {
@@ -122,14 +109,11 @@ body {
     -ms-overflow-style: none;
 }
 
-/* Mobile-first responsive design */
 @media (max-width: 1200px) {
     .main-grid {
-        /* CHANGE: Adjust grid for medium screens */
-        grid-template-columns: 20% 1fr; /* Example: 20% width for sidebar on medium screens */
+        grid-template-columns: 20% 1fr;
         padding: 0 1.5rem;
     }
-
     .right-sidebar {
         display: none;
     }
@@ -141,15 +125,13 @@ body {
         padding: 0;
         gap: 0;
     }
-
     #sidebar {
         position: fixed;
         top: 1rem;
         height: calc(100vh - 2rem);
         left: -100%;
-        /* CHANGE: Use vw for mobile sidebar width for better scaling */
-        width: 70vw; /* Example: 70% of viewport width */
-        max-width: 280px; /* Optional: Set a max-width to prevent it from getting too wide on larger tablets */
+        width: 70vw;
+        max-width: 280px;
         z-index: 100;
         transition: left 0.3s ease-in-out;
         border-radius: 1rem;
@@ -158,42 +140,34 @@ body {
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        /* CHANGE: Adjust padding for smaller screens if needed */
-        padding: 1rem; /* Smaller padding for smaller sidebar */
+        padding: 1rem;
     }
-
     #sidebar.open {
         left: 1rem;
     }
-
     .mobile-header {
         display: flex;
         padding: 1rem;
         margin: 0;
         transition: filter 0.3s ease-in-out;
     }
-
     .main-header {
         display: none;
     }
-
     .mobile-search-bar {
         padding: 0 1rem;
         margin: 0 0 1rem 0;
     }
-
     #main-content {
         padding-left: 1rem;
         padding-right: 1rem;
         margin: 0;
         width: 100%;
     }
-
     .tab-content {
         margin: 0;
         padding: 0;
     }
-
     footer {
         padding: 2rem 1rem;
         margin: 0;
@@ -204,28 +178,22 @@ body {
     .main-grid {
         padding: 0;
     }
-
     .mobile-header {
         padding: 0.75rem;
     }
-
     .mobile-search-bar,
     #main-content {
         padding-left: 0.75rem;
         padding-right: 0.75rem;
     }
-
     #sidebar {
-        /* On very small screens, make it slightly narrower relative to viewport */
-        width: 80vw; /* Example: Even narrower on very small screens */
+        width: 80vw;
         top: 0.75rem;
         height: calc(100vh - 1.5rem);
     }
-
     #sidebar.open {
         left: 0.75rem;
     }
-
     .grid {
         gap: 0.5rem;
     }
@@ -235,42 +203,31 @@ body.sidebar-open {
     overflow: hidden;
 }
 
-/* --- Changes Start Here --- */
-
 #overlay {
     position: fixed;
     inset: 0;
-    /* Removed dark background color */
     background-color: rgba(255, 255, 255, 0.1);
-    /* Added backdrop blur effect */
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     z-index: 50;
     opacity: 0;
     visibility: hidden;
-    /* Updated transition to include backdrop-filter */
     transition: opacity 0.3s ease, visibility 0s 0.3s, backdrop-filter 0.3s ease;
 }
-
 #overlay.active {
     opacity: 1;
     visibility: visible;
     transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
 }
 
-/* --- Changes End Here --- */
-
-
 .nav-item.active {
     background-color: var(--accent-blue);
     color: white;
     box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
 }
-
 .nav-item.active svg {
     color: white !important;
 }
-
 .nav-item:hover {
     background-color: var(--nav-hover-bg);
 }
@@ -278,7 +235,6 @@ body.sidebar-open {
 .tab-content {
     display: none;
 }
-
 .tab-content.active {
     display: block;
 }
@@ -287,11 +243,9 @@ body.sidebar-open {
     perspective: 1200px;
     transition: transform 0.2s ease-out;
 }
-
 .card:hover {
     transform: scale(1.03);
 }
-
 .card-inner {
     position: relative;
     width: 100%;
@@ -299,11 +253,9 @@ body.sidebar-open {
     transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform-style: preserve-3d;
 }
-
 .card.is-flipped .card-inner {
     transform: rotateY(180deg);
 }
-
 .card-face {
     position: absolute;
     width: 100%;
@@ -315,12 +267,10 @@ body.sidebar-open {
     justify-content: center;
     border-radius: 16px;
 }
-
 .card-face-front {
     background: var(--card-front-bg);
     border: 1px solid var(--card-front-border);
 }
-
 .card-face-back {
     transform: rotateY(180deg);
     color: white;
@@ -333,21 +283,14 @@ body.sidebar-open {
 .accordion-button {
     padding: 1.25rem 1.25rem;
 }
-
-.accordion-button span {
-    /* font-size: 20px; */
-}
-
 .accordion-content {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out, padding 0.3s ease-out;
 }
-
 .open+.accordion-content {
     max-height: 5000px;
 }
-
 .open .accordion-icon {
     transform: rotate(180deg);
 }
@@ -367,19 +310,15 @@ body.sidebar-open {
     z-index: 10;
     transition: all 0.2s ease;
 }
-
 .learn-toggle:hover {
     transform: scale(1.1);
 }
-
 .learn-toggle.learned {
     background-color: var(--accent-green);
 }
-
 .learn-toggle svg {
     color: var(--accent-green);
 }
-
 .learn-toggle.learned svg {
     color: white;
 }
@@ -390,20 +329,17 @@ body.sidebar-open {
     justify-content: space-between;
     gap: 0.5rem;
 }
-
 .theme-switch {
     position: relative;
     display: inline-block;
     width: 50px;
     height: 26px;
 }
-
 .theme-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
-
 .slider {
     position: absolute;
     cursor: pointer;
@@ -415,7 +351,6 @@ body.sidebar-open {
     transition: .4s;
     border-radius: 34px;
 }
-
 .slider:before {
     position: absolute;
     content: "☀️";
@@ -431,16 +366,15 @@ body.sidebar-open {
     justify-content: center;
     font-size: 12px;
 }
-
 body.dark-mode .slider {
     background-color: #30363d;
 }
-
 input:checked+.slider:before {
     transform: translateX(24px);
     content: "🌙";
 }
 
+/* Language Switcher */
 .lang-switch {
     position: relative;
     background-color: var(--search-bg);
@@ -450,7 +384,6 @@ input:checked+.slider:before {
     display: inline-flex;
     align-items: center;
 }
-
 .lang-switch-pill {
     position: absolute;
     top: 0;
@@ -462,7 +395,6 @@ input:checked+.slider:before {
     transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 1;
 }
-
 .lang-switch button {
     position: relative;
     z-index: 2;
@@ -476,21 +408,17 @@ input:checked+.slider:before {
     background-color: transparent;
     color: var(--lang-inactive-color);
 }
-
 .lang-switch button.active {
     color: white;
     font-weight: 700;
 }
-
 .lang-switch button:hover:not(.active) {
     color: var(--text-primary);
 }
 
-/* CHANGE HERE: New class added to ensure consistent font usage */
 .font-jp {
     font-family: 'Noto Sans JP', 'Inter', sans-serif;
 }
-
 .noto-sans {
     font-family: 'Noto Sans JP', sans-serif;
 }
@@ -500,7 +428,6 @@ input:checked+.slider:before {
     border: 1px solid var(--card-front-border);
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
-
 .cell-bg:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 20px -5px var(--shadow-color);
@@ -510,12 +437,10 @@ input:checked+.slider:before {
 .left-sidebar::-webkit-scrollbar {
     width: 8px;
 }
-
 #progress-overview::-webkit-scrollbar-track,
 .left-sidebar::-webkit-scrollbar-track {
     background: transparent;
 }
-
 #progress-overview::-webkit-scrollbar-thumb,
 .left-sidebar::-webkit-scrollbar-thumb {
     background-color: rgba(107, 114, 128, 0.25);
@@ -523,17 +448,14 @@ input:checked+.slider:before {
     border: 2px solid transparent;
     background-clip: content-box;
 }
-
 #progress-overview::-webkit-scrollbar-thumb:hover,
 .left-sidebar::-webkit-scrollbar-thumb:hover {
     background-color: rgba(107, 114, 128, 0.4);
 }
-
 #progress-overview::-webkit-scrollbar {
     display: none;
 }
 
 [data-lang-key="progressOverview"] {
     margin-top: 1rem;
-    /* 16px - You can adjust this value */
 }

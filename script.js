@@ -198,21 +198,24 @@ function createAccordion(title, contentHTML, searchData, titleKey) {
 function createStyledList(items) {
     let content = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">`;
     content += items.map(item => {
+        // Main title: Kanji or Reading
         const title = item.Kanji || item.Reading || Object.values(item)[0];
-        const details = [];
-        const searchTerms = Object.values(item).join(' ').toLowerCase();
+        let subtitle = '';
+        if (item.Reading && title !== item.Reading) subtitle = item.Reading;
 
-        if (item.Reading && title !== item.Reading) details.push(item.Reading);
-
-        for (const [key, value] of Object.entries(item)) {
-            if (key.toLowerCase() !== 'kanji' && key.toLowerCase() !== 'reading' && value) {
-                details.push(`<b class="font-medium text-primary/80">${key}:</b> ${value}`);
-            }
+        // Show only the relevant translation
+        let translation = '';
+        if (currentLang === 'vi' && item.vi) {
+            translation = `<span style="color: var(--accent-blue)">${item.vi}</span>`;
+        } else if (currentLang === 'en' && item.Number) {
+            translation = `<span style="color: var(--accent-blue)">${item.Number}</span>`;
         }
 
-        return `<div class="cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24" data-search-item="${searchTerms}">
+        // Compose the cell
+        return `<div class="cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24" data-search-item="${Object.values(item).join(' ').toLowerCase()}">
                     <div class="font-bold text-primary text-base sm:text-lg noto-sans">${title}</div>
-                    <div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${details.join(' &bull; ')}</div>
+                    ${subtitle ? `<div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${subtitle}</div>` : ''}
+                    <div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${translation}</div>
                 </div>`;
     }).join('');
     content += '</div>';
