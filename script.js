@@ -24,7 +24,7 @@
         debounced.cancel = () => clearTimeout(timeout);
         return debounced;
     };
-    
+
     const generateSearchTerms = (texts = []) => {
         if (typeof wanakana === 'undefined') {
             return texts.filter(Boolean).join(' ').toLowerCase();
@@ -86,7 +86,7 @@
             btn.classList.toggle('active', btn.dataset.lang === lang)
         );
         $$('.lang-switch').forEach(moveLangPill);
-        
+
         fuseInstances = {};
         renderContent();
         updateProgressDashboard();
@@ -191,15 +191,24 @@
         svg.style.height = '1.25em';
         pinButton.appendChild(svg);
     }
-    
     function togglePin() {
         const activeTab = $('.tab-content.active');
         if (!activeTab) return;
 
         const tabId = activeTab.id;
+        const pinButton = $('#pin-toggle');
+
+        // Add class for unpinning animation
+        if (pinnedTab === tabId) {
+            pinButton.classList.add('unpinning');
+            pinButton.addEventListener('animationend', () => {
+                pinButton.classList.remove('unpinning');
+            }, { once: true });
+        }
+
         pinnedTab = (pinnedTab === tabId) ? null : tabId;
         savePinnedTab(pinnedTab);
-        updatePinButtonState(tabId);
+        updatePinButtonState(tabId); // This function will now correctly set the 'pinned' class
     }
 
     function closeSidebar() {
@@ -228,7 +237,7 @@
             }
         }, 100);
     }
-    
+
     function setupFuseForTab(tabId) {
         if (fuseInstances[tabId] || typeof Fuse === 'undefined') return;
 
@@ -241,7 +250,7 @@
             element: el,
             searchData: el.dataset.searchItem || el.dataset.search
         }));
-        
+
         if (collection.length > 0) {
             fuseInstances[tabId] = new Fuse(collection, {
                 keys: ['searchData'],
@@ -267,11 +276,11 @@
                 mobileSearch.style.display = activeTabId === 'progress' ? 'none' : 'block';
             }
         }
-        
+
         const fuse = fuseInstances[activeTabId];
         const allWrappers = $$('.search-wrapper', activeTab);
         const allItems = $$('[data-search-item]', activeTab);
-        
+
         if (!query) {
             // OPTIMIZED: Removed redundant DOM query. 'allWrappers' already includes accordions.
             allItems.forEach(item => { item.style.display = ''; });
@@ -280,10 +289,10 @@
         }
 
         if (!fuse) return;
-        
+
         allItems.forEach(item => { item.style.display = 'none'; });
         allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
-        
+
         const queryLower = query.toLowerCase();
         let queryVariants = [queryLower];
         if (typeof wanakana !== 'undefined') {
@@ -347,8 +356,8 @@
         const isLearned = progress[category]?.includes(item.id);
         const meaningText = item.meaning?.[currentLang] || item.meaning?.en || '';
         const frontContent = category === 'kanji'
-                ? `<p class="text-4xl sm:text-6xl font-bold noto-sans">${item.kanji}</p>`
-                : `<div class="text-center p-2"><p class="text-xl sm:text-2xl font-semibold noto-sans">${item.word}</p></div>`;
+            ? `<p class="text-4xl sm:text-6xl font-bold noto-sans">${item.kanji}</p>`
+            : `<div class="text-center p-2"><p class="text-xl sm:text-2xl font-semibold noto-sans">${item.word}</p></div>`;
         const backContent = `<p class="text-lg sm:text-xl font-bold">${category === 'kanji' ? meaningText : item.reading
             }</p><p class="text-sm">${category === 'kanji'
                 ? `On: ${item.onyomi}<br>Kun: ${item.kunyomi || '–'}`
@@ -358,7 +367,7 @@
             item.kanji, item.word, item.onyomi, item.kunyomi,
             item.reading, item.meaning?.en, item.meaning?.vi,
         ]);
-        
+
         return `<div class="relative h-32 sm:h-40" data-search-item="${searchTerms}" data-item-id="${item.id}">
             <div class="learn-toggle ${isLearned ? 'learned' : ''}" onclick="toggleLearned('${category}', '${item.id}', this)">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -377,7 +386,7 @@
             .map((k) => createCard(k, category, backGradient))
             .join('')}</div>`;
         const searchTermsForSection = generateSearchTerms(
-             [title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]
+            [title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]
         );
         const accordionContent = `<div class="p-4 sm:p-5 sm:pt-0">${cardGrid}</div>`;
         return createAccordion(title, accordionContent, searchTermsForSection, titleKey);
@@ -392,15 +401,15 @@
 
             const content = `<div class="kana-grid">
               ${items.map((item) => {
-                    if (item.isPlaceholder) return `<div></div>`;
-                    const isDigraph = item.kana && item.kana.length > 1;
-                    const fontClass = isDigraph ? 'kana-font-digraph' : 'kana-font';
-                    const itemSearchData = generateSearchTerms([item.kana, item.romaji]);
-                    return `<div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg" data-search-item="${itemSearchData}">
+                if (item.isPlaceholder) return `<div></div>`;
+                const isDigraph = item.kana && item.kana.length > 1;
+                const fontClass = isDigraph ? 'kana-font-digraph' : 'kana-font';
+                const itemSearchData = generateSearchTerms([item.kana, item.romaji]);
+                return `<div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg" data-search-item="${itemSearchData}">
                           <p class="noto-sans ${fontClass}" style="color:${color};">${item.kana}</p>
                           <p class="text-xs sm:text-sm text-secondary">${item.romaji}</p>
                         </div>`;
-                }).join('')}
+            }).join('')}
             </div>`;
 
             return `<div class="search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6" data-search="${searchTerms}">
@@ -469,7 +478,7 @@
                 </div>
             </div>`;
     }
-    
+
     // OPTIMIZED: Reusable function to render Kanji and Vocab sections
     function renderCardBasedSection(containerId, data, category, gradient, color) {
         let html = '';
@@ -568,12 +577,12 @@
 
     function setupEventListeners() {
         document.body.addEventListener('click', (e) => {
-            if(e.target.closest('[data-action="jump-to-section"]')) {
+            if (e.target.closest('[data-action="jump-to-section"]')) {
                 const el = e.target.closest('[data-action="jump-to-section"]');
                 jumpToSection(el.dataset.tabName, el.dataset.sectionKey);
             }
         });
-        
+
         $('#menu-toggle').addEventListener('click', () => {
             $('#sidebar').classList.add('open');
             $('#overlay').classList.add('active');
