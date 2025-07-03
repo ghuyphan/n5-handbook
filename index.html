@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Handbook</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/umd/wanakana.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -30,7 +34,6 @@
         </div>
         <button id="pin-toggle" class="p-2 ml-auto" style="display: none;">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
-            <!-- <span id="pin-toggle-text" data-lang-key="pinTab">Pin Tab</span> -->
         </button>
     </header>
 
@@ -174,46 +177,7 @@
 
         <aside class="right-sidebar">
             <div id="progress-overview" class="glass-effect p-6 rounded-2xl h-full">
-                <h2 class="text-xl font-bold mb-4" data-lang-key="progressOverview">Progress Overview</h2>
-                <div class="space-y-5">
-                    <div>
-                        <div class="flex justify-between items-end mb-1">
-                            <h3 class="font-semibold text-sm">ひらがな</h3>
-                            <p class="text-sm text-secondary">46/46</p>
-                        </div>
-                        <div class="w-full bg-gray-200/60 rounded-full h-2.5">
-                            <div class="bg-pink-500 h-2.5 rounded-full" style="width: 100%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-end mb-1">
-                            <h3 class="font-semibold text-sm">カタカナ</h3>
-                            <p class="text-sm text-secondary">30/46</p>
-                        </div>
-                        <div class="w-full bg-gray-200/60 rounded-full h-2.5">
-                            <div class="bg-blue-500 h-2.5 rounded-full" style="width: 65%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-end mb-1">
-                            <h3 class="font-semibold text-sm">N5 漢字</h3>
-                            <p class="text-sm text-secondary">12/103</p>
-                        </div>
-                        <div class="w-full bg-gray-200/60 rounded-full h-2.5">
-                            <div class="bg-purple-500 h-2.5 rounded-full" style="width: 11%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-end mb-1">
-                            <h3 class="font-semibold text-sm">N5 語彙</h3>
-                            <p class="text-sm text-secondary">88/800</p>
-                        </div>
-                        <div class="w-full bg-gray-200/60 rounded-full h-2.5">
-                            <div class="bg-green-500 h-2.5 rounded-full" style="width: 11%"></div>
-                        </div>
-                    </div>
                 </div>
-            </div>
         </aside>
     </div>
     <div id="overlay"></div>

@@ -8,9 +8,10 @@
     let appData = {};
     let progress = { kanji: [], vocab: [] };
     let currentLang = 'vi';
-    let pinnedTab = null; // This will remember which tab the user pins on mobile.
+    let pinnedTab = null;
 
-    // A few utility functions to make life easier.
+    let fuseInstances = {};
+
     const $ = (sel, ctx = document) => ctx.querySelector(sel);
     const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 
@@ -23,12 +24,30 @@
         debounced.cancel = () => clearTimeout(timeout);
         return debounced;
     };
+    
+    const generateSearchTerms = (texts = []) => {
+        if (typeof wanakana === 'undefined') {
+            return texts.filter(Boolean).join(' ').toLowerCase();
+        }
+        const termsSet = new Set();
+        texts.filter(Boolean).forEach(text => {
+            const lowerText = String(text).toLowerCase();
+            const parts = lowerText.split(/\s+/).filter(Boolean);
+            parts.forEach(part => {
+                termsSet.add(part);
+                termsSet.add(wanakana.toRomaji(part));
+                termsSet.add(wanakana.toHiragana(part));
+                termsSet.add(wanakana.toKatakana(part));
+            });
+        });
+        return Array.from(termsSet).join(' ');
+    };
 
     function loadState() {
         progress =
             JSON.parse(
                 localStorage.getItem(`jlptN${config.level.toUpperCase()}Progress`)
-            ) || progress;
+            ) || { kanji: [], vocab: [] };
         currentLang = localStorage.getItem('n5HandbookLang') || 'en';
         pinnedTab = localStorage.getItem('pinnedMobileTab');
     }
@@ -67,7 +86,8 @@
             btn.classList.toggle('active', btn.dataset.lang === lang)
         );
         $$('.lang-switch').forEach(moveLangPill);
-
+        
+        fuseInstances = {};
         renderContent();
         updateProgressDashboard();
     }
@@ -147,9 +167,8 @@
     function updatePinButtonState(activeTabId) {
         const pinButton = document.getElementById('pin-toggle');
         if (!pinButton) return;
-        pinButton.innerHTML = ''; // Clear previous SVG
+        pinButton.innerHTML = '';
 
-        // The SVG structure remains the same
         const pinSVG = `
         <svg height="24" width="24" viewBox="0 0 519.657 1024" xmlns="http://www.w3.org/2000/svg">
             <path d="M196.032 704l64 320 64-320c-20.125 2-41.344 3.188-62.281 3.188C239.22 707.188 217.47 706.312 196.032 704zM450.032 404.688c-16.188-15.625-40.312-44.375-62-84.688v-64c7.562-12.406 12.25-39.438 23.375-51.969 15.25-13.375 24-28.594 24-44.875 0-53.094-61.062-95.156-175.375-95.156-114.25 0-182.469 42.062-182.469 95.094 0 16 8.469 31.062 23.375 44.312 13.438 14.844 22.719 38 31.094 52.594v64c-32.375 62.656-82 96.188-82 96.188h0.656C18.749 437.876 0 464.126 0 492.344 0.063 566.625 101.063 640.062 260.032 640c159 0.062 259.625-73.375 259.625-147.656C519.657 458.875 493.407 428.219 450.032 404.688z"/>
@@ -160,36 +179,26 @@
         wrapper.innerHTML = pinSVG;
         const svg = wrapper.querySelector('svg');
 
-        // *** THIS IS THE KEY CHANGE ***
-        // Instead of setting the color directly, we now rely on the CSS variables.
-        // We just add or remove the 'pinned' class to the button.
         if (activeTabId === pinnedTab) {
             pinButton.classList.add('pinned');
-            svg.style.fill = 'var(--pin-pinned-icon)'; // Use variable for pinned icon color
+            svg.style.fill = 'var(--pin-pinned-icon)';
         } else {
             pinButton.classList.remove('pinned');
-            svg.style.fill = 'var(--pin-unpinned)'; // Use variable for unpinned icon color
+            svg.style.fill = 'var(--pin-unpinned)';
         }
 
-        // Apply general SVG styling
         svg.style.width = '1.25em';
         svg.style.height = '1.25em';
-
         pinButton.appendChild(svg);
     }
-
+    
     function togglePin() {
         const activeTab = $('.tab-content.active');
         if (!activeTab) return;
 
         const tabId = activeTab.id;
-        if (pinnedTab === tabId) {
-            pinnedTab = null;
-            savePinnedTab(null);
-        } else {
-            pinnedTab = tabId;
-            savePinnedTab(tabId);
-        }
+        pinnedTab = (pinnedTab === tabId) ? null : tabId;
+        savePinnedTab(pinnedTab);
         updatePinButtonState(tabId);
     }
 
@@ -200,6 +209,11 @@
     }
 
     function jumpToSection(tabName, sectionTitleKey) {
+        $('#search-input').value = '';
+        $('#mobile-search-input').value = '';
+        handleSearch.cancel();
+        handleSearch();
+
         changeTab(tabName);
         setTimeout(() => {
             const sectionHeader = $(`[data-section-title-key="${sectionTitleKey}"]`);
@@ -214,41 +228,85 @@
             }
         }, 100);
     }
+    
+    function setupFuseForTab(tabId) {
+        if (fuseInstances[tabId] || typeof Fuse === 'undefined') return;
+
+        const container = $(`#${tabId}`);
+        if (!container) return;
+
+        const searchableElements = $$('[data-search-item], [data-search]', container);
+        const collection = searchableElements.map((el, index) => ({
+            id: el.dataset.itemId || `${tabId}-${index}`,
+            element: el,
+            searchData: el.dataset.searchItem || el.dataset.search
+        }));
+        
+        if (collection.length > 0) {
+            fuseInstances[tabId] = new Fuse(collection, {
+                keys: ['searchData'],
+                includeScore: true,
+                threshold: 0.4,
+                ignoreLocation: true,
+            });
+        }
+    }
 
     const handleSearch = debounce(() => {
-        const query = (
-            window.innerWidth <= 768
-                ? $('#mobile-search-input').value
-                : $('#search-input').value
-        )
-            .toLowerCase()
-            .trim();
+        const isMobileView = window.innerWidth <= 768;
+        const query = (isMobileView ? $('#mobile-search-input').value : $('#search-input').value).trim();
+
         const activeTab = $('.tab-content.active');
         if (!activeTab) return;
+        const activeTabId = activeTab.id;
 
-        const mobileSearch = $('.mobile-search-bar');
-        if (mobileSearch)
-            mobileSearch.style.display = activeTab.id === 'progress' ? 'none' : '';
+        // FIXED: Only manage the mobile search bar's visibility on mobile views.
+        if (isMobileView) {
+            const mobileSearch = $('.mobile-search-bar');
+            if (mobileSearch) {
+                mobileSearch.style.display = activeTabId === 'progress' ? 'none' : 'block';
+            }
+        }
+        
+        const fuse = fuseInstances[activeTabId];
+        const allWrappers = $$('.search-wrapper', activeTab);
+        const allItems = $$('[data-search-item]', activeTab);
+        
+        if (!query) {
+            // OPTIMIZED: Removed redundant DOM query. 'allWrappers' already includes accordions.
+            allItems.forEach(item => { item.style.display = ''; });
+            allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
+            return;
+        }
 
-        $$('.search-wrapper', activeTab).forEach((wrapper) => {
-            const items = $$('[data-search-item]', wrapper);
-            let wrapperHasVisibleItem = false;
+        if (!fuse) return;
+        
+        allItems.forEach(item => { item.style.display = 'none'; });
+        allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
+        
+        const queryLower = query.toLowerCase();
+        let queryVariants = [queryLower];
+        if (typeof wanakana !== 'undefined') {
+            queryVariants = Array.from(new Set([
+                queryLower,
+                wanakana.toRomaji(queryLower),
+                wanakana.toHiragana(queryLower),
+                wanakana.toKatakana(queryLower)
+            ]));
+        }
 
-            if (items.length) {
-                items.forEach((item) => {
-                    const isVisible = item.dataset.searchItem.includes(query);
-                    item.style.display = isVisible ? '' : 'none';
-                    if (isVisible) wrapperHasVisibleItem = true;
-                });
-                if (wrapper.classList.contains('accordion-wrapper')) {
-                    wrapper.style.display = wrapperHasVisibleItem ? '' : 'none';
-                }
-            } else {
-                wrapperHasVisibleItem = wrapper.dataset.search.includes(query);
-                wrapper.style.display = wrapperHasVisibleItem ? '' : 'none';
+        const searchPattern = queryVariants.map(variant => ({ searchData: variant }));
+        const results = fuse.search({ $or: searchPattern });
+
+        results.forEach(result => {
+            const itemElement = result.item.element;
+            itemElement.style.display = '';
+            const wrapper = itemElement.closest('.search-wrapper');
+            if (wrapper) {
+                wrapper.style.display = '';
             }
         });
-    }, 250);
+    }, 300);
 
     function createAccordion(title, contentHTML, searchData, titleKey) {
         return `<div class="search-wrapper accordion-wrapper" data-search="${searchData}">
@@ -268,15 +326,14 @@
             const title = item.Kanji || item.Reading || Object.values(item)[0];
             let subtitle = '';
             if (item.Reading && title !== item.Reading) subtitle = item.Reading;
-
             let translation = '';
             if (currentLang === 'vi' && item.vi) {
                 translation = `<span style="color: var(--accent-yellow)">${item.vi}</span>`;
             } else if (currentLang === 'en' && (item.Number || item.en)) {
-                translation = `<span style="color: var(--accent-yellow)">${item.Number}</span>`;
+                translation = `<span style="color: var(--accent-yellow)">${item.Number || item.en}</span>`;
             }
-
-            return `<div class="cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24" data-search-item="${Object.values(item).join(' ').toLowerCase()}">
+            const searchData = generateSearchTerms(Object.values(item));
+            return `<div class="cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24" data-search-item="${searchData}">
                     <div class="font-bold text-primary text-base sm:text-lg noto-sans">${title}</div>
                     ${subtitle ? `<div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${subtitle}</div>` : ''}
                     <div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${translation}</div>
@@ -289,8 +346,7 @@
     const createCard = (item, category, backGradient) => {
         const isLearned = progress[category]?.includes(item.id);
         const meaningText = item.meaning?.[currentLang] || item.meaning?.en || '';
-        const frontContent =
-            category === 'kanji'
+        const frontContent = category === 'kanji'
                 ? `<p class="text-4xl sm:text-6xl font-bold noto-sans">${item.kanji}</p>`
                 : `<div class="text-center p-2"><p class="text-xl sm:text-2xl font-semibold noto-sans">${item.word}</p></div>`;
         const backContent = `<p class="text-lg sm:text-xl font-bold">${category === 'kanji' ? meaningText : item.reading
@@ -298,81 +354,62 @@
                 ? `On: ${item.onyomi}<br>Kun: ${item.kunyomi || '–'}`
                 : meaningText
             }</p>`;
-        const enMeaning = item.meaning?.en || '';
-        const viMeaning = item.meaning?.vi || '';
-        const searchTerms = `${item.kanji || item.word} ${item.onyomi || ''} ${item.kunyomi || ''
-            } ${item.reading || ''} ${enMeaning} ${viMeaning}`.toLowerCase();
-
-        return `<div class="relative h-32 sm:h-40" data-search-item="${searchTerms}">
-      <div class="learn-toggle ${isLearned ? 'learned' : ''}" onclick="toggleLearned('${category}', '${item.id}', this)">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-      </div>
-      <div class="card h-full cursor-pointer" onclick="this.classList.toggle('is-flipped')">
-        <div class="card-inner">
-          <div class="card-face card-face-front p-2">${frontContent}</div>
-          <div class="card-face card-face-back" style="background: ${backGradient};">${backContent}</div>
-        </div>
-      </div>
-    </div>`;
+        const searchTerms = generateSearchTerms([
+            item.kanji, item.word, item.onyomi, item.kunyomi,
+            item.reading, item.meaning?.en, item.meaning?.vi,
+        ]);
+        
+        return `<div class="relative h-32 sm:h-40" data-search-item="${searchTerms}" data-item-id="${item.id}">
+            <div class="learn-toggle ${isLearned ? 'learned' : ''}" onclick="toggleLearned('${category}', '${item.id}', this)">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <div class="card h-full cursor-pointer" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-face card-face-front p-2">${frontContent}</div>
+                    <div class="card-face card-face-back" style="background: ${backGradient};">${backContent}</div>
+                </div>
+            </div>
+        </div>`;
     };
 
     const createCardSection = (title, data, category, backGradient, titleKey) => {
         const cardGrid = `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">${data
             .map((k) => createCard(k, category, backGradient))
             .join('')}</div>`;
-        const searchTerms = `${title.toLowerCase()} ${data
-            .map(
-                (item) =>
-                    `${item.kanji || item.word} ${item.meaning?.en || ''
-                        } ${item.meaning?.vi || ''}`.toLowerCase()
-            )
-            .join(' ')}`;
+        const searchTermsForSection = generateSearchTerms(
+             [title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]
+        );
         const accordionContent = `<div class="p-4 sm:p-5 sm:pt-0">${cardGrid}</div>`;
-        return createAccordion(title, accordionContent, searchTerms, titleKey);
+        return createAccordion(title, accordionContent, searchTermsForSection, titleKey);
     };
 
     const createStaticSection = (data, icon, color) =>
-        Object.entries(data)
-            .map(([sectionKey, sectionData]) => {
-                const items = sectionData.items;
-                const title = sectionData[currentLang] || sectionData['en'] || sectionKey;
+        Object.entries(data).map(([sectionKey, sectionData]) => {
+            const items = sectionData.items;
+            const title = sectionData[currentLang] || sectionData['en'] || sectionKey;
+            if (!Array.isArray(items)) return '';
+            const searchTerms = generateSearchTerms([title, ...items.flatMap(i => i.isPlaceholder ? [] : [i.kana, i.romaji])]);
 
-                if (!Array.isArray(items)) return '';
+            const content = `<div class="kana-grid">
+              ${items.map((item) => {
+                    if (item.isPlaceholder) return `<div></div>`;
+                    const isDigraph = item.kana && item.kana.length > 1;
+                    const fontClass = isDigraph ? 'kana-font-digraph' : 'kana-font';
+                    const itemSearchData = generateSearchTerms([item.kana, item.romaji]);
+                    return `<div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg" data-search-item="${itemSearchData}">
+                          <p class="noto-sans ${fontClass}" style="color:${color};">${item.kana}</p>
+                          <p class="text-xs sm:text-sm text-secondary">${item.romaji}</p>
+                        </div>`;
+                }).join('')}
+            </div>`;
 
-                const searchTerms = `${title.toLowerCase()} ${items
-                    .map((i) => (i.isPlaceholder ? '' : `${i.kana} ${i.romaji}`))
-                    .join(' ')}`;
-
-                const content = `<div class="kana-grid">
-                  ${items
-                        .map(
-                            (item) => {
-                                if (item.isPlaceholder) {
-                                    return `<div></div>`;
-                                }
-                                // FIX 2.0: Use truly fluid font size classes to prevent overflow on any screen size.
-                                // A different, smaller fluid class is used for wider digraph characters.
-                                const isDigraph = item.kana && item.kana.length > 1;
-                                const fontClass = isDigraph ? 'kana-font-digraph' : 'kana-font';
-
-                                return `
-                    <div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg">
-                      <p class="noto-sans ${fontClass}" style="color:${color};">${item.kana}</p>
-                      <p class="text-xs sm:text-sm text-secondary">${item.romaji}</p>
-                    </div>`;
-                            }
-                        )
-                        .join('')}
-                </div>`;
-
-                return `<div class="search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6" data-search="${searchTerms}">
-                  <h3 class="text-lg sm:text-lg font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${sectionKey}">
-                    <span class="text-2xl">${icon}</span> ${title}
-                  </h3>
-                  ${content}
-                </div>`;
-            })
-            .join('');
+            return `<div class="search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6" data-search="${searchTerms}">
+              <h3 class="text-lg sm:text-lg font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${sectionKey}">
+                <span class="text-2xl">${icon}</span> ${title}
+              </h3>
+              ${content}
+            </div>`;
+        }).join('');
 
     function updateProgressDashboard() {
         const overviewContainer = $('#progress-overview');
@@ -380,44 +417,30 @@
         if (!overviewContainer || !appData.ui) return;
 
         let progressHTML = `<h2 class="text-xl font-bold mb-5" data-lang-key="progressOverview">${appData.ui[currentLang]?.progressOverview || 'Progress Overview'}</h2><div class="space-y-4">`;
+        const dataCategories = { kanji: 'purple', vocab: 'green' };
 
-        for (const key in appData.kanji) {
-            const category = appData.kanji[key];
-            const total = category.items.length;
-            const learned = category.items.filter((item) =>
-                progress.kanji.includes(item.id)
-            ).length;
-            progressHTML += createProgressItem(
-                'kanji',
-                category[currentLang] || category.en,
-                learned,
-                total,
-                'purple',
-                key
-            );
-        }
-
-        for (const key in appData.vocab) {
-            const category = appData.vocab[key];
-            const total = category.items.length;
-            const learned = category.items.filter((item) =>
-                progress.vocab.includes(item.id)
-            ).length;
-            progressHTML += createProgressItem(
-                'vocab',
-                category[currentLang] || category.en,
-                learned,
-                total,
-                'green',
-                key
-            );
+        for (const [categoryName, color] of Object.entries(dataCategories)) {
+            for (const key in appData[categoryName]) {
+                const category = appData[categoryName][key];
+                const total = category.items.length;
+                const learned = category.items.filter((item) =>
+                    progress[categoryName]?.includes(item.id)
+                ).length;
+                progressHTML += createProgressItem(
+                    categoryName,
+                    category[currentLang] || category.en,
+                    learned,
+                    total,
+                    color,
+                    key
+                );
+            }
         }
 
         progressHTML += `</div><svg width="0" height="0"><defs>
       <linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient>
       <linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient>
     </defs></svg>`;
-
         if (overviewContainer) overviewContainer.innerHTML = progressHTML;
         if (progressTabContainer) progressTabContainer.innerHTML = progressHTML;
     }
@@ -431,76 +454,69 @@
         const cleanTitle = emojiMatch ? title.replace(emojiMatch[0], '') : title;
         const emoji = emojiMatch ? emojiMatch[1] : '';
 
-        // --- CHANGE IS ON THIS LINE ---
-        // We're adding "progress-item-wrapper" and removing "hover:bg-gray-500/10"
         return `
-  <div class="progress-item-wrapper flex items-center gap-3 p-3 rounded-xl cursor-pointer glass-effect" data-action="jump-to-section" data-tab-name="${tab}" data-section-key="${titleKey}">
-    <div class="relative w-12 h-12 flex-shrink-0">
-      <svg class="w-full h-full" viewBox="0 0 50 50">
-        <circle stroke-width="4" stroke="var(--progress-track-color)" fill="transparent" r="${radius}" cx="25" cy="25" />
-        <circle class="progress-circle" stroke-width="4" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
-          stroke-linecap="round" stroke="url(#${color}-gradient)" fill="transparent" r="${radius}" cx="25" cy="25" transform="rotate(-90 25 25)" />
-      </svg>
-      <span class="absolute text-xs font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">${Math.round(
-            percentage
-        )}%</span>
-    </div>
-    <div>
-      <p class="font-semibold text-sm">${cleanTitle} ${emoji}</p>
-      <p class="text-xs text-secondary">${learned} / ${total}</p>
-    </div>
-  </div>`;
+            <div class="progress-item-wrapper flex items-center gap-3 p-3 rounded-xl cursor-pointer glass-effect" onclick="jumpToSection('${tab}', '${titleKey}')">
+                <div class="relative w-12 h-12 flex-shrink-0">
+                    <svg class="w-full h-full" viewBox="0 0 50 50">
+                        <circle stroke-width="4" stroke="var(--progress-track-color)" fill="transparent" r="${radius}" cx="25" cy="25" />
+                        <circle class="progress-circle" stroke-width="4" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round" stroke="url(#${color}-gradient)" fill="transparent" r="${radius}" cx="25" cy="25" transform="rotate(-90 25 25)" />
+                    </svg>
+                    <span class="absolute text-xs font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">${Math.round(percentage)}%</span>
+                </div>
+                <div>
+                    <p class="font-semibold text-sm">${cleanTitle} ${emoji}</p>
+                    <p class="text-xs text-secondary">${learned} / ${total}</p>
+                </div>
+            </div>`;
+    }
+    
+    // OPTIMIZED: Reusable function to render Kanji and Vocab sections
+    function renderCardBasedSection(containerId, data, category, gradient, color) {
+        let html = '';
+        for (const key in data) {
+            const section = data[key];
+            const title = section[currentLang] || section['en'];
+            html += createCardSection(title, section.items, category, gradient, key);
+        }
+        $(containerId).innerHTML = `<div class="space-y-4">${html}</div>`;
+        setupFuseForTab(category);
     }
 
     function renderContent() {
         const prepareGojuonData = (originalData) => {
             if (!originalData) return {};
-
             const data = JSON.parse(JSON.stringify(originalData));
             const placeholder = { isPlaceholder: true };
-
-            const gojuonSectionKey = Object.keys(data).find(key =>
-                data[key]?.items?.some(item => item.romaji === 'a')
-            );
-
+            const gojuonSectionKey = Object.keys(data).find(key => data[key]?.items?.some(item => item.romaji === 'a'));
             if (gojuonSectionKey) {
                 const originalItems = data[gojuonSectionKey].items;
                 const findChar = (romaji) => originalItems.find(i => i.romaji === romaji);
                 const getChar = (romaji) => findChar(romaji) || placeholder;
-
                 const gridItems = [
-                    getChar('a'), getChar('i'), getChar('u'), getChar('e'), getChar('o'),
-                    getChar('ka'), getChar('ki'), getChar('ku'), getChar('ke'), getChar('ko'),
-                    getChar('sa'), getChar('shi'), getChar('su'), getChar('se'), getChar('so'),
-                    getChar('ta'), getChar('chi'), getChar('tsu'), getChar('te'), getChar('to'),
-                    getChar('na'), getChar('ni'), getChar('nu'), getChar('ne'), getChar('no'),
-                    getChar('ha'), getChar('hi'), getChar('fu'), getChar('he'), getChar('ho'),
-                    getChar('ma'), getChar('mi'), getChar('mu'), getChar('me'), getChar('mo'),
-                    getChar('ya'), placeholder, getChar('yu'), placeholder, getChar('yo'),
-                    getChar('ra'), getChar('ri'), getChar('ru'), getChar('re'), getChar('ro'),
-                    getChar('wa'), placeholder, placeholder, placeholder, getChar('wo'),
-                    getChar('n'), placeholder, placeholder, placeholder, placeholder
-                ];
-
+                    'a', 'i', 'u', 'e', 'o',
+                    'ka', 'ki', 'ku', 'ke', 'ko',
+                    'sa', 'shi', 'su', 'se', 'so',
+                    'ta', 'chi', 'tsu', 'te', 'to',
+                    'na', 'ni', 'nu', 'ne', 'no',
+                    'ha', 'hi', 'fu', 'he', 'ho',
+                    'ma', 'mi', 'mu', 'me', 'mo',
+                    'ya', null, 'yu', null, 'yo',
+                    'ra', 'ri', 'ru', 're', 'ro',
+                    'wa', null, null, null, 'wo',
+                    'n', null, null, null, null
+                ].map(r => r ? getChar(r) : placeholder);
                 data[gojuonSectionKey].items = gridItems.filter(item => item);
             }
-
             return data;
         };
 
         const hiraganaGridData = prepareGojuonData(appData.hiragana);
-        $('#hiragana').innerHTML = createStaticSection(
-            hiraganaGridData,
-            '🌸',
-            'var(--accent-pink)'
-        );
+        $('#hiragana').innerHTML = createStaticSection(hiraganaGridData, '🌸', 'var(--accent-pink)');
+        setupFuseForTab('hiragana');
 
         const katakanaGridData = prepareGojuonData(appData.katakana);
-        $('#katakana').innerHTML = createStaticSection(
-            katakanaGridData,
-            '🤖',
-            'var(--accent-blue)'
-        );
+        $('#katakana').innerHTML = createStaticSection(katakanaGridData, '🤖', 'var(--accent-blue)');
+        setupFuseForTab('katakana');
 
         let timeNumbersHTML = '';
         for (const key in appData.timeNumbers) {
@@ -510,109 +526,54 @@
             if (section.type === 'table') {
                 contentHtml = createStyledList(section.content);
             } else if (section.type === 'table-grid') {
-                contentHtml = `<div class="space-y-6">${section.content
-                    .map(
-                        (sub) => `
-            <div>
-              <h4 class="font-semibold text-md mb-3 text-primary">${sub.title[currentLang] || sub.title.en
-                            }</h4>
-              ${createStyledList(sub.data)}
-            </div>`
-                    )
-                    .join('')}</div>`;
+                contentHtml = `<div class="space-y-6">${section.content.map((sub) => `
+                <div>
+                  <h4 class="font-semibold text-md mb-3 text-primary">${sub.title[currentLang] || sub.title.en}</h4>
+                  ${createStyledList(sub.data)}
+                </div>`).join('')}</div>`;
             }
-            const searchTerms = `${title.toLowerCase()} ${JSON.stringify(
-                section.content
-            )
-                .replace(/"|{|}|\[|\]/g, ' ')
-                .toLowerCase()}`;
-            timeNumbersHTML += createAccordion(
-                title,
-                `<div class="p-4 sm:p-5 sm:pt-0">${contentHtml}</div>`,
-                searchTerms,
-                key
-            );
+            const searchTerms = generateSearchTerms([title, JSON.stringify(section.content)]);
+            timeNumbersHTML += createAccordion(title, `<div class="p-4 sm:p-5 sm:pt-0">${contentHtml}</div>`, searchTerms, key);
         }
         $('#time_numbers').innerHTML = `<div class="space-y-4">${timeNumbersHTML}</div>`;
+        setupFuseForTab('time_numbers');
 
-        // --- THIS IS THE FINAL, CORRECTED GRAMMAR RENDERING LOGIC ---
-        const grammarContainer = $('#grammar-container');
         let grammarHTML = '';
-
-        // Loop through each CATEGORY in the grammar object
         for (const sectionKey in appData.grammar) {
             const sectionData = appData.grammar[sectionKey];
             const sectionTitle = sectionData[currentLang] || sectionData['en'];
-
-            // First, create the inner HTML containing a GRID of grammar point cards.
             const innerContentHTML = `<div class="grammar-grid">
                 ${sectionData.items.map(item => {
                 const langItem = item[currentLang] || item['en'];
-                return `
-                        <div class="grammar-card cell-bg rounded-lg p-4">
+                const itemSearchData = generateSearchTerms([langItem.title, langItem.content]);
+                return `<div class="grammar-card cell-bg rounded-lg p-4" data-search-item="${itemSearchData}">
                             <h4 class="font-semibold text-primary noto-sans">${langItem.title}</h4>
                             <div class="mt-2 text-secondary leading-relaxed text-sm">${langItem.content}</div>
-                        </div>
-                    `;
+                        </div>`;
             }).join('')}
             </div>`;
-
-            // For search, we need to combine all text from this category
-            const searchData = sectionData.items.map(item => {
-                const en = item.en || { title: '', content: '' };
-                const vi = item.vi || { title: '', content: '' };
-                return `${en.title} ${en.content} ${vi.title} ${vi.content}`;
-            }).join(' ').toLowerCase();
-
-            // Now, create ONE accordion for the entire category
-            grammarHTML += createAccordion(
-                sectionTitle,
-                `<div class="p-4 sm:p-5 sm:pt-0">${innerContentHTML}</div>`,
-                searchData,
-                sectionKey
-            );
+            const searchData = generateSearchTerms([sectionTitle, ...sectionData.items.flatMap(item => [item.en?.title, item.en?.content, item.vi?.title, item.vi?.content])]);
+            grammarHTML += createAccordion(sectionTitle, `<div class="p-4 sm:p-5 sm:pt-0">${innerContentHTML}</div>`, searchData, sectionKey);
         }
-        grammarContainer.innerHTML = `<div class="space-y-4">${grammarHTML}</div>`;
+        $('#grammar-container').innerHTML = `<div class="space-y-4">${grammarHTML}</div>`;
+        setupFuseForTab('grammar');
 
-
-        let kanjiHTML = '';
-        for (const key in appData.kanji) {
-            const section = appData.kanji[key];
-            const title = section[currentLang] || section['en'];
-            kanjiHTML += createCardSection(
-                title,
-                section.items,
-                'kanji',
-                'linear-gradient(135deg, var(--accent-purple), #A78BFA)',
-                key
-            );
-        }
-        $('#kanji').innerHTML = `<div class="space-y-4">${kanjiHTML}</div>`;
-
-        let vocabHTML = '';
-        for (const key in appData.vocab) {
-            const section = appData.vocab[key];
-            const title = section[currentLang] || section['en'];
-            vocabHTML += createCardSection(
-                title,
-                section.items,
-                'vocab',
-                'linear-gradient(135deg, var(--accent-green), #4ADE80)',
-                key
-            );
-        }
-        $('#vocab').innerHTML = `<div class="space-y-4">${vocabHTML}</div>`;
+        // OPTIMIZED: Use the new reusable function for Kanji and Vocab
+        renderCardBasedSection('#kanji', appData.kanji, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)');
+        renderCardBasedSection('#vocab', appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)');
     }
 
-    const getThemeToggleHTML = () =>
-        `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`;
-
-    const getLangSwitcherHTML = () =>
-        `<div class="lang-switch-pill"></div>
-      <button data-lang="en">EN</button>
-      <button data-lang="vi">VI</button>`;
+    const getThemeToggleHTML = () => `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`;
+    const getLangSwitcherHTML = () => `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`;
 
     function setupEventListeners() {
+        document.body.addEventListener('click', (e) => {
+            if(e.target.closest('[data-action="jump-to-section"]')) {
+                const el = e.target.closest('[data-action="jump-to-section"]');
+                jumpToSection(el.dataset.tabName, el.dataset.sectionKey);
+            }
+        });
+        
         $('#menu-toggle').addEventListener('click', () => {
             $('#sidebar').classList.add('open');
             $('#overlay').classList.add('active');
@@ -624,36 +585,27 @@
         $('#lang-switcher-desktop').innerHTML = getLangSwitcherHTML();
         $('#pin-toggle').addEventListener('click', togglePin);
 
-
         $('#sidebar-controls').innerHTML = `
-      <div class="theme-switch-wrapper py-2"><span class="font-semibold text-sm text-secondary" data-lang-key="theme"></span>${getThemeToggleHTML()}</div>
-      <div class="theme-switch-wrapper py-2"><span class="font-semibold text-sm text-secondary" data-lang-key="language"></span><div class="lang-switch">${getLangSwitcherHTML()}</div></div>
-    `;
+            <div class="theme-switch-wrapper py-2"><span class="font-semibold text-sm text-secondary" data-lang-key="theme"></span>${getThemeToggleHTML()}</div>
+            <div class="theme-switch-wrapper py-2"><span class="font-semibold text-sm text-secondary" data-lang-key="language"></span><div class="lang-switch">${getLangSwitcherHTML()}</div></div>
+        `;
 
-        $$('.theme-switch input').forEach((el) =>
-            el.addEventListener('change', toggleTheme)
-        );
-        $$('.lang-switch button').forEach((el) =>
-            el.addEventListener('click', (e) => {
-                e.preventDefault();
-                setLanguage(el.dataset.lang);
-            })
-        );
+        $$('.theme-switch input').forEach((el) => el.addEventListener('change', toggleTheme));
+        $$('.lang-switch button').forEach((el) => el.addEventListener('click', (e) => {
+            e.preventDefault();
+            setLanguage(el.dataset.lang);
+        }));
 
         $('#search-input').addEventListener('input', handleSearch);
         $('#mobile-search-input').addEventListener('input', handleSearch);
 
         const debouncedResize = debounce(() => {
             $$('.lang-switch').forEach(moveLangPill);
-            // We need to check if the pin button should be visible on resize.
-            if (window.innerWidth > 768) {
-                $('#pin-toggle').style.display = 'none';
-            } else {
+            const isMobileView = window.innerWidth <= 768;
+            $('#pin-toggle').style.display = isMobileView ? 'block' : 'none';
+            if (isMobileView) {
                 const activeTab = $('.tab-content.active');
-                if (activeTab) {
-                    $('#pin-toggle').style.display = 'block';
-                    updatePinButtonState(activeTab.id);
-                }
+                if (activeTab) updatePinButtonState(activeTab.id);
             }
         }, 100);
         window.addEventListener('resize', debouncedResize);
@@ -661,38 +613,22 @@
 
     async function loadAllData(level) {
         try {
-            const files = [
-                'ui',
-                'hiragana',
-                'katakana',
-                'kanji',
-                'vocab',
-                'grammar',
-                'timeNumbers',
-            ];
+            const files = ['ui', 'hiragana', 'katakana', 'kanji', 'vocab', 'grammar', 'timeNumbers'];
             const fetchPromises = files.map((file) =>
                 fetch(`${config.dataPath}/${level}/${file}.json`).then((response) => {
-                    if (!response.ok) throw new Error(`Failed to load ${file.json}`);
+                    if (!response.ok) throw new Error(`Failed to load ${file}.json`);
                     return response.json();
                 })
             );
-            const [
-                ui,
-                hiragana,
-                katakana,
-                kanji,
-                vocab,
-                grammar,
-                timeNumbers,
-            ] = await Promise.all(fetchPromises);
-            appData = { ui, hiragana, katakana, kanji, vocab, grammar, timeNumbers };
+            const data = await Promise.all(fetchPromises);
+            appData = Object.fromEntries(files.map((file, i) => [file, data[i]]));
         } catch (error) {
             console.error('Error loading application data:', error);
             document.body.innerHTML = `<div style="text-align: center; padding: 40px; font-family: sans-serif;">
-        <h2>Error Loading Data</h2>
-        <p>Could not load learning data for <b>JLPT ${config.level.toUpperCase()}</b>.</p>
-        <p>Please ensure the data files exist in <code>${config.dataPath}/${config.level}/</code></p>
-      </div>`;
+                <h2>Error Loading Data</h2>
+                <p>Could not load learning data for <b>JLPT ${config.level.toUpperCase()}</b>.</p>
+                <p>Please ensure the data files exist in <code>${config.dataPath}/${config.level}/</code></p>
+            </div>`;
             throw error;
         }
     }
@@ -706,13 +642,10 @@
             setLanguage(currentLang);
 
             setTimeout(() => {
-                let initialTab;
-                if (window.innerWidth <= 768 && pinnedTab) {
-                    initialTab = pinnedTab; // On mobile, we'll open the pinned tab first.
-                } else if (window.innerWidth <= 768) {
-                    initialTab = 'progress'; // Default for mobile.
-                } else {
-                    initialTab = 'hiragana'; // Default for desktop.
+                const isMobileView = window.innerWidth <= 768;
+                let initialTab = 'hiragana'; // Default for desktop
+                if (isMobileView) {
+                    initialTab = pinnedTab || 'progress'; // Pinned tab or default for mobile
                 }
                 changeTab(initialTab);
                 $$('.lang-switch').forEach(moveLangPill);
@@ -722,7 +655,6 @@
         }
     }
 
-    // Making these functions available globally for the HTML onclick attributes.
     window.toggleLearned = toggleLearned;
     window.jumpToSection = jumpToSection;
     window.changeTab = changeTab;
