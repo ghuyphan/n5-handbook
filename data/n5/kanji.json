@@ -10,7 +10,7 @@
                 "kunyomi": "ひと",
                 "meaning": {
                     "en": "One",
-                    "vi": "một"
+                    "vi": "một, nhất"
                 }
             },
             {
@@ -20,7 +20,7 @@
                 "kunyomi": "ふた",
                 "meaning": {
                     "en": "Two",
-                    "vi": "hai"
+                    "vi": "hai, nhị"
                 }
             },
             {
@@ -30,7 +30,7 @@
                 "kunyomi": "み",
                 "meaning": {
                     "en": "Three",
-                    "vi": "ba"
+                    "vi": "ba, tam"
                 }
             },
             {
@@ -40,7 +40,7 @@
                 "kunyomi": "よん, よ",
                 "meaning": {
                     "en": "Four",
-                    "vi": "bốn"
+                    "vi": "bốn, tứ"
                 }
             },
             {
@@ -50,7 +50,7 @@
                 "kunyomi": "いつ",
                 "meaning": {
                     "en": "Five",
-                    "vi": "năm"
+                    "vi": "năm, ngũ"
                 }
             },
             {
@@ -60,7 +60,7 @@
                 "kunyomi": "む",
                 "meaning": {
                     "en": "Six",
-                    "vi": "sáu"
+                    "vi": "sáu, lục"
                 }
             },
             {
@@ -70,7 +70,7 @@
                 "kunyomi": "なな",
                 "meaning": {
                     "en": "Seven",
-                    "vi": "bảy"
+                    "vi": "bảy, thất"
                 }
             },
             {
@@ -80,7 +80,7 @@
                 "kunyomi": "や",
                 "meaning": {
                     "en": "Eight",
-                    "vi": "tám"
+                    "vi": "tám, bát"
                 }
             },
             {
@@ -90,7 +90,7 @@
                 "kunyomi": "ここの",
                 "meaning": {
                     "en": "Nine",
-                    "vi": "chín"
+                    "vi": "chín, cửu"
                 }
             },
             {
@@ -100,7 +100,7 @@
                 "kunyomi": "とお",
                 "meaning": {
                     "en": "Ten",
-                    "vi": "mười"
+                    "vi": "mười, thập"
                 }
             },
             {
@@ -110,7 +110,7 @@
                 "kunyomi": "もも",
                 "meaning": {
                     "en": "Hundred",
-                    "vi": "trăm"
+                    "vi": "trăm, bách"
                 }
             },
             {
@@ -120,7 +120,7 @@
                 "kunyomi": "ち",
                 "meaning": {
                     "en": "Thousand",
-                    "vi": "nghìn"
+                    "vi": "nghìn, thiên"
                 }
             },
             {
@@ -130,7 +130,7 @@
                 "kunyomi": "よろず",
                 "meaning": {
                     "en": "Ten Thousand",
-                    "vi": "vạn (mười nghìn)"
+                    "vi": "mười nghìn, vạn"
                 }
             },
             {
@@ -140,7 +140,7 @@
                 "kunyomi": "まるい",
                 "meaning": {
                     "en": "Yen, Circle",
-                    "vi": "Yên (tiền tệ), tròn"
+                    "vi": "Yên, viên, tròn"
                 }
             },
             {
@@ -150,7 +150,7 @@
                 "kunyomi": "かね",
                 "meaning": {
                     "en": "Gold, Money",
-                    "vi": "vàng, tiền, kim loại"
+                    "vi": "vàng, tiền, kim"
                 }
             }
         ]
@@ -166,7 +166,7 @@
                 "kunyomi": "ひ, -び, -か",
                 "meaning": {
                     "en": "Day, Sun",
-                    "vi": "ngày, mặt trời"
+                    "vi": "ngày, mặt trời, nhật"
                 }
             },
             {
@@ -176,7 +176,7 @@
                 "kunyomi": "つき",
                 "meaning": {
                     "en": "Month, Moon",
-                    "vi": "tháng, mặt trăng"
+                    "vi": "tháng, mặt trăng, nguyệt"
                 }
             },
             {
@@ -186,7 +186,7 @@
                 "kunyomi": "",
                 "meaning": {
                     "en": "Day of week",
-                    "vi": "thứ (trong tuần)"
+                    "vi": "thứ, diệu"
                 }
             },
             {
@@ -196,7 +196,7 @@
                 "kunyomi": "とし",
                 "meaning": {
                     "en": "Year",
-                    "vi": "năm"
+                    "vi": "năm, niên"
                 }
             },
             {
@@ -206,7 +206,7 @@
                 "kunyomi": "とき",
                 "meaning": {
                     "en": "Time, Hour",
-                    "vi": "thời gian, giờ"
+                    "vi": "giờ, thời gian, thời"
                 }
             },
             {
@@ -216,7 +216,7 @@
                 "kunyomi": "あいだ, ま",
                 "meaning": {
                     "en": "Interval, Space",
-                    "vi": "giữa, khoảng thời gian"
+                    "vi": "giữa, khoảng, gian"
                 }
             },
             {
@@ -226,7 +226,7 @@
                 "kunyomi": "わける",
                 "meaning": {
                     "en": "Minute, Part",
-                    "vi": "phút, phần"
+                    "vi": "phút, phần, phân"
                 }
             },
             {
@@ -236,7 +236,7 @@
                 "kunyomi": "なかば",
                 "meaning": {
                     "en": "Half",
-                    "vi": "nửa, rưỡi"
+                    "vi": "nửa, rưỡi, bán"
                 }
             },
             {
@@ -246,7 +246,7 @@
                 "kunyomi": "うま",
                 "meaning": {
                     "en": "Noon",
-                    "vi": "trưa"
+                    "vi": "trưa, ngọ"
                 }
             },
             {
@@ -256,7 +256,7 @@
                 "kunyomi": "まえ",
                 "meaning": {
                     "en": "Before, Front",
-                    "vi": "trước"
+                    "vi": "trước, tiền"
                 }
             },
             {
@@ -266,7 +266,7 @@
                 "kunyomi": "うしろ, あと",
                 "meaning": {
                     "en": "After, Back",
-                    "vi": "sau"
+                    "vi": "sau, hậu"
                 }
             },
             {
@@ -276,7 +276,7 @@
                 "kunyomi": "いま",
                 "meaning": {
                     "en": "Now",
-                    "vi": "bây giờ"
+                    "vi": "bây giờ, kim"
                 }
             },
             {
@@ -286,7 +286,7 @@
                 "kunyomi": "",
                 "meaning": {
                     "en": "Week",
-                    "vi": "tuần"
+                    "vi": "tuần, chu"
                 }
             },
             {
@@ -306,7 +306,7 @@
                 "kunyomi": "あかるい, あした",
                 "meaning": {
                     "en": "Bright, Tomorrow",
-                    "vi": "sáng, ngày mai"
+                    "vi": "sáng, ngày mai, minh"
                 }
             }
         ]
@@ -322,7 +322,7 @@
                 "kunyomi": "ひと",
                 "meaning": {
                     "en": "Person",
-                    "vi": "người"
+                    "vi": "người, nhân"
                 }
             },
             {
@@ -332,7 +332,7 @@
                 "kunyomi": "おとこ",
                 "meaning": {
                     "en": "Man",
-                    "vi": "nam, đàn ông"
+                    "vi": "đàn ông, nam"
                 }
             },
             {
@@ -342,7 +342,7 @@
                 "kunyomi": "おんな",
                 "meaning": {
                     "en": "Woman",
-                    "vi": "nữ, phụ nữ"
+                    "vi": "phụ nữ, nữ"
                 }
             },
             {
@@ -352,7 +352,7 @@
                 "kunyomi": "こ",
                 "meaning": {
                     "en": "Child",
-                    "vi": "con, trẻ con"
+                    "vi": "con, trẻ con, tử"
                 }
             },
             {
@@ -362,7 +362,7 @@
                 "kunyomi": "ちち",
                 "meaning": {
                     "en": "Father",
-                    "vi": "cha"
+                    "vi": "cha, phụ"
                 }
             },
             {
@@ -372,7 +372,7 @@
                 "kunyomi": "はは",
                 "meaning": {
                     "en": "Mother",
-                    "vi": "mẹ"
+                    "vi": "mẹ, mẫu"
                 }
             },
             {
@@ -382,7 +382,7 @@
                 "kunyomi": "あに",
                 "meaning": {
                     "en": "Older Brother",
-                    "vi": "anh trai"
+                    "vi": "anh trai, huynh"
                 }
             },
             {
@@ -392,7 +392,7 @@
                 "kunyomi": "あね",
                 "meaning": {
                     "en": "Older Sister",
-                    "vi": "chị gái"
+                    "vi": "chị gái, tỷ"
                 }
             },
             {
@@ -402,7 +402,7 @@
                 "kunyomi": "おとうと",
                 "meaning": {
                     "en": "Younger Brother",
-                    "vi": "em trai"
+                    "vi": "em trai, đệ"
                 }
             },
             {
@@ -412,7 +412,7 @@
                 "kunyomi": "いもうと",
                 "meaning": {
                     "en": "Younger Sister",
-                    "vi": "em gái"
+                    "vi": "em gái, muội"
                 }
             },
             {
@@ -422,7 +422,7 @@
                 "kunyomi": "とも",
                 "meaning": {
                     "en": "Friend",
-                    "vi": "bạn bè"
+                    "vi": "bạn bè, hữu"
                 }
             },
             {
@@ -432,7 +432,7 @@
                 "kunyomi": "わたし",
                 "meaning": {
                     "en": "I, Private",
-                    "vi": "tôi"
+                    "vi": "tôi, tư"
                 }
             },
             {
@@ -442,7 +442,7 @@
                 "kunyomi": "くち",
                 "meaning": {
                     "en": "Mouth",
-                    "vi": "miệng"
+                    "vi": "miệng, khẩu"
                 }
             },
             {
@@ -452,7 +452,7 @@
                 "kunyomi": "め",
                 "meaning": {
                     "en": "Eye",
-                    "vi": "mắt"
+                    "vi": "mắt, mục"
                 }
             },
             {
@@ -462,7 +462,7 @@
                 "kunyomi": "みみ",
                 "meaning": {
                     "en": "Ear",
-                    "vi": "tai"
+                    "vi": "tai, nhĩ"
                 }
             },
             {
@@ -472,7 +472,7 @@
                 "kunyomi": "て",
                 "meaning": {
                     "en": "Hand",
-                    "vi": "tay"
+                    "vi": "tay, thủ"
                 }
             },
             {
@@ -482,7 +482,7 @@
                 "kunyomi": "あし",
                 "meaning": {
                     "en": "Foot/Leg",
-                    "vi": "chân"
+                    "vi": "chân, túc"
                 }
             }
         ]
@@ -498,7 +498,7 @@
                 "kunyomi": "うえ",
                 "meaning": {
                     "en": "Up, Above",
-                    "vi": "trên, lên"
+                    "vi": "trên, lên, thượng"
                 }
             },
             {
@@ -508,7 +508,7 @@
                 "kunyomi": "した",
                 "meaning": {
                     "en": "Down, Below",
-                    "vi": "dưới, xuống"
+                    "vi": "dưới, xuống, hạ"
                 }
             },
             {
@@ -518,7 +518,7 @@
                 "kunyomi": "なか",
                 "meaning": {
                     "en": "Middle, In",
-                    "vi": "giữa, trong"
+                    "vi": "giữa, trong, trung"
                 }
             },
             {
@@ -528,7 +528,7 @@
                 "kunyomi": "そと",
                 "meaning": {
                     "en": "Outside",
-                    "vi": "ngoài"
+                    "vi": "ngoài, ngoại"
                 }
             },
             {
@@ -538,7 +538,7 @@
                 "kunyomi": "みぎ",
                 "meaning": {
                     "en": "Right",
-                    "vi": "phải"
+                    "vi": "phải, hữu"
                 }
             },
             {
@@ -548,7 +548,7 @@
                 "kunyomi": "ひだり",
                 "meaning": {
                     "en": "Left",
-                    "vi": "trái"
+                    "vi": "trái, tả"
                 }
             },
             {
@@ -598,7 +598,7 @@
                 "kunyomi": "くに",
                 "meaning": {
                     "en": "Country",
-                    "vi": "đất nước"
+                    "vi": "đất nước, quốc"
                 }
             },
             {
@@ -608,7 +608,7 @@
                 "kunyomi": "みち",
                 "meaning": {
                     "en": "Road, Street",
-                    "vi": "đường"
+                    "vi": "đường, đạo"
                 }
             },
             {
@@ -618,7 +618,7 @@
                 "kunyomi": "",
                 "meaning": {
                     "en": "Station",
-                    "vi": "nhà ga"
+                    "vi": "nhà ga, dịch"
                 }
             },
             {
@@ -628,7 +628,7 @@
                 "kunyomi": "みせ",
                 "meaning": {
                     "en": "Shop",
-                    "vi": "cửa hàng"
+                    "vi": "cửa hàng, điếm"
                 }
             },
             {
@@ -638,7 +638,7 @@
                 "kunyomi": "いえ, うち",
                 "meaning": {
                     "en": "House",
-                    "vi": "nhà"
+                    "vi": "nhà, gia"
                 }
             },
             {
@@ -648,7 +648,7 @@
                 "kunyomi": "やしろ",
                 "meaning": {
                     "en": "Company, Shrine",
-                    "vi": "công ty, đền"
+                    "vi": "công ty, đền, xã"
                 }
             }
         ]
@@ -664,7 +664,7 @@
                 "kunyomi": "かく",
                 "meaning": {
                     "en": "Write",
-                    "vi": "viết"
+                    "vi": "viết, thư"
                 }
             },
             {
@@ -674,7 +674,7 @@
                 "kunyomi": "よむ",
                 "meaning": {
                     "en": "Read",
-                    "vi": "đọc"
+                    "vi": "đọc, độc"
                 }
             },
             {
@@ -684,7 +684,7 @@
                 "kunyomi": "きく",
                 "meaning": {
                     "en": "Hear, Ask",
-                    "vi": "nghe, hỏi"
+                    "vi": "nghe, hỏi, văn"
                 }
             },
             {
@@ -694,7 +694,7 @@
                 "kunyomi": "いく",
                 "meaning": {
                     "en": "Go",
-                    "vi": "đi"
+                    "vi": "đi, hành"
                 }
             },
             {
@@ -704,7 +704,7 @@
                 "kunyomi": "くる",
                 "meaning": {
                     "en": "Come",
-                    "vi": "đến"
+                    "vi": "đến, lai"
                 }
             },
             {
@@ -714,7 +714,7 @@
                 "kunyomi": "かえる",
                 "meaning": {
                     "en": "Return",
-                    "vi": "về"
+                    "vi": "về, quy"
                 }
             },
             {
@@ -724,7 +724,7 @@
                 "kunyomi": "たべる",
                 "meaning": {
                     "en": "Eat",
-                    "vi": "ăn"
+                    "vi": "ăn, thực"
                 }
             },
             {
@@ -734,7 +734,7 @@
                 "kunyomi": "のむ",
                 "meaning": {
                     "en": "Drink",
-                    "vi": "uống"
+                    "vi": "uống, ẩm"
                 }
             },
             {
@@ -744,7 +744,7 @@
                 "kunyomi": "みる",
                 "meaning": {
                     "en": "See, Look",
-                    "vi": "nhìn, xem"
+                    "vi": "nhìn, xem, kiến"
                 }
             },
             {
@@ -754,7 +754,7 @@
                 "kunyomi": "いう",
                 "meaning": {
                     "en": "Say",
-                    "vi": "nói"
+                    "vi": "nói, ngôn"
                 }
             },
             {
@@ -764,7 +764,7 @@
                 "kunyomi": "はなす",
                 "meaning": {
                     "en": "Speak, Talk",
-                    "vi": "nói chuyện"
+                    "vi": "nói chuyện, thoại"
                 }
             },
             {
@@ -774,7 +774,7 @@
                 "kunyomi": "あう",
                 "meaning": {
                     "en": "Meet",
-                    "vi": "gặp"
+                    "vi": "gặp, hội"
                 }
             },
             {
@@ -784,7 +784,7 @@
                 "kunyomi": "かう",
                 "meaning": {
                     "en": "Buy",
-                    "vi": "mua"
+                    "vi": "mua, mãi"
                 }
             },
             {
@@ -794,7 +794,7 @@
                 "kunyomi": "やすむ",
                 "meaning": {
                     "en": "Rest",
-                    "vi": "nghỉ"
+                    "vi": "nghỉ, hưu"
                 }
             },
             {
@@ -824,7 +824,7 @@
                 "kunyomi": "たつ",
                 "meaning": {
                     "en": "Stand",
-                    "vi": "đứng"
+                    "vi": "đứng, lập"
                 }
             },
             {
@@ -834,7 +834,7 @@
                 "kunyomi": "まつ",
                 "meaning": {
                     "en": "Wait",
-                    "vi": "đợi"
+                    "vi": "đợi, đãi"
                 }
             },
             {
@@ -844,7 +844,7 @@
                 "kunyomi": "もつ",
                 "meaning": {
                     "en": "Hold, Have",
-                    "vi": "cầm, mang"
+                    "vi": "cầm, mang, trì"
                 }
             },
             {
@@ -854,7 +854,7 @@
                 "kunyomi": "つくる",
                 "meaning": {
                     "en": "Make",
-                    "vi": "làm, tạo"
+                    "vi": "làm, tạo, tác"
                 }
             },
             {
@@ -864,7 +864,7 @@
                 "kunyomi": "つかう",
                 "meaning": {
                     "en": "Use",
-                    "vi": "sử dụng"
+                    "vi": "sử dụng, sử"
                 }
             },
             {
@@ -874,7 +874,7 @@
                 "kunyomi": "おしえる",
                 "meaning": {
                     "en": "Teach",
-                    "vi": "dạy, chỉ bảo"
+                    "vi": "dạy, chỉ bảo, giáo"
                 }
             },
             {
@@ -884,7 +884,7 @@
                 "kunyomi": "はしる",
                 "meaning": {
                     "en": "Run",
-                    "vi": "chạy"
+                    "vi": "chạy, tẩu"
                 }
             },
             {
@@ -894,7 +894,7 @@
                 "kunyomi": "あるく, あゆむ",
                 "meaning": {
                     "en": "Walk",
-                    "vi": "đi bộ"
+                    "vi": "đi bộ, bộ"
                 }
             },
             {
@@ -904,7 +904,7 @@
                 "kunyomi": "おきる, おこす",
                 "meaning": {
                     "en": "Wake up, get up",
-                    "vi": "thức dậy"
+                    "vi": "thức dậy, khởi"
                 }
             },
             {
@@ -914,7 +914,7 @@
                 "kunyomi": "ねる",
                 "meaning": {
                     "en": "Sleep, lie down",
-                    "vi": "ngủ"
+                    "vi": "ngủ, tẩm"
                 }
             }
         ]
@@ -930,7 +930,7 @@
                 "kunyomi": "おおきい",
                 "meaning": {
                     "en": "Big",
-                    "vi": "to, lớn"
+                    "vi": "to, lớn, đại"
                 }
             },
             {
@@ -940,7 +940,7 @@
                 "kunyomi": "ちいさい",
                 "meaning": {
                     "en": "Small",
-                    "vi": "nhỏ"
+                    "vi": "nhỏ, tiểu"
                 }
             },
             {
@@ -970,7 +970,7 @@
                 "kunyomi": "あたらしい",
                 "meaning": {
                     "en": "New",
-                    "vi": "mới"
+                    "vi": "mới, tân"
                 }
             },
             {
@@ -980,7 +980,7 @@
                 "kunyomi": "ふるい",
                 "meaning": {
                     "en": "Old",
-                    "vi": "cũ"
+                    "vi": "cũ, cổ"
                 }
             },
             {
@@ -990,7 +990,7 @@
                 "kunyomi": "ながい",
                 "meaning": {
                     "en": "Long",
-                    "vi": "dài, trưởng"
+                    "vi": "dài, trưởng, trường"
                 }
             },
             {
@@ -1000,7 +1000,7 @@
                 "kunyomi": "おおい",
                 "meaning": {
                     "en": "Many, Much",
-                    "vi": "nhiều"
+                    "vi": "nhiều, đa"
                 }
             },
             {
@@ -1010,7 +1010,7 @@
                 "kunyomi": "すくない",
                 "meaning": {
                     "en": "Few, A little",
-                    "vi": "ít, một chút"
+                    "vi": "ít, một chút, thiểu"
                 }
             },
             {
@@ -1020,7 +1020,7 @@
                 "kunyomi": "しろい",
                 "meaning": {
                     "en": "White",
-                    "vi": "trắng"
+                    "vi": "trắng, bạch"
                 }
             },
             {
@@ -1030,7 +1030,7 @@
                 "kunyomi": "あかい",
                 "meaning": {
                     "en": "Red",
-                    "vi": "đỏ"
+                    "vi": "đỏ, xích"
                 }
             },
             {
@@ -1040,7 +1040,7 @@
                 "kunyomi": "あおい",
                 "meaning": {
                     "en": "Blue",
-                    "vi": "xanh da trời"
+                    "vi": "xanh, thanh"
                 }
             },
             {
@@ -1050,7 +1050,7 @@
                 "kunyomi": "すき",
                 "meaning": {
                     "en": "Like",
-                    "vi": "thích"
+                    "vi": "thích, hảo"
                 }
             },
             {
@@ -1060,7 +1060,7 @@
                 "kunyomi": "もと",
                 "meaning": {
                     "en": "Origin, Healthy",
-                    "vi": "gốc, khỏe"
+                    "vi": "gốc, khỏe, nguyên"
                 }
             },
             {
@@ -1070,7 +1070,7 @@
                 "kunyomi": "はやい",
                 "meaning": {
                     "en": "Early",
-                    "vi": "sớm, nhanh"
+                    "vi": "sớm, nhanh, tảo"
                 }
             },
             {
@@ -1080,7 +1080,7 @@
                 "kunyomi": "くろ, くろい",
                 "meaning": {
                     "en": "Black",
-                    "vi": "đen"
+                    "vi": "đen, hắc"
                 }
             },
             {
@@ -1090,7 +1090,7 @@
                 "kunyomi": "あつい",
                 "meaning": {
                     "en": "Hot (weather)",
-                    "vi": "nóng"
+                    "vi": "nóng, thử"
                 }
             },
             {
@@ -1100,7 +1100,7 @@
                 "kunyomi": "さむい",
                 "meaning": {
                     "en": "Cold (weather)",
-                    "vi": "lạnh"
+                    "vi": "lạnh, hàn"
                 }
             },
             {
@@ -1110,7 +1110,7 @@
                 "kunyomi": "つよい",
                 "meaning": {
                     "en": "Strong",
-                    "vi": "mạnh"
+                    "vi": "mạnh, cường"
                 }
             },
             {
@@ -1120,7 +1120,7 @@
                 "kunyomi": "しずか",
                 "meaning": {
                     "en": "Quiet",
-                    "vi": "yên tĩnh"
+                    "vi": "yên tĩnh, tĩnh"
                 }
             },
             {
@@ -1130,7 +1130,7 @@
                 "kunyomi": "いや",
                 "meaning": {
                     "en": "Dislike, Unpleasant",
-                    "vi": "không thích, khó chịu"
+                    "vi": "ghét, khó chịu, hiềm"
                 }
             }
         ]
@@ -1146,7 +1146,7 @@
                 "kunyomi": "ひ, -び",
                 "meaning": {
                     "en": "Fire",
-                    "vi": "lửa"
+                    "vi": "lửa, hỏa"
                 }
             },
             {
@@ -1156,7 +1156,7 @@
                 "kunyomi": "みず",
                 "meaning": {
                     "en": "Water",
-                    "vi": "nước"
+                    "vi": "nước, thủy"
                 }
             },
             {
@@ -1166,7 +1166,7 @@
                 "kunyomi": "き",
                 "meaning": {
                     "en": "Tree, Wood",
-                    "vi": "cây, gỗ"
+                    "vi": "cây, gỗ, mộc"
                 }
             },
             {
@@ -1176,7 +1176,7 @@
                 "kunyomi": "つち",
                 "meaning": {
                     "en": "Soil, Earth",
-                    "vi": "đất"
+                    "vi": "đất, thổ"
                 }
             },
             {
@@ -1186,7 +1186,7 @@
                 "kunyomi": "やま",
                 "meaning": {
                     "en": "Mountain",
-                    "vi": "núi"
+                    "vi": "núi, sơn"
                 }
             },
             {
@@ -1196,7 +1196,7 @@
                 "kunyomi": "かわ",
                 "meaning": {
                     "en": "River",
-                    "vi": "sông"
+                    "vi": "sông, xuyên"
                 }
             },
             {
@@ -1216,7 +1216,7 @@
                 "kunyomi": "あめ",
                 "meaning": {
                     "en": "Rain",
-                    "vi": "mưa"
+                    "vi": "mưa, vũ"
                 }
             },
             {
@@ -1226,7 +1226,7 @@
                 "kunyomi": "あま",
                 "meaning": {
                     "en": "Heaven, Sky",
-                    "vi": "trời"
+                    "vi": "trời, thiên"
                 }
             },
             {
@@ -1246,7 +1246,7 @@
                 "kunyomi": "くるま",
                 "meaning": {
                     "en": "Car, Vehicle",
-                    "vi": "xe"
+                    "vi": "xe, xa"
                 }
             },
             {
@@ -1266,7 +1266,7 @@
                 "kunyomi": "た",
                 "meaning": {
                     "en": "Rice Field",
-                    "vi": "ruộng"
+                    "vi": "ruộng, điền"
                 }
             },
             {
@@ -1276,7 +1276,7 @@
                 "kunyomi": "いぬ",
                 "meaning": {
                     "en": "Dog",
-                    "vi": "chó"
+                    "vi": "chó, khuyển"
                 }
             },
             {
@@ -1286,7 +1286,7 @@
                 "kunyomi": "ねこ",
                 "meaning": {
                     "en": "Cat",
-                    "vi": "mèo"
+                    "vi": "mèo, miêu"
                 }
             },
             {
@@ -1296,7 +1296,7 @@
                 "kunyomi": "とり",
                 "meaning": {
                     "en": "Bird",
-                    "vi": "chim"
+                    "vi": "chim, điểu"
                 }
             },
             {
@@ -1306,7 +1306,7 @@
                 "kunyomi": "さかな, うお",
                 "meaning": {
                     "en": "Fish",
-                    "vi": "cá"
+                    "vi": "cá, ngư"
                 }
             }
         ]
@@ -1352,7 +1352,7 @@
                 "kunyomi": "まなぶ",
                 "meaning": {
                     "en": "Study",
-                    "vi": "học"
+                    "vi": "học, học"
                 }
             },
             {
@@ -1362,7 +1362,7 @@
                 "kunyomi": "",
                 "meaning": {
                     "en": "School",
-                    "vi": "trường"
+                    "vi": "trường, hiệu"
                 }
             },
             {
@@ -1372,7 +1372,7 @@
                 "kunyomi": "もと",
                 "meaning": {
                     "en": "Book, Origin",
-                    "vi": "sách, gốc"
+                    "vi": "sách, gốc, bản"
                 }
             },
             {
@@ -1382,7 +1382,7 @@
                 "kunyomi": "かたる",
                 "meaning": {
                     "en": "Language, Word",
-                    "vi": "ngôn ngữ, từ"
+                    "vi": "ngôn ngữ, từ, ngữ"
                 }
             },
             {
@@ -1402,7 +1402,7 @@
                 "kunyomi": "ちから",
                 "meaning": {
                     "en": "Power",
-                    "vi": "sức mạnh"
+                    "vi": "sức mạnh, lực"
                 }
             },
             {
@@ -1412,7 +1412,7 @@
                 "kunyomi": "なに",
                 "meaning": {
                     "en": "What",
-                    "vi": "gì"
+                    "vi": "gì, hà"
                 }
             },
             {
@@ -1422,7 +1422,7 @@
                 "kunyomi": "だれ",
                 "meaning": {
                     "en": "Who",
-                    "vi": "ai"
+                    "vi": "ai, thùy"
                 }
             },
             {
@@ -1432,7 +1432,7 @@
                 "kunyomi": "",
                 "meaning": {
                     "en": "Exertion, Diligence (as in 勉強)",
-                    "vi": "cố gắng, học (trong 勉強)"
+                    "vi": "cố gắng, học, miễn"
                 }
             }
         ]

@@ -555,9 +555,25 @@
                 ${sectionData.items.map(item => {
                 const langItem = item[currentLang] || item['en'];
                 const itemSearchData = generateSearchTerms([langItem.title, langItem.content]);
-                return `<div class="grammar-card cell-bg rounded-lg p-4" data-search-item="${itemSearchData}">
+
+                // ***FIXED LOGIC HERE***
+                // Use a more robust method to find and separate the example(s)
+                const content = langItem.content;
+                const exampleMarkerRegex = /(<br>)?<b>(Example|Ví dụ).*?<\/b>/i;
+                const match = content.match(exampleMarkerRegex);
+
+                let description = content;
+                let exampleHTML = '';
+
+                if (match && typeof match.index === 'number') {
+                    description = content.substring(0, match.index);
+                    exampleHTML = content.substring(match.index).replace(/^<br>/, '');
+                }
+
+                return `<div class="grammar-card cell-bg rounded-lg" data-search-item="${itemSearchData}">
                             <h4 class="font-semibold text-primary noto-sans">${langItem.title}</h4>
-                            <div class="mt-2 text-secondary leading-relaxed text-sm">${langItem.content}</div>
+                            <div class="grammar-description mt-2 text-secondary leading-relaxed text-sm">${description}</div>
+                            ${exampleHTML ? `<div class="grammar-example mt-3 text-sm">${exampleHTML}</div>` : ''}
                         </div>`;
             }).join('')}
             </div>`;
@@ -566,6 +582,7 @@
         }
         $('#grammar-container').innerHTML = `<div class="space-y-4">${grammarHTML}</div>`;
         setupFuseForTab('grammar');
+
 
         // OPTIMIZED: Use the new reusable function for Kanji and Vocab
         renderCardBasedSection('#kanji', appData.kanji, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)');
