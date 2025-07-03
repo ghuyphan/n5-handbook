@@ -1,18 +1,17 @@
-// --- JLPT Handbook App (Optimized) ---
+// JLPT Handbook App (Optimized & Updated)
 (() => {
-    // --- CONFIGURATION ---
+    // I'll keep the app's configuration right at the top for easy access.
     const config = {
         level: 'n5', // Change to 'n4', 'n3' etc. to load different data sets
-        dataPath: './data', // Base path for data files
+        dataPath: './data',
     };
 
-    // --- GLOBAL STATE & APP DATA ---
     let appData = {};
     let progress = { kanji: [], vocab: [] };
     let currentLang = 'vi';
-    let pinnedTab = null; // New state variable for pinned tab
+    let pinnedTab = null; // This will remember which tab the user pins on mobile.
 
-    // --- UTILS ---
+    // A few utility functions to make life easier.
     const $ = (sel, ctx = document) => ctx.querySelector(sel);
     const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 
@@ -26,14 +25,13 @@
         return debounced;
     };
 
-    // --- STATE ---
     function loadState() {
         progress =
             JSON.parse(
                 localStorage.getItem(`jlptN${config.level.toUpperCase()}Progress`)
             ) || progress;
         currentLang = localStorage.getItem('n5HandbookLang') || 'en';
-        pinnedTab = localStorage.getItem('pinnedMobileTab'); // Load pinned tab
+        pinnedTab = localStorage.getItem('pinnedMobileTab');
     }
 
     function saveProgress() {
@@ -44,7 +42,6 @@
         updateProgressDashboard();
     }
 
-    // New: Save Pinned Tab
     function savePinnedTab(tabId) {
         if (tabId) {
             localStorage.setItem('pinnedMobileTab', tabId);
@@ -54,7 +51,6 @@
         updatePinButtonState(tabId);
     }
 
-    // --- LANGUAGE ---
     function setLanguage(lang) {
         currentLang = lang;
         localStorage.setItem('n5HandbookLang', lang);
@@ -85,7 +81,6 @@
         pill.style.transform = `translateX(${activeButton.offsetLeft}px)`;
     }
 
-    // --- THEME ---
     function setupTheme() {
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -105,7 +100,6 @@
         });
     }
 
-    // --- PROGRESS ---
     function toggleLearned(category, id, element) {
         const arr = progress[category];
         const idx = arr.indexOf(id);
@@ -119,7 +113,6 @@
         saveProgress();
     }
 
-    // --- TABS & NAVIGATION ---
     function changeTab(tabName, buttonElement) {
         $$('.tab-content').forEach((c) => c.classList.remove('active'));
         $(`#${tabName}`)?.classList.add('active');
@@ -139,15 +132,11 @@
                 titleSpan?.textContent ||
                 '';
             $('#mobile-header-title').textContent = titleText;
-
-            // Show pin button and update its state
             $('#pin-toggle').style.display = 'block';
             updatePinButtonState(tabName);
         } else {
-            // Hide pin button on desktop
             $('#pin-toggle').style.display = 'none';
         }
-
 
         $('#search-input').value = '';
         $('#mobile-search-input').value = '';
@@ -156,42 +145,36 @@
         closeSidebar();
     }
 
-    // New: Update Pin Button UI
     function updatePinButtonState(activeTabId) {
         const pinButton = document.getElementById('pin-toggle');
         if (!pinButton) return;
+        pinButton.innerHTML = ''; // Clear previous SVG
 
-        // Remove old SVG
-        pinButton.innerHTML = '';
-
-        // Your SVG path
+        // The SVG structure remains the same
         const pinSVG = `
         <svg height="24" width="24" viewBox="0 0 519.657 1024" xmlns="http://www.w3.org/2000/svg">
             <path d="M196.032 704l64 320 64-320c-20.125 2-41.344 3.188-62.281 3.188C239.22 707.188 217.47 706.312 196.032 704zM450.032 404.688c-16.188-15.625-40.312-44.375-62-84.688v-64c7.562-12.406 12.25-39.438 23.375-51.969 15.25-13.375 24-28.594 24-44.875 0-53.094-61.062-95.156-175.375-95.156-114.25 0-182.469 42.062-182.469 95.094 0 16 8.469 31.062 23.375 44.312 13.438 14.844 22.719 38 31.094 52.594v64c-32.375 62.656-82 96.188-82 96.188h0.656C18.749 437.876 0 464.126 0 492.344 0.063 566.625 101.063 640.062 260.032 640c159 0.062 259.625-73.375 259.625-147.656C519.657 458.875 493.407 428.219 450.032 404.688z"/>
         </svg>
     `;
 
-        // Create a wrapper div to set color via class
         const wrapper = document.createElement('span');
         wrapper.innerHTML = pinSVG;
-
-        // Get the svg element
         const svg = wrapper.querySelector('svg');
 
+        // *** THIS IS THE KEY CHANGE ***
+        // Instead of setting the color directly, we now rely on the CSS variables.
+        // We just add or remove the 'pinned' class to the button.
         if (activeTabId === pinnedTab) {
-            svg.style.fill = 'var(--pin-color)';
             pinButton.classList.add('pinned');
+            svg.style.fill = 'var(--pin-pinned-icon)'; // Use variable for pinned icon color
         } else {
-            svg.style.fill = 'var(--pin-unpinned)';
             pinButton.classList.remove('pinned');
+            svg.style.fill = 'var(--pin-unpinned)'; // Use variable for unpinned icon color
         }
 
-        // Optionally, you can add a little rotation for unpinned:
-        // if (activeTabId !== pinnedTab) svg.style.transform = 'rotate(-25deg)';
-
-        // Set width/height for consistency
-        svg.style.width = '1.5em';
-        svg.style.height = '1.5em';
+        // Apply general SVG styling
+        svg.style.width = '1.25em';
+        svg.style.height = '1.25em';
 
         pinButton.appendChild(svg);
     }
@@ -208,12 +191,8 @@
             pinnedTab = tabId;
             savePinnedTab(tabId);
         }
-        // --- Force UI update ---
         updatePinButtonState(tabId);
-        // Optionally, update the header title if needed
-        // (re-run the code that sets #mobile-header-title if you want)
     }
-
 
     function closeSidebar() {
         $('#sidebar')?.classList.remove('open');
@@ -237,7 +216,6 @@
         }, 100);
     }
 
-    // --- SEARCH ---
     const handleSearch = debounce(() => {
         const query = (
             window.innerWidth <= 768
@@ -273,7 +251,6 @@
         });
     }, 250);
 
-    // --- RENDERING ---
     function createAccordion(title, contentHTML, searchData, titleKey) {
         return `<div class="search-wrapper accordion-wrapper" data-search="${searchData}">
       <div class="glass-effect rounded-2xl overflow-hidden mb-4">
@@ -285,23 +262,21 @@
       </div>
     </div>`;
     }
+
     function createStyledList(items) {
         let content = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">`;
         content += items.map(item => {
-            // Main title: Kanji or Reading
             const title = item.Kanji || item.Reading || Object.values(item)[0];
             let subtitle = '';
             if (item.Reading && title !== item.Reading) subtitle = item.Reading;
 
-            // Show only the relevant translation
             let translation = '';
             if (currentLang === 'vi' && item.vi) {
                 translation = `<span style="color: var(--accent-yellow)">${item.vi}</span>`;
-            } else if (currentLang === 'en' && item.Number) {
+            } else if (currentLang === 'en' && (item.Number || item.en)) {
                 translation = `<span style="color: var(--accent-yellow)">${item.Number}</span>`;
             }
 
-            // Compose the cell
             return `<div class="cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24" data-search-item="${Object.values(item).join(' ').toLowerCase()}">
                     <div class="font-bold text-primary text-base sm:text-lg noto-sans">${title}</div>
                     ${subtitle ? `<div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${subtitle}</div>` : ''}
@@ -311,6 +286,7 @@
         content += '</div>';
         return content;
     }
+
     const createCard = (item, category, backGradient) => {
         const isLearned = progress[category]?.includes(item.id);
         const meaningText = item.meaning?.[currentLang] || item.meaning?.en || '';
@@ -358,27 +334,39 @@
 
     const createStaticSection = (data, icon, color) =>
         Object.entries(data)
-            .map(([section, items]) => {
-                const searchTerms = `${section.toLowerCase()} ${items
-                    .map((i) => `${i.kana} ${i.romaji}`)
+            .map(([sectionKey, sectionData]) => {
+                const items = sectionData.items;
+                const title = sectionData[currentLang] || sectionData['en'] || sectionKey;
+
+                if (!Array.isArray(items)) return '';
+
+                const searchTerms = `${title.toLowerCase()} ${items
+                    .map((i) => (i.isPlaceholder ? '' : `${i.kana} ${i.romaji}`))
                     .join(' ')}`;
-                const content = `<div class="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-3">
-          ${items
+
+                const content = `<div class="kana-grid">
+                  ${items
                         .map(
-                            (item) => `
-            <div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg">
-              <p class="text-3xl sm:text-4xl noto-sans" style="color:${color};">${item.kana}</p>
-              <p class="text-xs sm:text-sm text-secondary">${item.romaji}</p>
-            </div>`
+                            (item) => {
+                                if (item.isPlaceholder) {
+                                    return `<div></div>`;
+                                }
+                                return `
+                    <div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg">
+                      <p class="text-3xl sm:text-4xl noto-sans" style="color:${color};">${item.kana}</p>
+                      <p class="text-xs sm:text-sm text-secondary">${item.romaji}</p>
+                    </div>`;
+                            }
                         )
                         .join('')}
-        </div>`;
+                </div>`;
+
                 return `<div class="search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6" data-search="${searchTerms}">
-          <h3 class="text-lg sm:text-lg font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${section}">
-            <span class="text-2xl">${icon}</span> ${section}
-          </h3>
-          ${content}
-        </div>`;
+                  <h3 class="text-lg sm:text-lg font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${sectionKey}">
+                    <span class="text-2xl">${icon}</span> ${title}
+                  </h3>
+                  ${content}
+                </div>`;
             })
             .join('');
 
@@ -459,13 +447,51 @@
     }
 
     function renderContent() {
+        const prepareGojuonData = (originalData) => {
+            if (!originalData) return {};
+
+            const data = JSON.parse(JSON.stringify(originalData));
+            const placeholder = { isPlaceholder: true };
+
+            const gojuonSectionKey = Object.keys(data).find(key =>
+                data[key]?.items?.some(item => item.romaji === 'a')
+            );
+
+            if (gojuonSectionKey) {
+                const originalItems = data[gojuonSectionKey].items;
+                const findChar = (romaji) => originalItems.find(i => i.romaji === romaji);
+                const getChar = (romaji) => findChar(romaji) || placeholder;
+
+                const gridItems = [
+                    getChar('a'), getChar('i'), getChar('u'), getChar('e'), getChar('o'),
+                    getChar('ka'), getChar('ki'), getChar('ku'), getChar('ke'), getChar('ko'),
+                    getChar('sa'), getChar('shi'), getChar('su'), getChar('se'), getChar('so'),
+                    getChar('ta'), getChar('chi'), getChar('tsu'), getChar('te'), getChar('to'),
+                    getChar('na'), getChar('ni'), getChar('nu'), getChar('ne'), getChar('no'),
+                    getChar('ha'), getChar('hi'), getChar('fu'), getChar('he'), getChar('ho'),
+                    getChar('ma'), getChar('mi'), getChar('mu'), getChar('me'), getChar('mo'),
+                    getChar('ya'), placeholder, getChar('yu'), placeholder, getChar('yo'),
+                    getChar('ra'), getChar('ri'), getChar('ru'), getChar('re'), getChar('ro'),
+                    getChar('wa'), placeholder, placeholder, placeholder, getChar('wo'),
+                    getChar('n'), placeholder, placeholder, placeholder, placeholder
+                ];
+
+                data[gojuonSectionKey].items = gridItems.filter(item => item);
+            }
+
+            return data;
+        };
+
+        const hiraganaGridData = prepareGojuonData(appData.hiragana);
         $('#hiragana').innerHTML = createStaticSection(
-            appData.hiragana,
+            hiraganaGridData,
             '🌸',
             'var(--accent-pink)'
         );
+
+        const katakanaGridData = prepareGojuonData(appData.katakana);
         $('#katakana').innerHTML = createStaticSection(
-            appData.katakana,
+            katakanaGridData,
             '🤖',
             'var(--accent-blue)'
         );
@@ -503,23 +529,45 @@
         }
         $('#time_numbers').innerHTML = `<div class="space-y-4">${timeNumbersHTML}</div>`;
 
+        // --- THIS IS THE FINAL, CORRECTED GRAMMAR RENDERING LOGIC ---
         const grammarContainer = $('#grammar-container');
-        grammarContainer.innerHTML = appData.grammar
-            .map((item) => {
+        let grammarHTML = '';
+
+        // Loop through each CATEGORY in the grammar object
+        for (const sectionKey in appData.grammar) {
+            const sectionData = appData.grammar[sectionKey];
+            const sectionTitle = sectionData[currentLang] || sectionData['en'];
+
+            // First, create the inner HTML containing a GRID of grammar point cards.
+            const innerContentHTML = `<div class="grammar-grid">
+                ${sectionData.items.map(item => {
                 const langItem = item[currentLang] || item['en'];
-                const searchTerms = `${langItem.title} ${langItem.content.replace(
-                    /<[^>]*>?/gm,
-                    ''
-                )}`.toLowerCase();
-                const content = `<div class="leading-relaxed text-secondary">${langItem.content}</div>`;
-                return createAccordion(
-                    langItem.title,
-                    `<div class="p-5 pt-0">${content}</div>`,
-                    searchTerms,
-                    item.id
-                );
-            })
-            .join('');
+                return `
+                        <div class="grammar-card cell-bg rounded-lg p-4">
+                            <h4 class="font-semibold text-primary noto-sans">${langItem.title}</h4>
+                            <div class="mt-2 text-secondary leading-relaxed text-sm">${langItem.content}</div>
+                        </div>
+                    `;
+            }).join('')}
+            </div>`;
+
+            // For search, we need to combine all text from this category
+            const searchData = sectionData.items.map(item => {
+                const en = item.en || { title: '', content: '' };
+                const vi = item.vi || { title: '', content: '' };
+                return `${en.title} ${en.content} ${vi.title} ${vi.content}`;
+            }).join(' ').toLowerCase();
+
+            // Now, create ONE accordion for the entire category
+            grammarHTML += createAccordion(
+                sectionTitle,
+                `<div class="p-4 sm:p-5 sm:pt-0">${innerContentHTML}</div>`,
+                searchData,
+                sectionKey
+            );
+        }
+        grammarContainer.innerHTML = `<div class="space-y-4">${grammarHTML}</div>`;
+
 
         let kanjiHTML = '';
         for (const key in appData.kanji) {
@@ -550,7 +598,6 @@
         $('#vocab').innerHTML = `<div class="space-y-4">${vocabHTML}</div>`;
     }
 
-    // --- UI COMPONENTS ---
     const getThemeToggleHTML = () =>
         `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`;
 
@@ -559,7 +606,6 @@
       <button data-lang="en">EN</button>
       <button data-lang="vi">VI</button>`;
 
-    // --- EVENT LISTENERS ---
     function setupEventListeners() {
         $('#menu-toggle').addEventListener('click', () => {
             $('#sidebar').classList.add('open');
@@ -570,7 +616,7 @@
         $('#overlay').addEventListener('click', closeSidebar);
         $('#header-theme-toggle').innerHTML = getThemeToggleHTML();
         $('#lang-switcher-desktop').innerHTML = getLangSwitcherHTML();
-        $('#pin-toggle').addEventListener('click', togglePin); // New: Pin button listener
+        $('#pin-toggle').addEventListener('click', togglePin);
 
 
         $('#sidebar-controls').innerHTML = `
@@ -593,11 +639,10 @@
 
         const debouncedResize = debounce(() => {
             $$('.lang-switch').forEach(moveLangPill);
-            // Re-evaluate pin button visibility on resize
+            // We need to check if the pin button should be visible on resize.
             if (window.innerWidth > 768) {
                 $('#pin-toggle').style.display = 'none';
             } else {
-                // Only show if a tab is active
                 const activeTab = $('.tab-content.active');
                 if (activeTab) {
                     $('#pin-toggle').style.display = 'block';
@@ -608,7 +653,6 @@
         window.addEventListener('resize', debouncedResize);
     }
 
-    // --- DATA LOADING ---
     async function loadAllData(level) {
         try {
             const files = [
@@ -622,7 +666,7 @@
             ];
             const fetchPromises = files.map((file) =>
                 fetch(`${config.dataPath}/${level}/${file}.json`).then((response) => {
-                    if (!response.ok) throw new Error(`Failed to load ${file}.json`);
+                    if (!response.ok) throw new Error(`Failed to load ${file.json}`);
                     return response.json();
                 })
             );
@@ -647,7 +691,6 @@
         }
     }
 
-    // --- INIT ---
     async function init() {
         try {
             await loadAllData(config.level);
@@ -659,11 +702,11 @@
             setTimeout(() => {
                 let initialTab;
                 if (window.innerWidth <= 768 && pinnedTab) {
-                    initialTab = pinnedTab; // Load pinned tab on mobile if exists
+                    initialTab = pinnedTab; // On mobile, we'll open the pinned tab first.
                 } else if (window.innerWidth <= 768) {
-                    initialTab = 'progress'; // Default mobile tab
+                    initialTab = 'progress'; // Default for mobile.
                 } else {
-                    initialTab = 'hiragana'; // Default desktop tab
+                    initialTab = 'hiragana'; // Default for desktop.
                 }
                 changeTab(initialTab);
                 $$('.lang-switch').forEach(moveLangPill);
@@ -673,7 +716,7 @@
         }
     }
 
-    // --- GLOBALS FOR HTML ONCLICK ---
+    // Making these functions available globally for the HTML onclick attributes.
     window.toggleLearned = toggleLearned;
     window.jumpToSection = jumpToSection;
     window.changeTab = changeTab;

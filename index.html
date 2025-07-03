@@ -73,15 +73,6 @@
                         </svg>
                         <span class="font-jp">カタカナ</span>
                     </button>
-                    <button onclick="changeTab('time_numbers', this)"
-                        class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 transition-all duration-200 text-sm md:text-base lg:text-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="truncate font-jp" data-lang-key="timeAndNumbers">Time & Numbers</span>
-                    </button>
                     <button onclick="changeTab('kanji', this)"
                         class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 transition-all duration-200 text-sm md:text-base lg:text-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-500" fill="none"
@@ -90,6 +81,15 @@
                                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                         <span class="font-jp">漢字</span>
+                    </button>
+                    <button onclick="changeTab('time_numbers', this)"
+                        class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 transition-all duration-200 text-sm md:text-base lg:text-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="truncate font-jp" data-lang-key="timeAndNumbers">Time & Numbers</span>
                     </button>
                     <button onclick="changeTab('vocab', this)"
                         class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 transition-all duration-200 text-sm md:text-base lg:text-lg">
@@ -159,8 +159,8 @@
                 <div id="progress" class="tab-content"></div>
                 <div id="hiragana" class="tab-content"></div>
                 <div id="katakana" class="tab-content"></div>
-                <div id="time_numbers" class="tab-content"></div>
                 <div id="kanji" class="tab-content"></div>
+                <div id="time_numbers" class="tab-content"></div>
                 <div id="vocab" class="tab-content"></div>
                 <div id="grammar" class="tab-content">
                     <div id="grammar-container" class="space-y-4"></div>
