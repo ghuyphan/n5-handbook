@@ -1,4 +1,3 @@
-// JLPT Handbook App (Optimized & Updated)
 (() => {
     // I'll keep the app's configuration right at the top for easy access.
     const config = {
@@ -351,9 +350,15 @@
                                 if (item.isPlaceholder) {
                                     return `<div></div>`;
                                 }
+                                // BUG FIX: Check if the kana is a digraph (more than one character).
+                                // If it is, apply a smaller font-size class to prevent it from
+                                // overflowing the container on smaller screens.
+                                const isDigraph = item.kana && item.kana.length > 1;
+                                const fontSizeClass = isDigraph ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl';
+
                                 return `
                     <div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg">
-                      <p class="text-3xl sm:text-4xl noto-sans" style="color:${color};">${item.kana}</p>
+                      <p class="noto-sans ${fontSizeClass}" style="color:${color};">${item.kana}</p>
                       <p class="text-xs sm:text-sm text-secondary">${item.romaji}</p>
                     </div>`;
                             }
