@@ -149,6 +149,22 @@ body {
     scrollbar-gutter: stable;
 }
 
+.sidebar-title {
+    /* Scales font size between 1.25rem and 1.5rem based on viewport width */
+    font-size: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+}
+
+.progress-item-wrapper {
+    transition: transform 0.25s ease-out, background-color 0.25s ease-out, box-shadow 0.25s ease-out;
+    will-change: transform, box-shadow, background-color;
+}
+
+.progress-item-wrapper:hover {
+    transform: translateY(-4px);
+    background-color: var(--nav-hover-bg);
+    box-shadow: 0 8px 16px -4px var(--shadow-color);
+}
+
 #progress-overview {
     height: 100%;
     overflow-y: auto;
@@ -177,7 +193,7 @@ body {
     #sidebar {
         position: fixed;
         top: 1rem;
-        height: calc(100vh - 2rem);
+        height: calc(100svh - 2rem); /* UPDATED: vh -> svh */
         left: -100%;
         width: 70vw;
         max-width: 280px;
@@ -238,7 +254,7 @@ body {
     #sidebar {
         width: 80vw;
         top: 0.75rem;
-        height: calc(100vh - 1.5rem);
+        height: calc(100svh - 1.5rem); /* UPDATED: vh -> svh */
     }
     #sidebar.open {
         left: 0.75rem;
@@ -576,6 +592,17 @@ input:checked+.slider:before {
 .kana-grid > div:empty {
     pointer-events: none;
 }
+
+/* --- NEW: Fluid font classes for Kana Grid to prevent overflow --- */
+.kana-font {
+    /* Scales between ~18px and ~36px */
+    font-size: clamp(1.1rem, 5vw, 2.25rem);
+}
+.kana-font-digraph {
+    /* Scales between ~14px and ~30px, smaller for wider characters */
+    font-size: clamp(0.9rem, 4vw, 1.875rem);
+}
+
 
 .square-icon-container {
     aspect-ratio: 1 / 1;

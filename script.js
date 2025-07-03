@@ -350,15 +350,14 @@
                                 if (item.isPlaceholder) {
                                     return `<div></div>`;
                                 }
-                                // BUG FIX: Check if the kana is a digraph (more than one character).
-                                // If it is, apply a smaller font-size class to prevent it from
-                                // overflowing the container on smaller screens.
+                                // FIX 2.0: Use truly fluid font size classes to prevent overflow on any screen size.
+                                // A different, smaller fluid class is used for wider digraph characters.
                                 const isDigraph = item.kana && item.kana.length > 1;
-                                const fontSizeClass = isDigraph ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl';
+                                const fontClass = isDigraph ? 'kana-font-digraph' : 'kana-font';
 
                                 return `
                     <div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg">
-                      <p class="noto-sans ${fontSizeClass}" style="color:${color};">${item.kana}</p>
+                      <p class="noto-sans ${fontClass}" style="color:${color};">${item.kana}</p>
                       <p class="text-xs sm:text-sm text-secondary">${item.romaji}</p>
                     </div>`;
                             }
@@ -432,23 +431,25 @@
         const cleanTitle = emojiMatch ? title.replace(emojiMatch[0], '') : title;
         const emoji = emojiMatch ? emojiMatch[1] : '';
 
+        // --- CHANGE IS ON THIS LINE ---
+        // We're adding "progress-item-wrapper" and removing "hover:bg-gray-500/10"
         return `
-      <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-500/10 cursor-pointer glass-effect" onclick="jumpToSection('${tab}', '${titleKey}')">
-        <div class="relative w-12 h-12 flex-shrink-0">
-          <svg class="w-full h-full" viewBox="0 0 50 50">
-            <circle stroke-width="4" stroke="var(--progress-track-color)" fill="transparent" r="${radius}" cx="25" cy="25" />
-            <circle class="progress-circle" stroke-width="4" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
-              stroke-linecap="round" stroke="url(#${color}-gradient)" fill="transparent" r="${radius}" cx="25" cy="25" transform="rotate(-90 25 25)" />
-          </svg>
-          <span class="absolute text-xs font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">${Math.round(
+  <div class="progress-item-wrapper flex items-center gap-3 p-3 rounded-xl cursor-pointer glass-effect" data-action="jump-to-section" data-tab-name="${tab}" data-section-key="${titleKey}">
+    <div class="relative w-12 h-12 flex-shrink-0">
+      <svg class="w-full h-full" viewBox="0 0 50 50">
+        <circle stroke-width="4" stroke="var(--progress-track-color)" fill="transparent" r="${radius}" cx="25" cy="25" />
+        <circle class="progress-circle" stroke-width="4" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+          stroke-linecap="round" stroke="url(#${color}-gradient)" fill="transparent" r="${radius}" cx="25" cy="25" transform="rotate(-90 25 25)" />
+      </svg>
+      <span class="absolute text-xs font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">${Math.round(
             percentage
         )}%</span>
-        </div>
-        <div>
-          <p class="font-semibold text-sm">${cleanTitle} ${emoji}</p>
-          <p class="text-xs text-secondary">${learned} / ${total}</p>
-        </div>
-      </div>`;
+    </div>
+    <div>
+      <p class="font-semibold text-sm">${cleanTitle} ${emoji}</p>
+      <p class="text-xs text-secondary">${learned} / ${total}</p>
+    </div>
+  </div>`;
     }
 
     function renderContent() {
