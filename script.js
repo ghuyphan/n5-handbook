@@ -266,43 +266,6 @@
         saveProgress();
     }
 
-    function updateDesktopPinButtons() {
-        document
-            .querySelectorAll('.pin-tab-btn')
-            .forEach(btn => {
-                btn.classList.toggle('pinned', btn.dataset.tab === pinnedTab);
-            });
-    }
-    async function savePinnedTab(tabId) {
-        // update our in-memory variable
-        pinnedTab = tabId || null;
-
-        // persist
-        if (dbPromise) {
-            const db = await dbPromise;
-            await db.put('settings', pinnedTab, 'pinnedMobileTab');
-        }
-
-        // update the mobile pin toggle you already have
-        updatePinButtonState(pinnedTab);
-
-        // update desktop buttons
-        updateDesktopPinButtons();
-    }
-    function toggleDesktopPin(event) {
-        event.stopPropagation();      // don’t fall through to changeTab()
-        const btn = event.currentTarget;
-        const tabId = btn.dataset.tab;
-        if (!tabId) return;
-
-        // flip
-        const newPinned = (pinnedTab === tabId) ? null : tabId;
-        savePinnedTab(newPinned);
-    }
-
-    // expose for inline onclicks
-    window.toggleDesktopPin = toggleDesktopPin;
-
     function changeTab(tabName, buttonElement) {
         $$('.tab-content').forEach((c) => c.classList.remove('active'));
         $(`#${tabName}`)?.classList.add('active');
@@ -1186,7 +1149,6 @@
                 const isMobileView = window.innerWidth <= 768;
                 const defaultTab = isMobileView ? 'progress' : 'hiragana';
                 changeTab(pinnedTab || defaultTab);
-                updateDesktopPinButtons();
 
             }, 50);
 
