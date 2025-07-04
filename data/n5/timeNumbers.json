@@ -81,6 +81,41 @@
         "Kanji": "万",
         "Reading": "まん",
         "vi": "mười nghìn"
+      },
+      {
+        "Number": "300",
+        "Kanji": "三百",
+        "Reading": "さんびゃく",
+        "vi": "ba trăm",
+        "Notes": "Sound change: ひゃく → びゃく"
+      },
+      {
+        "Number": "600",
+        "Kanji": "六百",
+        "Reading": "ろっぴゃく",
+        "vi": "sáu trăm",
+        "Notes": "Sound change: ひゃく → ぴゃく"
+      },
+      {
+        "Number": "800",
+        "Kanji": "八百",
+        "Reading": "はっぴゃく",
+        "vi": "tám trăm",
+        "Notes": "Sound change: ひゃく → ぴゃく"
+      },
+      {
+        "Number": "3,000",
+        "Kanji": "三千",
+        "Reading": "さんぜん",
+        "vi": "ba nghìn",
+        "Notes": "Sound change: せん → ぜん"
+      },
+      {
+        "Number": "8,000",
+        "Kanji": "八千",
+        "Reading": "はっせん",
+        "vi": "tám nghìn",
+        "Notes": "Sound change: せん → せん (with glottal stop)"
       }
     ]
   },
@@ -91,59 +126,79 @@
     "content": [
       {
         "Counter": "～つ",
-        "Number": "General objects",
         "Usage": "General objects",
         "Example": "ひとつ, ふたつ, みっつ...",
         "vi": "Vật nói chung"
       },
       {
         "Counter": "～人 (にん)",
-        "Number": "People",
         "Usage": "People",
         "Example": "ひとり, ふたり, さんにん...",
         "vi": "Người"
       },
       {
         "Counter": "～枚 (まい)",
-        "Number": "Flat, thin objects",
         "Usage": "Flat, thin objects",
         "Example": "いちまい, にまい...",
         "vi": "Vật mỏng, phẳng (tờ, tấm, miếng...)"
       },
       {
         "Counter": "～本 (ほん)",
-        "Number": "Long, cylindrical objects",
         "Usage": "Long, cylindrical objects",
         "Example": "いっぽん, にほん, さんぼん...",
         "vi": "Vật dài, thon (chai, bút, cây...)"
       },
       {
         "Counter": "～冊 (さつ)",
-        "Number": "Bound volumes (books)",
         "Usage": "Bound volumes (books)",
         "Example": "いっさつ, にさつ...",
         "vi": "Quyển (sách, vở...)"
       },
       {
         "Counter": "～歳 (さい)",
-        "Number": "Age",
         "Usage": "Age",
         "Example": "いっさい, にさい...",
         "vi": "Tuổi"
       },
       {
+        "Counter": "～歳 (さい)",
+        "Usage": "Age",
+        "Example": "二十歳 (はたち)",
+        "vi": "20 tuổi",
+        "Notes": "Crucial exception! Not にじゅっさい."
+      },
+      {
         "Counter": "～分 (ふん/ぷん)",
-        "Number": "Minutes",
         "Usage": "Minutes",
         "Example": "いっぷん, にふん...",
         "vi": "Phút"
       },
       {
         "Counter": "～時 (じ)",
-        "Number": "Hours",
         "Usage": "Hours",
         "Example": "いちじ, にじ...",
         "vi": "Giờ"
+      },
+      {
+        "Counter": "～階 (かい)",
+        "Usage": "Floors of a building",
+        "Example": "一階 (いっかい), 三階 (さんがい), 六階 (ろっかい)",
+        "vi": "Tầng (lầu)",
+        "Notes": "Sound changes: かい → がい"
+      },
+      {
+        "Counter": "～回 (かい)",
+        "Usage": "Times (frequency)",
+        "Example": "一回 (いっかい), 六回 (ろっかい), 十回 (じっかい)",
+        "vi": "Lần",
+        "Notes": "Counts occurrences"
+      },
+      {
+        "Counter": "～個 (こ)",
+        "Usage": "Small, general items",
+        "Example": "一個 (いっこ), 六個 (ろっこ), 十個 (じゅっこ)",
+        "vi": "Cái, cục, trái",
+        "Notes": "For small objects like fruit, boxes etc."
       }
     ]
   },
@@ -367,9 +422,21 @@
             "vi": "Mùng 10"
           },
           {
+            "Number": "14th",
+            "Kanji": "十四日",
+            "Reading": "じゅうよっか",
+            "vi": "Ngày 14"
+          },
+          {
             "Number": "20th",
             "Reading": "はつか",
             "vi": "Ngày 20"
+          },
+          {
+            "Number": "24th",
+            "Kanji": "二十四日",
+            "Reading": "にじゅうよっか",
+            "vi": "Ngày 24"
           },
           {
             "Number": "Other",
@@ -377,6 +444,62 @@
             "vi": "Số + にち (ngày...)"
           }
         ]
+      }
+    ]
+  },
+  "questionWords": {
+    "en": "Question Words (質問) 🤔",
+    "vi": "Từ để hỏi (質問) 🤔",
+    "type": "table",
+    "content": [
+      {
+        "English": "How many? (general)",
+        "Japanese": "いくつ",
+        "Romaji": "ikutsu",
+        "vi": "Mấy cái?",
+        "Usage": "For items using the ～つ counter."
+      },
+      {
+        "English": "How many? (specific)",
+        "Japanese": "何 + [Counter]",
+        "Romaji": "nan + [Counter]",
+        "vi": "Mấy + [Lượng từ]?",
+        "Usage": "E.g., 何人 (nannin), 何本 (nanbon)."
+      },
+      {
+        "English": "What time?",
+        "Japanese": "何時",
+        "Romaji": "nanji",
+        "vi": "Mấy giờ?",
+        "Usage": "For asking the hour."
+      },
+      {
+        "English": "What minute?",
+        "Japanese": "何分",
+        "Romaji": "nanpun",
+        "vi": "Mấy phút?",
+        "Usage": "For asking the minute."
+      },
+      {
+        "English": "What day of the month?",
+        "Japanese": "何日",
+        "Romaji": "nannichi",
+        "vi": "Ngày mấy?",
+        "Usage": "For asking the date."
+      },
+      {
+        "English": "What day of the week?",
+        "Japanese": "何曜日",
+        "Romaji": "nanyoubi",
+        "vi": "Thứ mấy?",
+        "Usage": "For asking the day of the week."
+      },
+      {
+        "English": "How much? (price)",
+        "Japanese": "いくら",
+        "Romaji": "ikura",
+        "vi": "Bao nhiêu tiền?",
+        "Usage": "For money."
       }
     ]
   }

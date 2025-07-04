@@ -212,7 +212,7 @@ body {
         height: calc(100svh - 2rem);
         left: -100%;
         width: 70vw;
-        max-width: 280px;
+        max-width: 320px;
         z-index: 100;
         transition: left 0.4s var(--ease-out-quint);
         border-radius: 1rem;
@@ -221,6 +221,7 @@ body {
         overflow-y: auto;
         display: flex;
         flex-direction: column;
+        /* MODIFIED: Reduced padding for tablet/mobile */
         padding: 1rem;
     }
 
@@ -278,9 +279,12 @@ body {
     }
 
     #sidebar {
-        width: 80vw;
+        width: calc(100% - 5rem);
+        max-width: none;
         top: 0.75rem;
         height: calc(100svh - 1.5rem);
+        /* MODIFIED: Reduced padding for smallest screens */
+        padding: 0.75rem;
     }
 
     #sidebar.open {
