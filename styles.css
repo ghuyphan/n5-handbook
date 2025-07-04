@@ -212,23 +212,33 @@ body {
 
     #sidebar {
         position: fixed;
-        top: 1rem;
-        height: calc(100svh - 2rem);
-        left: -100%;
+        top: 50%;
+        transform: translateY(-50%);
+        left: -100%; 
         width: 70vw;
-        max-width: 320px; /* Increased max-width for tablets */
+        max-width: 320px;
+        height: calc(100svh - 2rem); 
+        max-height: calc(100vh - 2rem);
         z-index: 100;
-        transition: left 0.4s var(--ease-out-quint);
+        transition: left 0.4s var(--ease-out-quint), transform 0.4s var(--ease-out-quint);
         border-radius: 1rem;
-        max-height: none;
-        margin: 0;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        padding: 1.25rem; /* Consistent padding */
+        padding: 1.25rem;
+        
+        /* Hide scrollbar */
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+    
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    #sidebar::-webkit-scrollbar {
+        display: none;
     }
 
     #sidebar.open {
+        transform: translateY(-50%);
         left: 1rem;
     }
 
@@ -246,6 +256,7 @@ body {
     .mobile-search-bar {
         padding: 0 1rem;
         margin: 0 0 1rem 0;
+        animation: slide-fade-in 0.5s var(--ease-out-quint) forwards;
     }
 
     #main-content {
@@ -282,16 +293,14 @@ body {
     }
 
     #sidebar {
-        /* Use calc() for a perfectly responsive width that leaves a fixed gutter */
-        width: calc(100% - 5rem); 
-        max-width: none; /* Remove max-width to allow calc() to work freely */
-        top: 0.75rem;
         height: calc(100svh - 1.5rem);
-        padding: 1rem; /* Slightly reduce padding on smallest screens */
+        max-height: calc(100vh - 1.5rem);
+        padding: 1rem;
     }
 
     #sidebar.open {
         left: 0.75rem;
+        transform: translateY(-50%);
     }
 
     .grid {
@@ -366,6 +375,18 @@ body.dark-mode .nav-item {
         transform: translateY(10px);
     }
 
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation for mobile search bar */
+@keyframes slide-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
     to {
         opacity: 1;
         transform: translateY(0);
@@ -608,11 +629,8 @@ input:checked+.slider:before {
 .level-switch {
     display: flex;
     flex-wrap: wrap;
-    /* Allows buttons to wrap to the next line */
     gap: 0.5rem;
-    /* Adds space between wrapped buttons */
     background-color: transparent;
-    /* Remove the container background */
     padding: 0;
 }
 
@@ -661,15 +679,12 @@ input:checked+.slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* Hide by default */
     opacity: 0;
     pointer-events: none;
     transform: scale(0.8);
     transition: all 0.2s var(--ease-out-quint);
 }
 
-/* Show on hover of the parent wrapper */
 .level-switch-item-wrapper:hover .delete-level-btn {
     opacity: 1;
     pointer-events: auto;
@@ -1011,6 +1026,7 @@ input:checked+.slider:before {
     justify-content: space-between;
     align-items: center;
     gap: 0.625rem;
+    width: 100%;
 }
 
 .sidebar-control-label {
@@ -1028,10 +1044,11 @@ input:checked+.slider:before {
     box-shadow: none;
     transition: all 0.3s var(--ease-out-quint);
     will-change: transform, box-shadow, background-color, color;
-    width: 100%;
-    padding: 0.625rem 1rem;
+    width: auto;
+    padding: 0.625rem 1.5rem;
     border-radius: 0.5rem;
     text-align: center;
+    align-self: center;
 }
 
 .import-button:hover {
@@ -1124,12 +1141,12 @@ input:checked+.slider:before {
 
 .modal-body {
     padding: 1.5rem;
-    padding-top: 0; /* Let the gap handle the space from the header */
+    padding-top: 0;
     overflow-y: auto;
     color: var(--text-primary);
     display: flex;
     flex-direction: column;
-    gap: 1.5rem; /* Consistent spacing between form elements */
+    gap: 1.5rem;
 }
 
 .modal-title {
@@ -1153,8 +1170,8 @@ input:checked+.slider:before {
 
 .modal-input {
     width: 100%;
-    padding: 0.875rem 1rem; /* Increased padding for better visual balance */
-    border-radius: 0.75rem; /* Larger radius to match container */
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem;
     color: var(--text-primary);
     background-color: rgba(0, 0, 0, 0.1);
     border: 1px solid var(--glass-border);
@@ -1183,7 +1200,7 @@ body.light-mode .modal-input {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 130px; /* Slightly taller */
+    min-height: 130px;
     border-radius: 0.75rem;
 }
 
@@ -1203,7 +1220,7 @@ body.light-mode .modal-input {
     border-color: var(--glass-border);
     background-color: rgba(0, 0, 0, 0.05);
     cursor: default;
-    padding: 1.25rem; /* Consistent padding */
+    padding: 1.25rem;
     text-align: left;
     align-items: flex-start;
 }
@@ -1223,16 +1240,16 @@ body.light-mode #file-import-area.state-preview {
 }
 
 .preview-item + .preview-item {
-    margin-top: 0.75rem; /* Consistent spacing */
+    margin-top: 0.75rem;
 }
 
 .modal-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.875rem 1.5rem; /* Larger for better click target */
+    padding: 0.875rem 1.5rem;
     font-weight: 600;
-    border-radius: 0.75rem; /* Match input fields */
+    border-radius: 0.75rem;
     border: 1px solid transparent;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
@@ -1272,7 +1289,7 @@ body.light-mode #file-import-area.state-preview {
     width: 2.5rem;
     height: 2.5rem;
     color: var(--text-secondary);
-    margin-bottom: 0.75rem; /* Consistent spacing */
+    margin-bottom: 0.75rem;
 }
 
 .upload-icon .arrow {

@@ -41,6 +41,12 @@
         return debounced;
     };
 
+    /**
+     * Generates a focused string of search terms from an array of texts.
+     * It intelligently converts between kana and romaji to improve search relevance.
+     * @param {string[]} texts - An array of strings to process.
+     * @returns {string} A space-separated string of search terms.
+     */
     const generateSearchTerms = (texts = []) => {
         if (typeof wanakana === 'undefined') {
             return texts.filter(Boolean).join(' ').toLowerCase();
@@ -48,16 +54,21 @@
         const termsSet = new Set();
         texts.filter(Boolean).forEach(text => {
             const lowerText = String(text).toLowerCase();
-            const parts = lowerText.split(/\s+/).filter(Boolean);
-            parts.forEach(part => {
-                termsSet.add(part);
-                termsSet.add(wanakana.toRomaji(part));
-                termsSet.add(wanakana.toHiragana(part));
-                termsSet.add(wanakana.toKatakana(part));
-            });
+            termsSet.add(lowerText); // Add the original text
+
+            // Add romaji conversion only if the text contains kana
+            if (wanakana.isKana(lowerText)) {
+                termsSet.add(wanakana.toRomaji(lowerText));
+            }
+            // Add kana conversions only if the text is likely romaji (contains latin chars)
+            if (wanakana.isRomaji(lowerText)) {
+                termsSet.add(wanakana.toHiragana(lowerText));
+                termsSet.add(wanakana.toKatakana(lowerText));
+            }
         });
         return Array.from(termsSet).join(' ');
     };
+
 
     // --- Data Persistence Functions (using IndexedDB) ---
 
@@ -360,7 +371,7 @@
             fuseInstances[tabId] = new Fuse(collection, {
                 keys: ['searchData'],
                 includeScore: true,
-                threshold: 0.4,
+                threshold: 0.3, // Stricter threshold
                 ignoreLocation: true,
             });
         }
@@ -368,7 +379,7 @@
 
     const handleSearch = debounce(() => {
         const isMobileView = window.innerWidth <= 768;
-        const query = (isMobileView ? $('#mobile-search-input').value : $('#search-input').value).trim();
+        const query = (isMobileView ? $('#mobile-search-input').value : $('#search-input').value).trim().toLowerCase();
 
         const activeTab = $('.tab-content.active');
         if (!activeTab) return;
@@ -382,12 +393,14 @@
         }
 
         const fuse = fuseInstances[activeTabId];
+        const allItems = $$('[data-search-item], [data-search]', activeTab);
         const allWrappers = $$('.search-wrapper', activeTab);
-        const allItems = $$('[data-search-item]', activeTab);
 
         if (!query) {
             allItems.forEach(item => { item.style.display = ''; });
             allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
+            $$('.accordion-content').forEach(el => el.style.maxHeight = null);
+            $$('.accordion-button.open').forEach(btn => btn.classList.remove('open'));
             return;
         }
 
@@ -396,26 +409,26 @@
         allItems.forEach(item => { item.style.display = 'none'; });
         allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
 
-        const queryLower = query.toLowerCase();
-        let queryVariants = [queryLower];
-        if (typeof wanakana !== 'undefined') {
-            queryVariants = Array.from(new Set([
-                queryLower,
-                wanakana.toRomaji(queryLower),
-                wanakana.toHiragana(queryLower),
-                wanakana.toKatakana(queryLower)
-            ]));
-        }
-
-        const searchPattern = queryVariants.map(variant => ({ searchData: variant }));
-        const results = fuse.search({ $or: searchPattern });
+        const results = fuse.search(query);
 
         results.forEach(result => {
             const itemElement = result.item.element;
             itemElement.style.display = '';
-            const wrapper = itemElement.closest('.search-wrapper');
-            if (wrapper) {
-                wrapper.style.display = '';
+
+            // Show parent wrappers if any
+            let parent = itemElement.parentElement;
+            while (parent) {
+                if (parent.hasAttribute('data-search') || parent.classList.contains('search-wrapper')) {
+                    parent.style.display = '';
+                }
+                if (parent.classList.contains('accordion-wrapper')) {
+                    const button = parent.querySelector('.accordion-button');
+                    const content = parent.querySelector('.accordion-content');
+                    if (button && !button.classList.contains('open')) {
+                        button.classList.add('open');
+                    }
+                }
+                parent = parent.parentElement;
             }
         });
     }, 300);
@@ -444,7 +457,7 @@
             } else if (currentLang === 'en' && (item.Number || item.en)) {
                 translation = `<span style="color: var(--accent-yellow)">${item.Number || item.en}</span>`;
             }
-            const searchData = generateSearchTerms(Object.values(item));
+            const searchData = generateSearchTerms([title, subtitle, item.vi, item.en, item.Number]);
             return `<div class="cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24" data-search-item="${searchData}">
                     <div class="font-bold text-primary text-base sm:text-lg noto-sans">${title}</div>
                     ${subtitle ? `<div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${subtitle}</div>` : ''}
