@@ -6,10 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Handbook</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- <script src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/umd/wanakana.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -27,7 +25,7 @@
             </svg>
         </button>
         <div class="flex items-center gap-3 min-w-0">
-            <div
+            <div id="level-badge-mobile"
                 class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-md shadow-lg shadow-blue-500/30 flex-shrink-0">
                 N5</div>
             <h1 id="mobile-header-title" class="text-lg font-bold text-header truncate"></h1>
@@ -41,14 +39,14 @@
         <aside id="sidebar" class="left-sidebar glass-effect p-6 flex flex-col md:rounded-2xl">
             <div class="flex-grow">
                 <div class="flex items-center gap-3 mb-6 md:mb-10">
-                    <div
+                    <div id="level-badge-desktop"
                         class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
                         N5</div>
                     <h1 class="text-2xl font-bold sidebar-title">Handbook</h1>
                 </div>
                 <nav id="tabs" class="space-y-2">
                     <button onclick="changeTab('progress', this)"
-                        class="nav-item md:hidden mt-4 w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 transition-all duration-200 text-sm md:text-base lg:text-lg">
+                        class="nav-item md:hidden w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600 transition-all duration-200 text-sm md:text-base lg:text-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -113,7 +111,8 @@
                     </button>
                 </nav>
             </div>
-            <div id="sidebar-controls" class="mt-auto pt-4 space-y-4 md:hidden"></div>
+            <div id="sidebar-controls" class="mt-auto pt-6">
+            </div>
         </aside>
 
         <div class="flex flex-col min-w-0">
@@ -135,12 +134,8 @@
                             style="--tw-ring-color: var(--search-focus-ring);"
                             data-lang-placeholder-key="searchPlaceholder">
                     </div>
-                    <div id="lang-switcher-desktop" class="lang-switch">
-                        <div class="lang-switch-pill"></div>
-                        <button data-lang="en" class="text-xs md:text-sm">EN</button>
-                        <button data-lang="vi" class="text-xs md:text-sm">VI</button>
-                    </div>
-                    <div id="header-theme-toggle"></div>
+                    <div id="header-lang-switcher" class="lang-switch"></div>
+                    <div id="header-theme-toggle" class="theme-switch-wrapper"></div>
                 </div>
             </header>
 
@@ -177,10 +172,55 @@
 
         <aside class="right-sidebar">
             <div id="progress-overview" class="glass-effect p-6 rounded-2xl h-full">
-                </div>
+            </div>
         </aside>
     </div>
     <div id="overlay"></div>
+
+    <div id="import-modal" class="modal-hidden">
+        <div id="import-modal-backdrop" class="modal-backdrop"></div>
+        <div class="modal-wrapper">
+            <div class="modal-content-container">
+                <div class="modal-content glass-effect">
+                    <div class="modal-header">
+                        <h2 id="modal-title" class="modal-title" data-lang-key="importLevel"></h2>
+                        <button id="close-modal-btn" class="modal-close-btn">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                        <div>
+                            <label for="level-name-input" class="block text-sm font-medium text-primary mb-2"
+                                data-lang-key="levelNameLabel"></label>
+                            <input type="text" id="level-name-input" class="modal-input"
+                                data-lang-placeholder-key="levelNamePlaceholder">
+                            <p id="level-name-error" class="text-red-400 text-xs mt-2 h-4"></p>
+                        </div>
+
+
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-2"
+                                data-lang-key="uploadLabel"></label>
+                            <div id="file-import-area"
+                                class="w-full rounded-xl text-center cursor-pointer transition-all duration-300">
+                            </div>
+                            <input type="file" id="file-input" class="hidden" webkitdirectory directory>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button id="import-btn" class="modal-button modal-button-primary w-full" disabled>
+                            <span data-lang-key="importButton"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 
