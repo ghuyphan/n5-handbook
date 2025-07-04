@@ -39,7 +39,8 @@
     --ease-in-out-quad: cubic-bezier(0.455, 0.03, 0.515, 0.955);
 }
 
-body.dark-mode {
+/* UPDATED: Changed from body.dark-mode to .dark-mode to target the <html> tag */
+.dark-mode {
     --bg-main: #111827;
     --text-primary: #F3F4F6;
     --text-secondary: #D1D5DB;
@@ -338,7 +339,7 @@ body.sidebar-open {
     will-change: transform, background-color, box-shadow;
 }
 
-body.dark-mode .nav-item {
+.dark-mode .nav-item {
     color: var(--text-secondary);
 }
 
@@ -571,9 +572,7 @@ body.dark-mode .nav-item {
     font-size: 12px;
 }
 
-body.dark-mode .slider {
-    background-color: var(--switch-bg);
-}
+/* Redundant rule `body.dark-mode .slider` removed; base styles are sufficient */
 
 input:checked+.slider:before {
     transform: translateX(24px);
@@ -1173,13 +1172,13 @@ input:checked+.slider:before {
     padding: 0.875rem 1rem;
     border-radius: 0.75rem;
     color: var(--text-primary);
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(255, 255, 255, 0.4); /* Light mode default */
     border: 1px solid var(--glass-border);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-body.light-mode .modal-input {
-    background-color: rgba(255, 255, 255, 0.4);
+.dark-mode .modal-input {
+    background-color: rgba(0, 0, 0, 0.1); /* Dark mode override */
 }
 
 .modal-input::placeholder {
@@ -1218,15 +1217,15 @@ body.light-mode .modal-input {
 #file-import-area.state-preview {
     border-style: solid;
     border-color: var(--glass-border);
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: rgba(255, 255, 255, 0.2); /* Light mode default */
     cursor: default;
     padding: 1.25rem;
     text-align: left;
     align-items: flex-start;
 }
 
-body.light-mode #file-import-area.state-preview {
-     background-color: rgba(255, 255, 255, 0.2);
+.dark-mode #file-import-area.state-preview {
+     background-color: rgba(0, 0, 0, 0.05); /* Dark mode override */
 }
 
 .preview-item {

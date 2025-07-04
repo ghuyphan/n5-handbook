@@ -218,24 +218,35 @@
         pill.style.transform = `translateX(${activeButton.offsetLeft}px)`;
     }
 
-    async function setupTheme() {
-        const savedTheme = (await (await dbPromise)?.get('settings', 'theme'));
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const initialTheme = savedTheme !== undefined ? savedTheme : (prefersDark ? 'dark' : 'light');
-
-        document.body.classList.toggle('dark-mode', initialTheme === 'dark');
-        document.body.classList.toggle('light-mode', initialTheme === 'light');
-
-        $$('.theme-switch input').forEach(
-            (input) => (input.checked = initialTheme === 'dark')
-        );
+    /**
+     * UPDATED: Synchronously syncs the theme toggle switches with the
+     * theme set by the inline script in the HTML head.
+     */
+    function setupTheme() {
+        const isDark = document.documentElement.classList.contains('dark-mode');
+        $$('.theme-switch input').forEach((input) => (input.checked = isDark));
     }
 
+    /**
+     * UPDATED: Toggles the theme, applies the class to the root <html> element,
+     * and saves the preference to localStorage.
+     * @param {Event} event The change event from the theme toggle switch.
+     */
     function toggleTheme(event) {
         const isChecked = event.target.checked;
-        document.body.classList.toggle('dark-mode', isChecked);
-        document.body.classList.toggle('light-mode', !isChecked);
-        saveSetting('theme', isChecked ? 'dark' : 'light');
+        const theme = isChecked ? 'dark' : 'light';
+
+        // Apply/remove the .dark-mode class on the <html> element
+        document.documentElement.classList.toggle('dark-mode', isChecked);
+
+        // Save the preference to localStorage for the inline script to use on next load
+        try {
+            localStorage.setItem('theme', theme);
+        } catch (e) {
+            console.error("Could not save theme to localStorage.", e);
+        }
+
+        // Sync all other theme toggles to match the state
         $$('.theme-switch input').forEach((input) => {
             if (input !== event.target) input.checked = isChecked;
         });
@@ -1108,7 +1119,8 @@
 
             await loadAllData(currentLevel);
 
-            await setupTheme();
+            // UPDATED: setupTheme is now synchronous and just syncs the toggle state.
+            setupTheme();
 
             renderContent();
             updateProgressDashboard();
