@@ -791,8 +791,9 @@
                 el.placeholder = getUIText(el.dataset.langPlaceholderKey);
             });
         };
-        
+
         const openModal = () => {
+            document.body.classList.add('body-no-scroll');
             closeSidebar();
             resetModal();
             updateModalLocale();
@@ -802,6 +803,7 @@
         };
 
         const closeModal = () => {
+            document.body.classList.remove('body-no-scroll'); // <-- ADD THIS LINE
             modalBackdrop.classList.remove('active');
             modalWrapper.classList.remove('active');
             setTimeout(() => modalContainer.classList.add('modal-hidden'), 300);
@@ -834,7 +836,7 @@
             levelNameError.textContent = '';
             importedData = {};
             levelNameIsValid = false;
-            
+
             fileImportArea.classList.remove('state-preview', 'drag-active');
             fileImportArea.innerHTML = `
                 <svg class="upload-icon" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -937,7 +939,7 @@
 
         levelNameInput?.addEventListener('input', updateImportButtonState);
         importBtn?.addEventListener('click', handleConfirm);
-        
+
         fileImportArea?.addEventListener('click', () => {
             // Only trigger click if it's in the initial state
             if (!fileImportArea.classList.contains('state-preview')) {
