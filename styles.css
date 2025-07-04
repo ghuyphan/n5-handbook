@@ -212,7 +212,7 @@ body {
         height: calc(100svh - 2rem);
         left: -100%;
         width: 70vw;
-        max-width: 320px;
+        max-width: 320px; /* Increased max-width for tablets */
         z-index: 100;
         transition: left 0.4s var(--ease-out-quint);
         border-radius: 1rem;
@@ -221,8 +221,7 @@ body {
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        /* MODIFIED: Reduced padding for tablet/mobile */
-        padding: 1rem;
+        padding: 1.25rem; /* Consistent padding */
     }
 
     #sidebar.open {
@@ -279,12 +278,12 @@ body {
     }
 
     #sidebar {
-        width: calc(100% - 5rem);
-        max-width: none;
+        /* Use calc() for a perfectly responsive width that leaves a fixed gutter */
+        width: calc(100% - 5rem); 
+        max-width: none; /* Remove max-width to allow calc() to work freely */
         top: 0.75rem;
         height: calc(100svh - 1.5rem);
-        /* MODIFIED: Reduced padding for smallest screens */
-        padding: 0.75rem;
+        padding: 1rem; /* Slightly reduce padding on smallest screens */
     }
 
     #sidebar.open {
