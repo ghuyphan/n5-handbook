@@ -63,7 +63,7 @@ You can extend the handbook by creating your own levels.
     * `kanji.json`
     * `vocab.json`
     * `grammar.json`
-    * `timeNumbers.json`
+    * `keyPoints.json`
 
     You don't need to include all files—only the ones for the content you're adding. The structure of these files should mirror the ones found in the `data/n5/` directory.
 

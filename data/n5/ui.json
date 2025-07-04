@@ -2,7 +2,7 @@
   "en": {
     "dashboard": "Dashboard",
     "dashboardSubtitle": "Your N5 Handbook",
-    "timeAndNumbers": "Time & Numbers",
+    "keyPoints": "Key Points",
     "vocabulary": "Vocabulary",
     "grammar": "Grammar",
     "progress": "Your Progress",
@@ -35,7 +35,7 @@
   "vi": {
     "dashboard": "Bảng điều khiển",
     "dashboardSubtitle": "Sổ tay N5 của bạn đây!",
-    "timeAndNumbers": "Thời gian & Số đếm",
+    "keyPoints": "Điểm chính",
     "vocabulary": "Từ vựng",
     "grammar": "Ngữ pháp",
     "progress": "Tiến độ học tập",

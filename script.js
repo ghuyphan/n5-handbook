@@ -688,10 +688,10 @@
         });
 
         renderSafely(() => {
-            if (!appData.timeNumbers) return;
-            let timeNumbersHTML = '';
-            for (const key in appData.timeNumbers) {
-                const section = appData.timeNumbers[key];
+            if (!appData.keyPoints) return;
+            let keyPointsHTML = '';
+            for (const key in appData.keyPoints) {
+                const section = appData.keyPoints[key];
                 const title = section[currentLang] || section['en'];
                 let contentHtml = '';
                 if (section.type === 'table') {
@@ -704,10 +704,10 @@
                     </div>`).join('')}</div>`;
                 }
                 const searchTerms = generateSearchTerms([title, JSON.stringify(section.content)]);
-                timeNumbersHTML += createAccordion(title, `<div class="p-4 sm:p-5 sm:pt-0">${contentHtml}</div>`, searchTerms, key);
+                keyPointsHTML += createAccordion(title, `<div class="p-4 sm:p-5 sm:pt-0">${contentHtml}</div>`, searchTerms, key);
             }
-            $('#time_numbers').innerHTML = `<div class="space-y-4">${timeNumbersHTML}</div>`;
-            setupFuseForTab('time_numbers');
+            $('#key_points').innerHTML = `<div class="space-y-4">${keyPointsHTML}</div>`;
+            setupFuseForTab('key_points');
         });
 
         renderSafely(() => {
@@ -886,7 +886,7 @@
                 return;
             }
 
-            const supportedFileNames = ['grammar.json', 'hiragana.json', 'kanji.json', 'katakana.json', 'timeNumbers.json', 'vocab.json'];
+            const supportedFileNames = ['grammar.json', 'hiragana.json', 'kanji.json', 'katakana.json', 'keyPoints.json', 'vocab.json'];
             const validFiles = selectedFiles.filter(file => supportedFileNames.includes(file.name));
 
             if (validFiles.length === 0) {
@@ -1074,7 +1074,7 @@
 
         try {
             // For network-loaded levels, load all other files from the specific level's directory
-            const files = ['hiragana', 'katakana', 'kanji', 'vocab', 'grammar', 'timeNumbers'];
+            const files = ['hiragana', 'katakana', 'kanji', 'vocab', 'grammar', 'keyPoints'];
             const fetchPromises = files.map((file) =>
                 fetch(`${config.dataPath}/${level}/${file}.json`).then((response) => {
                     if (!response.ok) throw new Error(`Failed to load ${file}.json for level ${level}`);
