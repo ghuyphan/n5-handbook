@@ -76,7 +76,6 @@ export const handleSearch = debounce(() => {
     if (!query) {
         allItems.forEach(item => { item.style.display = ''; });
         allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
-        // The line that closed accordions has been removed from here.
         return;
     }
 
@@ -225,7 +224,7 @@ export function toggleSidebarPin(event, tabId) {
     savePinnedTab(state.pinnedTab);
 }
 
-export function changeTab(tabName, buttonElement) {
+export function changeTab(tabName, buttonElement, suppressScroll = false) {
     const mainContent = els.mainContent;
 
     const oldActiveTab = document.querySelector('.tab-content.active');
@@ -262,27 +261,58 @@ export function changeTab(tabName, buttonElement) {
     handleSearch();
     closeSidebar();
 
-    const newScrollY = state.tabScrollPositions.get(tabName) || 0;
-    mainContent.scrollTo({
-        top: newScrollY,
-        behavior: 'instant'
-    });
+    if (!suppressScroll) {
+        const newScrollY = state.tabScrollPositions.get(tabName) || 0;
+        mainContent.scrollTo({
+            top: newScrollY,
+            behavior: 'instant'
+        });
+    }
 }
 
 export function jumpToSection(tabName, sectionTitleKey) {
-    changeTab(tabName);
-    setTimeout(() => {
+    const mainContent = els.mainContent;
+    const activeTab = document.querySelector('.tab-content.active');
+    const isAlreadyOnTab = activeTab && activeTab.id === tabName;
+
+    const scrollToAction = () => {
         const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
-        if (sectionHeader) {
-            if (sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
-                sectionHeader.click();
+        if (!sectionHeader) return;
+
+        const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
+        const accordionContent = accordionWrapper ? accordionWrapper.querySelector('.accordion-content') : null;
+
+        const executeScroll = () => {
+            const mainContentRect = mainContent.getBoundingClientRect();
+            const sectionHeaderRect = sectionHeader.getBoundingClientRect();
+            const targetY = sectionHeaderRect.top - mainContentRect.top + mainContent.scrollTop;
+
+            let headerOffset = 0;
+            const mobileHeader = document.querySelector('.mobile-header');
+            if (mobileHeader && getComputedStyle(mobileHeader).display !== 'none') {
+                headerOffset = mobileHeader.offsetHeight;
             }
-            els.mainContent.scrollTo({
-                top: sectionHeader.offsetTop - 20,
+            
+            mainContent.scrollTo({
+                top: targetY - headerOffset - 20,
                 behavior: 'smooth'
             });
+        };
+
+        if (accordionWrapper && sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
+            accordionContent.addEventListener('transitionend', executeScroll, { once: true });
+            sectionHeader.click();
+        } else {
+            executeScroll();
         }
-    }, 150);
+    };
+
+    if (isAlreadyOnTab) {
+        scrollToAction();
+    } else {
+        changeTab(tabName, null, true); // The 'true' here suppresses the default scroll restoration
+        setTimeout(scrollToAction, 150);
+    }
 }
 
 export async function deleteLevel(level) {
@@ -290,18 +320,14 @@ export async function deleteLevel(level) {
         alert("The default level cannot be deleted.");
         return;
     }
-
     if (!confirm(`Are you sure you want to permanently delete the '${level.toUpperCase()}' level and all its progress? This action cannot be undone.`)) {
         return;
     }
-
     try {
         const db = await dbPromise;
         await db.delete('levels', level);
         await db.delete('progress', level);
-
         state.allAvailableLevels = state.allAvailableLevels.filter(l => l !== level);
-
         if (state.currentLevel === level) {
             await setLevel(config.defaultLevel);
         } else {
@@ -311,9 +337,7 @@ export async function deleteLevel(level) {
             buildLevelSwitcher(remoteData.levels || [config.defaultLevel], customLevels);
             document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === state.currentLevel));
         }
-
         alert(`Level '${level.toUpperCase()}' has been deleted.`);
-
     } catch (error) {
         console.error("Failed to delete level:", error);
         alert("An error occurred while trying to delete the level.");

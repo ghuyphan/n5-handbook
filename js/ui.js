@@ -29,6 +29,7 @@ function createAccordion(title, contentNode, searchData, titleKey) {
 
     wrapper.dataset.search = searchData;
     button.dataset.sectionTitleKey = titleKey;
+    button.dataset.action = 'toggle-accordion'; // Add this line
     titleSpan.textContent = title;
     contentDiv.appendChild(contentNode);
 
