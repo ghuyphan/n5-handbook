@@ -1,7 +1,7 @@
 {
   "en": {
     "dashboard": "Dashboard",
-    "dashboardSubtitle": "Your N5 Handbook",
+    "dashboardSubtitle": "Your {level} Handbook",
     "keyPoints": "Key Points",
     "vocabulary": "Vocabulary",
     "grammar": "Grammar",
@@ -34,7 +34,7 @@
   },
   "vi": {
     "dashboard": "Bảng điều khiển",
-    "dashboardSubtitle": "Sổ tay N5 của bạn đây!",
+    "dashboardSubtitle": "Sổ tay {level} của bạn đây!",
     "keyPoints": "Điểm chính",
     "vocabulary": "Từ vựng",
     "grammar": "Ngữ pháp",
