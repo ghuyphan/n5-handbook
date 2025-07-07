@@ -9,6 +9,9 @@ const els = {
     overlay: document.getElementById('overlay'),
     mainContent: document.getElementById('main-content'),
 
+    // Loading
+    loadingOverlay: document.getElementById('loading-overlay'),
+
     // Header
     levelBadgeDesktop: document.getElementById('level-badge-desktop'),
     levelBadgeMobile: document.getElementById('level-badge-mobile'),
@@ -140,7 +143,9 @@ async function saveSetting(key, value) {
 
 async function savePinnedTab(tabId) {
     await saveSetting('pinnedMobileTab', tabId || null);
+    // Update both mobile and desktop pin button states
     updatePinButtonState(tabId);
+    updateSidebarPinIcons();
 }
 
 // --- Core Application Logic ---
@@ -157,8 +162,7 @@ async function setLevel(level) {
     updateLevelUI(level);
     await saveSetting('currentLevel', level);
 
-    document.body.style.opacity = '0.5';
-    document.body.style.pointerEvents = 'none';
+    if (els.loadingOverlay) els.loadingOverlay.classList.remove('hidden');
 
     try {
         await loadAllData(level);
@@ -176,8 +180,7 @@ async function setLevel(level) {
         console.error(`Failed to load level ${level}:`, error);
         alert(`Could not load data for level ${level.toUpperCase()}.`);
     } finally {
-        document.body.style.opacity = '1';
-        document.body.style.pointerEvents = 'auto';
+         if (els.loadingOverlay) els.loadingOverlay.classList.add('hidden');
     }
 }
 
@@ -207,7 +210,10 @@ async function deleteLevel(level) {
             await setLevel(config.defaultLevel);
         } else {
             // Otherwise, just rebuild the switcher and maintain the current state
-            buildLevelSwitcher();
+            const remoteResponse = await fetch(`${config.dataPath}/levels.json`);
+            const remoteData = remoteResponse.ok ? await remoteResponse.json() : { levels: [] };
+            const customLevels = await db.getAllKeys('levels');
+            buildLevelSwitcher(remoteData.levels || [config.defaultLevel], customLevels);
             document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.level === currentLevel));
         }
 
@@ -341,6 +347,10 @@ function changeTab(tabName, buttonElement) {
     closeSidebar();
 }
 
+/**
+ * Updates the state of the pin icon in the mobile header.
+ * @param {string} activeTabId The ID of the currently active tab.
+ */
 function updatePinButtonState(activeTabId) {
     const pinButton = els.pinToggle;
     if (!pinButton) return;
@@ -368,6 +378,9 @@ function updatePinButtonState(activeTabId) {
     pinButton.appendChild(svg);
 }
 
+/**
+ * Toggles the pinned state for the currently active tab (mobile view).
+ */
 function togglePin() {
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
@@ -385,6 +398,40 @@ function togglePin() {
     pinnedTab = (pinnedTab === tabId) ? null : tabId;
     savePinnedTab(pinnedTab);
 }
+
+
+/**
+ * NEW: Updates the visual state of all pin icons in the sidebar.
+ */
+function updateSidebarPinIcons() {
+    document.querySelectorAll('.sidebar-pin-btn').forEach(button => {
+        const tabId = button.dataset.tabName;
+        const wrapper = button.closest('.nav-item-wrapper');
+        const svg = button.querySelector('svg');
+        const isPinned = tabId === pinnedTab;
+
+        if (wrapper) {
+            wrapper.classList.toggle('is-pinned', isPinned);
+        }
+        button.classList.toggle('is-pinned', isPinned);
+
+        if (svg) {
+            svg.style.fill = isPinned ? 'var(--pin-pinned-bg)' : 'var(--text-secondary)';
+        }
+    });
+}
+
+/**
+ * NEW: Toggles the pinned state for a tab from the sidebar.
+ * @param {Event} event The click event.
+ * @param {string} tabId The ID of the tab to pin/unpin.
+ */
+function toggleSidebarPin(event, tabId) {
+    event.stopPropagation(); // Prevent the main nav button from being clicked
+    pinnedTab = (pinnedTab === tabId) ? null : tabId;
+    savePinnedTab(pinnedTab);
+}
+
 
 function closeSidebar() {
     if (els.sidebar) els.sidebar.classList.remove('open');
@@ -435,17 +482,14 @@ const handleSearch = debounce(() => {
     if (!activeTab) return;
     const activeTabId = activeTab.id;
 
-    // 🔽 THIS IS THE UPDATED LOGIC 🔽
     if (isMobileView && els.mobileSearchBar) {
-        // Toggle a class for CSS transitions instead of direct style manipulation
         if (activeTabId === 'progress') {
             els.mobileSearchBar.classList.remove('visible');
         } else {
             els.mobileSearchBar.classList.add('visible');
         }
     }
-    // 🔼 END OF UPDATED LOGIC 🔼
-
+    
     const fuse = fuseInstances[activeTabId];
     const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
     const allWrappers = activeTab.querySelectorAll('.search-wrapper');
@@ -782,19 +826,30 @@ function renderContent() {
 function getThemeToggleHTML() { return `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`; }
 function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`; }
 
-function buildLevelSwitcher() {
+/**
+ * Builds the level switcher UI, showing delete buttons only for custom levels.
+ * @param {string[]} remoteLevels - A list of levels fetched from the repository.
+ * @param {string[]} customLevels - A list of levels imported by the user.
+ */
+function buildLevelSwitcher(remoteLevels = [], customLevels = []) {
     const sidebarSwitcher = document.getElementById('level-switcher-sidebar');
     if (!sidebarSwitcher) return;
 
-    const switcherItemsHTML = allAvailableLevels.map(level => {
+    // Combine levels but keep track of which are custom
+    const allLevels = Array.from(new Set([...remoteLevels, ...customLevels]));
+
+    const switcherItemsHTML = allLevels.map(level => {
         const isDefault = level === config.defaultLevel;
-        const deleteButtonHTML = isDefault ? '' : `
+        // A level can be deleted if it's a custom level AND not the default level.
+        const canBeDeleted = customLevels.includes(level) && !isDefault;
+
+        const deleteButtonHTML = canBeDeleted ? `
             <button class="delete-level-btn" onclick="window.deleteLevel('${level}')" title="Delete level ${level.toUpperCase()}">
                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
                 </svg>
             </button>
-        `;
+        ` : '';
 
         return `
             <div class="level-switch-item-wrapper">
@@ -961,7 +1016,11 @@ function setupImportModal() {
 
             if (!allAvailableLevels.includes(levelName)) allAvailableLevels.push(levelName);
 
-            buildLevelSwitcher();
+            const remoteResponse = await fetch(`${config.dataPath}/levels.json`);
+            const remoteData = remoteResponse.ok ? await remoteResponse.json() : { levels: [] };
+            const customLevels = await db.getAllKeys('levels');
+            buildLevelSwitcher(remoteData.levels || [config.defaultLevel], customLevels);
+            
             await setLevel(levelName);
 
             alert(getUIText('importSuccess', { levelName: levelName.toUpperCase() }));
@@ -1019,6 +1078,11 @@ function setupEventListeners() {
 
     els.overlay?.addEventListener('click', closeSidebar);
     els.pinToggle?.addEventListener('click', togglePin);
+
+    // NEW: Add event listeners for the new sidebar pin buttons
+    document.querySelectorAll('.sidebar-pin-btn').forEach(button => {
+        button.addEventListener('click', (e) => toggleSidebarPin(e, button.dataset.tabName));
+    });
 
     const headerLangSwitcher = document.getElementById('header-lang-switcher');
     if (headerLangSwitcher) headerLangSwitcher.innerHTML = getLangSwitcherHTML();
@@ -1137,16 +1201,16 @@ async function init() {
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
 
-        // Combine and deduplicate levels
-        const combinedLevels = new Set([...remoteLevels, ...customLevels]);
-        allAvailableLevels = Array.from(combinedLevels);
+        // Combine and deduplicate levels for the global list
+        allAvailableLevels = Array.from(new Set([...remoteLevels, ...customLevels]));
 
 
         await loadState();
         updateLevelUI(currentLevel);
 
         setupEventListeners();
-        buildLevelSwitcher();
+        // Pass both level lists to the build function
+        buildLevelSwitcher(remoteLevels, customLevels);
         setupImportModal();
 
         await loadAllData(currentLevel);
@@ -1168,11 +1232,17 @@ async function init() {
             const isMobileView = window.innerWidth <= 768;
             const defaultTab = isMobileView ? 'progress' : 'hiragana';
             changeTab(pinnedTab || defaultTab);
+            
+            // NEW: Set the initial state for sidebar pin icons
+            updateSidebarPinIcons();
+            
+            if (els.loadingOverlay) els.loadingOverlay.classList.add('hidden');
 
         }, 50);
 
     } catch (error) {
         console.error('Initialization failed.', error);
+        if (els.loadingOverlay) els.loadingOverlay.classList.add('hidden');
         document.body.innerHTML = `<h2>IndexedDB is required for this application to function. Please use a modern browser.</h2>`;
     }
 }
@@ -1182,6 +1252,7 @@ window.toggleLearned = toggleLearned;
 window.jumpToSection = jumpToSection;
 window.changeTab = changeTab;
 window.deleteLevel = deleteLevel;
+window.toggleSidebarPin = toggleSidebarPin; // NEW: Expose the new function
 
 // --- Initialize App ---
 document.addEventListener('DOMContentLoaded', init);
