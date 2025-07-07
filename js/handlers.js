@@ -1,6 +1,6 @@
 /**
  * @module handlers
- * @description Contains event handlers and core application logic.
+ * @description Contains event handlers and core application logic for the event-driven architecture.
  */
 
 import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.mjs';
@@ -8,15 +8,15 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
-import { 
-    updateLevelUI, 
-    renderContent, 
-    updateProgressDashboard, 
-    moveLangPill, 
-    updatePinButtonState, 
+import {
+    updateLevelUI,
+    renderContent,
+    updateProgressDashboard,
+    moveLangPill,
+    updatePinButtonState,
     updateSidebarPinIcons,
     closeSidebar,
-    buildLevelSwitcher 
+    buildLevelSwitcher
 } from './ui.js';
 
 
@@ -63,12 +63,12 @@ export const handleSearch = debounce(() => {
     const query = (isMobileView ? els.mobileSearchInput.value : els.searchInput.value).trim().toLowerCase();
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
-    
+
     const activeTabId = activeTab.id;
     if (isMobileView && els.mobileSearchBar) {
         els.mobileSearchBar.classList.toggle('visible', activeTabId !== 'progress');
     }
-    
+
     const fuse = state.fuseInstances[activeTabId];
     const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
     const allWrappers = activeTab.querySelectorAll('.search-wrapper');
@@ -76,7 +76,7 @@ export const handleSearch = debounce(() => {
     if (!query) {
         allItems.forEach(item => { item.style.display = ''; });
         allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
-        activeTab.querySelectorAll('.accordion-content').forEach(el => el.style.maxHeight = null);
+        activeTab.querySelectorAll('.accordion-button.open').forEach(btn => btn.classList.remove('open'));
         return;
     }
 
@@ -162,7 +162,8 @@ export async function setLevel(level) {
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
 
-        document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.level === level));
+        // FIX: Changed dataset.level to dataset.levelName
+        document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
         changeTab('progress');
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
@@ -204,7 +205,7 @@ export function changeTab(tabName, buttonElement) {
 
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
 
-    const targetButton = buttonElement || document.querySelector(`.nav-item[onclick*="'${tabName}'"]`);
+    const targetButton = buttonElement || document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
     if (targetButton) {
         targetButton.classList.add('active');
         const isMobileView = window.innerWidth <= 768;
@@ -264,7 +265,7 @@ export async function deleteLevel(level) {
             const remoteData = remoteResponse.ok ? await remoteResponse.json() : { levels: [] };
             const customLevels = await db.getAllKeys('levels');
             buildLevelSwitcher(remoteData.levels || [config.defaultLevel], customLevels);
-            document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.level === state.currentLevel));
+            document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === state.currentLevel));
         }
 
         alert(`Level '${level.toUpperCase()}' has been deleted.`);
