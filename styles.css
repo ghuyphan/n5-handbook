@@ -676,10 +676,11 @@ input:checked+.slider:before {
     transform: translateY(-2px);
 }
 
+/* --- UPDATED DELETE BUTTON STYLES --- */
 .delete-level-btn {
     position: absolute;
-    right: -4px;
-    top: -4px;
+    right: 2px;
+    top: 2px;
     padding: 4px;
     border-radius: 50%;
     background-color: var(--card-front-bg);
@@ -706,6 +707,7 @@ input:checked+.slider:before {
     color: var(--color-danger);
     transform: scale(1.15);
 }
+/* --- END OF UPDATED DELETE BUTTON STYLES --- */
 
 
 /* === NEW SIDEBAR PIN BUTTON STYLES === */
