@@ -52,7 +52,7 @@ const els = {
 // --- App Configuration & State ---
 const config = {
     defaultLevel: 'n5',
-    dataPath: './data',
+    dataPath: 'https://raw.githubusercontent.com/ghuyphan/JLPT_Datas/main',
 };
 
 let appData = {};
@@ -1073,7 +1073,7 @@ function setupEventListeners() {
 }
 
 async function loadAllData(level) {
-    const uiPromise = fetch(`${config.dataPath}/${config.defaultLevel}/ui.json`)
+    const uiPromise = fetch(`./data/${config.defaultLevel}/ui.json`)
         .then(res => res.ok ? res.json() : {})
         .catch(err => {
             console.error("Fatal: Could not load the global ui.json file.", err);
@@ -1118,9 +1118,29 @@ async function loadAllData(level) {
 
 async function init() {
     try {
+        // Fetch the list of available levels from the remote repository first
+        let remoteLevels = [];
+        try {
+            const response = await fetch(`${config.dataPath}/levels.json`);
+            if (response.ok) {
+                const data = await response.json();
+                remoteLevels = data.levels || [];
+            } else {
+                // Fallback to default if levels.json is not found
+                remoteLevels = [config.defaultLevel];
+            }
+        } catch (error) {
+            console.error("Could not fetch remote levels list. Falling back to default.", error);
+            remoteLevels = [config.defaultLevel];
+        }
+
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
-        allAvailableLevels = [config.defaultLevel, ...customLevels.filter(k => k !== config.defaultLevel)];
+
+        // Combine and deduplicate levels
+        const combinedLevels = new Set([...remoteLevels, ...customLevels]);
+        allAvailableLevels = Array.from(combinedLevels);
+
 
         await loadState();
         updateLevelUI(currentLevel);

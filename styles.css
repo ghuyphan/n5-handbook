@@ -258,7 +258,7 @@ body {
 
     .mobile-search-bar {
         padding: 0 1rem;
-        margin-bottom: 1rem;
+        margin-bottom: 0;
         max-height: 0;
         opacity: 0;
         overflow: hidden;
@@ -776,7 +776,7 @@ input:checked+.slider:before {
 
 @media (max-width: 768px) {
     [data-lang-key="progressOverview"] {
-        margin-top: 1rem;
+        /* margin-top: 1rem; */
     }
 }
 

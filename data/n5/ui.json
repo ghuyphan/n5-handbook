@@ -48,10 +48,10 @@
     "footerText": "Làm bằng cả ❤️ bởi",
     "pinTab": "Ghim mục",
     "unpinTab": "Bỏ ghim",
-    "importLevel": "Nhập cấp độ mới",
+    "importLevel": "Thêm cấp độ mới",
     "importModalDesc": "Đặt tên và chọn thư mục dữ liệu cho cấp độ mới của bạn.",
     "levelNameLabel": "Tên cấp độ",
-    "levelNamePlaceholder": "ví dụ: N4, Gói tùy chỉnh",
+    "levelNamePlaceholder": "ví dụ: N4, N3,...",
     "uploadLabel": "Thư mục dữ liệu",
     "dropZoneTitle": "Kéo thả thư mục vào đây",
     "dropZoneOrClick": "hoặc nhấn để chọn",
@@ -61,7 +61,7 @@
     "errorNoFolderSelected": "Bạn chưa chọn thư mục. Vui lòng thử lại.",
     "errorLevelNameRequired": "Tên cấp độ là bắt buộc.",
     "errorLevelNameExists": "Tên cấp độ này đã tồn tại, vui lòng chọn tên khác.",
-    "importButton": "Nhập cấp độ",
+    "importButton": "Thêm cấp độ",
     "importButtonProgress": "Đang nhập...",
     "importSuccess": "Đã nhập thành công cấp độ '{levelName}'!"
   }
