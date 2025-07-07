@@ -76,7 +76,7 @@ export const handleSearch = debounce(() => {
     if (!query) {
         allItems.forEach(item => { item.style.display = ''; });
         allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
-        activeTab.querySelectorAll('.accordion-button.open').forEach(btn => btn.classList.remove('open'));
+        // The line that closed accordions has been removed from here.
         return;
     }
 
@@ -165,11 +165,10 @@ export async function setLevel(level) {
         const db = await dbPromise;
         state.progress = (await db.get('progress', state.currentLevel)) || { kanji: [], vocab: [] };
 
-        // FIX: Re-load the pinned tab setting for the new level
         const levelSettings = await db.get('settings', 'levelSettings') || {};
         const currentLevelSettings = levelSettings[state.currentLevel];
         state.pinnedTab = currentLevelSettings?.pinnedTab || null;
-        updateSidebarPinIcons(); // Update the UI immediately
+        updateSidebarPinIcons();
 
         state.fuseInstances = {};
         renderContent();
@@ -180,7 +179,6 @@ export async function setLevel(level) {
         
         const isMobileView = window.innerWidth <= 768;
         const defaultTab = isMobileView ? 'progress' : 'hiragana';
-        // Use the newly loaded pin state to determine the starting tab
         changeTab(state.pinnedTab || defaultTab);
 
     } catch (error) {
