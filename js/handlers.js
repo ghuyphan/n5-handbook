@@ -149,7 +149,7 @@ export function toggleTheme(event) {
 
     setTimeout(() => {
         document.body.classList.remove('no-transitions');
-    }, 100); // 100ms is enough to ensure a smooth repaint
+    }, 100);
 }
 
 export async function setLevel(level) {
@@ -165,13 +165,24 @@ export async function setLevel(level) {
         const db = await dbPromise;
         state.progress = (await db.get('progress', state.currentLevel)) || { kanji: [], vocab: [] };
 
+        // FIX: Re-load the pinned tab setting for the new level
+        const levelSettings = await db.get('settings', 'levelSettings') || {};
+        const currentLevelSettings = levelSettings[state.currentLevel];
+        state.pinnedTab = currentLevelSettings?.pinnedTab || null;
+        updateSidebarPinIcons(); // Update the UI immediately
+
         state.fuseInstances = {};
         renderContent();
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
 
         document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
-        changeTab('progress');
+        
+        const isMobileView = window.innerWidth <= 768;
+        const defaultTab = isMobileView ? 'progress' : 'hiragana';
+        // Use the newly loaded pin state to determine the starting tab
+        changeTab(state.pinnedTab || defaultTab);
+
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
         alert(`Could not load data for level ${level.toUpperCase()}.`);
@@ -181,9 +192,20 @@ export async function setLevel(level) {
 }
 
 async function savePinnedTab(tabId) {
-    await saveSetting('pinnedMobileTab', tabId || null);
-    updatePinButtonState(tabId);
-    updateSidebarPinIcons();
+    try {
+        const db = await dbPromise;
+        let levelSettings = (await db.get('settings', 'levelSettings')) || {};
+        if (!levelSettings[state.currentLevel]) {
+            levelSettings[state.currentLevel] = {};
+        }
+        levelSettings[state.currentLevel].pinnedTab = tabId || null;
+        await saveSetting('levelSettings', levelSettings);
+
+        updatePinButtonState(tabId);
+        updateSidebarPinIcons();
+    } catch (error) {
+        console.error("Error saving pinned tab setting:", error);
+    }
 }
 
 export function togglePin() {
@@ -206,20 +228,19 @@ export function toggleSidebarPin(event, tabId) {
 }
 
 export function changeTab(tabName, buttonElement) {
-    // 1. Save the scroll position of the current tab before hiding it
+    const mainContent = els.mainContent;
+
     const oldActiveTab = document.querySelector('.tab-content.active');
     if (oldActiveTab) {
-        state.tabScrollPositions.set(oldActiveTab.id, window.scrollY);
+        state.tabScrollPositions.set(oldActiveTab.id, mainContent.scrollTop);
     }
 
-    // 2. Hide all tabs and then show the new active one
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const activeTab = document.getElementById(tabName);
     if (activeTab) {
         activeTab.classList.add('active');
     }
 
-    // 3. Update the UI for navigation buttons
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     const targetButton = buttonElement || document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
     if (targetButton) {
@@ -237,20 +258,16 @@ export function changeTab(tabName, buttonElement) {
         }
     }
 
-    // 4. Reset search and close the sidebar
     if (els.searchInput) els.searchInput.value = '';
     if (els.mobileSearchInput) els.mobileSearchInput.value = '';
     handleSearch.cancel();
     handleSearch();
     closeSidebar();
 
-    // 5. Restore the scroll position for the new tab at the optimal time
-    requestAnimationFrame(() => {
-        const newScrollY = state.tabScrollPositions.get(tabName) || 0;
-        window.scrollTo({
-            top: newScrollY,
-            behavior: 'instant' // 'instant' is crucial to prevent a smooth scroll animation
-        });
+    const newScrollY = state.tabScrollPositions.get(tabName) || 0;
+    mainContent.scrollTo({
+        top: newScrollY,
+        behavior: 'instant'
     });
 }
 
@@ -262,9 +279,12 @@ export function jumpToSection(tabName, sectionTitleKey) {
             if (sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
                 sectionHeader.click();
             }
-            sectionHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            els.mainContent.scrollTo({
+                top: sectionHeader.offsetTop - 20,
+                behavior: 'smooth'
+            });
         }
-    }, 100);
+    }, 150);
 }
 
 export async function deleteLevel(level) {

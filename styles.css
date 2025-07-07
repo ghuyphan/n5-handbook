@@ -44,7 +44,6 @@
     --ease-in-out-quad: cubic-bezier(0.455, 0.03, 0.515, 0.955);
 }
 
-/* UPDATED: Changed from body.dark-mode to .dark-mode to target the <html> tag */
 .dark-mode {
     --bg-main: #111827;
     --text-primary: #F3F4F6;
@@ -93,13 +92,13 @@ html {
 
 @media (max-width: 768px) {
     html {
-        font-size: 15px;
+        font-size: 14px;
     }
 }
 
 @media (max-width: 480px) {
     html {
-        font-size: 14.5px;
+        font-size: 13.5px;
     }
 }
 
@@ -233,14 +232,10 @@ body {
         flex-direction: column;
         padding: 1.25rem;
 
-        /* Hide scrollbar */
         -ms-overflow-style: none;
-        /* IE and Edge */
         scrollbar-width: none;
-        /* Firefox */
     }
 
-    /* Hide scrollbar for Chrome, Safari and Opera */
     #sidebar::-webkit-scrollbar {
         display: none;
     }
@@ -276,6 +271,7 @@ body {
     }
 
     .mobile-search-bar.visible {
+        margin-bottom: 1rem;
         max-height: 100px;
         opacity: 1;
         visibility: visible;
@@ -640,7 +636,6 @@ input:checked+.slider:before {
     color: var(--text-primary);
 }
 
-/* === RESPONSIVE LEVEL SWITCHER STYLES === */
 .level-switch {
     display: flex;
     flex-wrap: wrap;
@@ -681,7 +676,6 @@ input:checked+.slider:before {
     transform: translateY(-2px);
 }
 
-/* --- UPDATED DELETE BUTTON STYLES --- */
 .delete-level-btn {
     position: absolute;
     right: 2px;
@@ -712,10 +706,7 @@ input:checked+.slider:before {
     color: var(--color-danger);
     transform: scale(1.15);
 }
-/* --- END OF UPDATED DELETE BUTTON STYLES --- */
 
-
-/* === NEW SIDEBAR PIN BUTTON STYLES === */
 .sidebar-pin-btn {
     position: absolute;
     right: 0.5rem;
@@ -730,7 +721,6 @@ input:checked+.slider:before {
     color: var(--text-secondary);
     cursor: pointer;
     display: none;
-    /* Hidden by default on mobile */
     align-items: center;
     justify-content: center;
     opacity: 0;
@@ -738,7 +728,6 @@ input:checked+.slider:before {
     transition: all 0.2s var(--ease-out-quint);
 }
 
-/* Show on desktop */
 @media (min-width: 769px) {
     .sidebar-pin-btn {
         display: flex;
@@ -750,7 +739,6 @@ input:checked+.slider:before {
     pointer-events: auto;
 }
 
-/* Make pin always visible if the item is pinned */
 .nav-item-wrapper.is-pinned .sidebar-pin-btn {
     opacity: 1;
     pointer-events: auto;
@@ -786,7 +774,6 @@ input:checked+.slider:before {
     fill: var(--pin-pinned-bg) !important;
 }
 
-/* UPDATE: Add this new rule for better contrast on active tabs */
 .nav-item.active+.sidebar-pin-btn.is-pinned svg {
     fill: var(--pin-pinned-icon) !important;
 }
@@ -794,9 +781,6 @@ input:checked+.slider:before {
 .dark-mode .nav-item.active+.sidebar-pin-btn.is-pinned svg {
     fill: #FFFFFF !important;
 }
-
-
-/* === END OF NEW STYLES === */
 
 .font-jp {
     font-family: 'Noto Sans JP', 'Inter', sans-serif;
@@ -868,9 +852,7 @@ input:checked+.slider:before {
 }
 
 @media (max-width: 768px) {
-    [data-lang-key="progressOverview"] {
-        /* margin-top: 1rem; */
-    }
+    [data-lang-key="progressOverview"] {}
 }
 
 .kana-grid {
@@ -1109,8 +1091,6 @@ input:checked+.slider:before {
 }
 
 
-/* --- Settings & Import Button --- */
-
 #sidebar-controls {
     display: flex;
     flex-direction: column;
@@ -1157,8 +1137,6 @@ input:checked+.slider:before {
     box-shadow: 0 6px 16px -3px rgba(59, 130, 246, 0.5);
 }
 
-
-/* --- Import Modal (Simplified & Consistent Spacing) --- */
 .modal-hidden {
     pointer-events: none;
 }
@@ -1273,14 +1251,12 @@ input:checked+.slider:before {
     border-radius: 0.75rem;
     color: var(--text-primary);
     background-color: rgba(255, 255, 255, 0.4);
-    /* Light mode default */
     border: 1px solid var(--glass-border);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dark-mode .modal-input {
     background-color: rgba(0, 0, 0, 0.1);
-    /* Dark mode override */
 }
 
 .modal-input::placeholder {
@@ -1320,7 +1296,6 @@ input:checked+.slider:before {
     border-style: solid;
     border-color: var(--glass-border);
     background-color: rgba(255, 255, 255, 0.2);
-    /* Light mode default */
     cursor: default;
     padding: 1.25rem;
     text-align: left;
@@ -1329,7 +1304,6 @@ input:checked+.slider:before {
 
 .dark-mode #file-import-area.state-preview {
     background-color: rgba(0, 0, 0, 0.05);
-    /* Dark mode override */
 }
 
 .preview-item {
@@ -1413,20 +1387,16 @@ input:checked+.slider:before {
     }
 }
 
-/* --- Loading Overlay --- */
 #loading-overlay {
     position: fixed;
     inset: 0;
-    /* Apply a background color with transparency */
     background-color: var(--backdrop-bg);
-    /* Add the blur effect */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 200;
-    /* Updated transition properties */
     transition: opacity 0.4s ease-out, visibility 0.4s, backdrop-filter 0.4s ease-out;
     opacity: 1;
     visibility: visible;

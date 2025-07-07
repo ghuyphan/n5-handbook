@@ -15,7 +15,8 @@ import {
     updatePinButtonState,
     updateSidebarPinIcons,
     closeSidebar,
-    buildLevelSwitcher
+    buildLevelSwitcher,
+    updateLevelUI
 } from './ui.js';
 import {
     setLanguage,
@@ -305,6 +306,7 @@ async function init() {
         const customLevels = await db.getAllKeys('levels');
 
         await loadState();
+        updateLevelUI(state.currentLevel); // FIX: Update UI with loaded level
 
         setupEventListeners(); // Setup global, delegated event listeners
         buildLevelSwitcher(remoteLevels, customLevels);

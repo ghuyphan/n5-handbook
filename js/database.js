@@ -24,17 +24,20 @@ export const dbPromise = openDB('HandbookDB', 1, {
 export async function loadState() {
     try {
         const db = await dbPromise;
-        const [lang, pinned, level] = await Promise.all([
+        const [lang, level, levelSettings] = await Promise.all([
             db.get('settings', 'language'),
-            db.get('settings', 'pinnedMobileTab'),
-            db.get('settings', 'currentLevel')
+            db.get('settings', 'currentLevel'),
+            db.get('settings', 'levelSettings') // Get the new object for all level-specific settings
         ]);
         
         state.currentLang = lang || 'en';
-        state.pinnedTab = pinned || null;
         state.currentLevel = level || config.defaultLevel;
         
-        // Progress depends on the currentLevel, so load it after
+        // Get the pinned tab specifically for the current level
+        const currentLevelSettings = levelSettings?.[state.currentLevel];
+        state.pinnedTab = currentLevelSettings?.pinnedTab || null;
+
+        // Progress loading remains the same as it's already per-level
         state.progress = (await db.get('progress', state.currentLevel)) || { kanji: [], vocab: [] };
 
     } catch (error) {
@@ -46,7 +49,7 @@ export async function saveProgress() {
     try {
         const db = await dbPromise;
         await db.put('progress', state.progress, state.currentLevel);
-        updateProgressDashboard(); // This function is in ui.js but is called after saving progress
+        updateProgressDashboard();
     } catch (error) {
         console.error("Error saving progress to IndexedDB:", error);
     }
