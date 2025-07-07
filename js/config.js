@@ -18,4 +18,5 @@ export const state = {
     allAvailableLevels: [config.defaultLevel],
     pinnedTab: null,
     fuseInstances: {},
+    tabScrollPositions: new Map(),
 };

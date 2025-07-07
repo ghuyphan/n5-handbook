@@ -132,16 +132,24 @@ export function setLanguage(lang, skipRender = false) {
 }
 
 export function toggleTheme(event) {
+    document.body.classList.add('no-transitions');
+
     const isChecked = event.target.checked;
     document.documentElement.classList.toggle('dark-mode', isChecked);
+
     try {
         localStorage.setItem('theme', isChecked ? 'dark' : 'light');
     } catch (e) {
         console.warn("Could not save theme to localStorage.", e);
     }
+
     document.querySelectorAll('.theme-switch input').forEach(input => {
         if (input !== event.target) input.checked = isChecked;
     });
+
+    setTimeout(() => {
+        document.body.classList.remove('no-transitions');
+    }, 100); // 100ms is enough to ensure a smooth repaint
 }
 
 export async function setLevel(level) {
@@ -162,7 +170,6 @@ export async function setLevel(level) {
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
 
-        // FIX: Changed dataset.level to dataset.levelName
         document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
         changeTab('progress');
     } catch (error) {
@@ -199,12 +206,21 @@ export function toggleSidebarPin(event, tabId) {
 }
 
 export function changeTab(tabName, buttonElement) {
+    // 1. Save the scroll position of the current tab before hiding it
+    const oldActiveTab = document.querySelector('.tab-content.active');
+    if (oldActiveTab) {
+        state.tabScrollPositions.set(oldActiveTab.id, window.scrollY);
+    }
+
+    // 2. Hide all tabs and then show the new active one
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const activeTab = document.getElementById(tabName);
-    if (activeTab) activeTab.classList.add('active');
+    if (activeTab) {
+        activeTab.classList.add('active');
+    }
 
+    // 3. Update the UI for navigation buttons
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-
     const targetButton = buttonElement || document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
     if (targetButton) {
         targetButton.classList.add('active');
@@ -221,11 +237,21 @@ export function changeTab(tabName, buttonElement) {
         }
     }
 
+    // 4. Reset search and close the sidebar
     if (els.searchInput) els.searchInput.value = '';
     if (els.mobileSearchInput) els.mobileSearchInput.value = '';
     handleSearch.cancel();
     handleSearch();
     closeSidebar();
+
+    // 5. Restore the scroll position for the new tab at the optimal time
+    requestAnimationFrame(() => {
+        const newScrollY = state.tabScrollPositions.get(tabName) || 0;
+        window.scrollTo({
+            top: newScrollY,
+            behavior: 'instant' // 'instant' is crucial to prevent a smooth scroll animation
+        });
+    });
 }
 
 export function jumpToSection(tabName, sectionTitleKey) {
