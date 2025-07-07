@@ -423,7 +423,8 @@
             allItems.forEach(item => { item.style.display = ''; });
             allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
             $$('.accordion-content').forEach(el => el.style.maxHeight = null);
-            $$('.accordion-button.open').forEach(btn => btn.classList.remove('open'));
+            // BUG FIX: The following problematic line has been removed.
+            // $$('.accordion-button.open').forEach(btn => btn.classList.remove('open'));
             return;
         }
 
