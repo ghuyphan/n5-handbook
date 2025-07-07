@@ -276,10 +276,7 @@ export function jumpToSection(tabName, sectionTitleKey) {
 
     const scrollToAction = () => {
         const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
-        if (!sectionHeader) {
-            console.warn(`jumpToSection: Could not find element with key ${sectionTitleKey}`);
-            return;
-        }
+        if (!sectionHeader) return;
 
         const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
         const accordionContent = accordionWrapper ? accordionWrapper.querySelector('.accordion-content') : null;
@@ -315,19 +312,18 @@ export function jumpToSection(tabName, sectionTitleKey) {
         scrollToAction();
     } else {
         const previousTabId = activeTab ? activeTab.id : null;
-        changeTab(tabName, null, true); // Switch tab without scrolling
+        changeTab(tabName, null, true);
         
         const isMobileView = window.innerWidth <= 768;
-        // The search bar animation causes a layout shift. It only happens when moving
-        // from the 'progress' tab to any other tab on mobile.
         const searchBarWillAnimate = isMobileView && previousTabId === 'progress' && tabName !== 'progress';
         
-        // The handleSearch function is debounced by 300ms, and its animation takes 400ms.
-        // We wait for all of that to finish before calculating the scroll position.
-        // For other cases, a shorter delay is fine.
-        const delay = searchBarWillAnimate ? 750 : 150; 
-        
-        setTimeout(scrollToAction, delay);
+        if (searchBarWillAnimate && els.mobileSearchBar) {
+            // This is the key: we wait for the animation to end before scrolling.
+            els.mobileSearchBar.addEventListener('transitionend', scrollToAction, { once: true });
+        } else {
+            // For other cases, a tiny delay is enough for the DOM to update.
+            setTimeout(scrollToAction, 50);
+        }
     }
 }
 

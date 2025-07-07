@@ -42,24 +42,20 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
             </svg>
         </button>
-        <div class="flex items-center gap-3 min-w-0">
-            <div id="level-badge-mobile"
-                class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-md shadow-lg shadow-blue-500/30 flex-shrink-0">
-                N5</div>
-            <h1 id="mobile-header-title" class="text-lg font-bold text-header truncate"></h1>
-        </div>
+        <a href="/" class="flex items-center gap-2 min-w-0">
+             <img src="./assets/siteIcon.png" alt="Handbook Logo" class="h-8 w-8 flex-shrink-0">
+             <h1 id="mobile-header-title" class="text-lg font-bold text-header truncate"></h1>
+        </a>
         <button id="pin-toggle" data-action="toggle-pin" class="p-2 ml-auto" style="display: none;"></button>
     </header>
 
     <div class="main-grid p-0 md:p-6 lg:p-8">
         <aside id="sidebar" class="left-sidebar glass-effect p-6 flex flex-col md:rounded-2xl">
             <div class="flex-grow">
-                <div class="flex items-center gap-3 mb-6 md:mb-10">
-                    <div id="level-badge-desktop"
-                        class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
-                        N5</div>
+                <a href="/" class="flex items-center gap-3 mb-6 md:mb-10 site-title-link">
+                    <img src="./assets/siteIcon.png" alt="Handbook Logo" class="h-10 w-10">
                     <h1 class="text-2xl font-bold sidebar-title">Handbook</h1>
-                </div>
+                </a>
                 <nav id="tabs" class="space-y-2">
                     <div class="nav-item-wrapper relative md:hidden">
                         <button data-action="change-tab" data-tab-name="progress"

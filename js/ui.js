@@ -239,9 +239,10 @@ function createProgressItem(tab, title, learned, total, color, titleKey) {
 // --- Main UI Update Functions ---
 
 export function updateLevelUI(level) {
-    const levelText = level.toUpperCase();
-    if (els.levelBadgeDesktop) els.levelBadgeDesktop.textContent = levelText;
-    if (els.levelBadgeMobile) els.levelBadgeMobile.textContent = levelText;
+    // This function is no longer needed as the level badges have been replaced by the site icon.
+    // const levelText = level.toUpperCase();
+    // if (els.levelBadgeDesktop) els.levelBadgeDesktop.textContent = levelText;
+    // if (els.levelBadgeMobile) els.levelBadgeMobile.textContent = levelText;
 }
 
 export function updateProgressDashboard() {

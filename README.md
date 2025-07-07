@@ -1,4 +1,7 @@
-# 🇯🇵 Japanese Language Handbook
+<p align="center">
+  <img src="./assets/siteIcon.png" alt="Japanese Language Handbook Logo" width="120">
+</p>
+<h1 align="center">Japanese Language Handbook</h1>
 
 > An interactive, multi-level web application to help you study Japanese. Start with the built-in **JLPT N5** material or **import your own custom study levels**. Features comprehensive study materials, per-level progress tracking, advanced fuzzy search, and a bilingual interface (English/Vietnamese).
 
@@ -22,37 +25,30 @@ This application has been rebuilt to be a flexible and powerful study tool.
     * Comes pre-loaded with a complete **JLPT N5** handbook.
     * Instantly switch between the default level and any custom levels you've imported.
     * Easily delete custom levels you no longer need with a dedicated button that appears right in the level switcher.
-
 * **⬆️ Import Custom Levels:**
     * Create your own study sets using a simple JSON file structure.
     * Use the in-app import tool to add new levels (e.g., N4, N3, or specialized vocabulary lists).
     * Imported levels are stored locally in your browser, so they're always available to you.
-
 * **💾 Persistent Local Data:**
     * The app uses **IndexedDB** to save all your data in the browser—no backend needed.
     * Progress (learned Kanji/Vocab) is saved **per level**.
     * Your preferred theme, language, current level, and pinned tab are remembered for your next visit.
-
 * **📌 Pin Your Favorite Tab:**
     * Set any main content tab (like *Kanji*, *Vocab*, or *Grammar*) as your default.
     * The app will automatically open your pinned tab on launch.
     * **On Desktop:** Pin or unpin any tab directly from the sidebar for quick workflow changes.
     * **On Mobile:** A dedicated pin icon in the header allows you to quickly pin the current view.
-
 * **🔍 Advanced Fuzzy Search:**
     * Instantly filter content within any tab using the search bar.
     * Powered by **Fuse.js** for intelligent, typo-tolerant searching.
     * Integrated with **Wanakana.js**, so you can search in English, Romaji, Hiragana, or Katakana, and it will find the right content.
-
 * **📊 Real-Time Progress Dashboard:**
     * Mark Kanji and Vocabulary as "learned" with a single click on a card.
     * The dashboard gives a visual overview of your mastery for each category within the current level.
     * Click any category in the dashboard to jump directly to that section for quick review.
-
 * **🌐 Bilingual Interface (EN/VI):**
     * Instantly switch the entire UI between **English** and **Vietnamese**.
     * Language preference is saved for your next session.
-
 * **🎨 Dual Themes & Responsive Design:**
     * Choose between a clean **Light Mode** and a sleek **Dark Mode**.
     * The layout is fully responsive, offering a polished experience on desktop, tablet, and mobile, complete with a slide-in sidebar.
@@ -106,4 +102,4 @@ The easiest way is using the **Live Server** extension in VS Code:
 
 This project is a static web application and requires no build process. It can be hosted on any static hosting service. It is currently hosted on **GitHub Pages**.
 
-To deploy your own version, push the entire project directory—including `index.html`, `styles.css`, `script.js`, and the `data` folder—to a GitHub repository. Then, in the repository's settings, navigate to `Settings` > `Pages` and set the source to deploy from your `main` (or `master`) branch.
+To deploy your own version, push the entire project directory—including `index.html`, `styles.css`, the `js` folder, and the `data` folder—to a GitHub repository. Then, in the repository's settings, navigate to `Settings` > `Pages` and set the source to deploy from your `main` (or `master`) branch.
