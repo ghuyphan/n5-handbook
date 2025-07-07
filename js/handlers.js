@@ -271,30 +271,34 @@ export function changeTab(tabName, buttonElement, suppressScroll = false) {
 }
 
 export function jumpToSection(tabName, sectionTitleKey) {
-    const mainContent = els.mainContent;
     const activeTab = document.querySelector('.tab-content.active');
     const isAlreadyOnTab = activeTab && activeTab.id === tabName;
 
     const scrollToAction = () => {
         const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
-        if (!sectionHeader) return;
+        if (!sectionHeader) {
+            console.warn(`jumpToSection: Could not find element with key ${sectionTitleKey}`);
+            return;
+        }
 
         const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
         const accordionContent = accordionWrapper ? accordionWrapper.querySelector('.accordion-content') : null;
 
         const executeScroll = () => {
-            const mainContentRect = mainContent.getBoundingClientRect();
-            const sectionHeaderRect = sectionHeader.getBoundingClientRect();
-            const targetY = sectionHeaderRect.top - mainContentRect.top + mainContent.scrollTop;
+            const elementTop = sectionHeader.getBoundingClientRect().top;
+            const currentScrollY = window.scrollY;
+            const targetY = elementTop + currentScrollY;
 
             let headerOffset = 0;
-            const mobileHeader = document.querySelector('.mobile-header');
-            if (mobileHeader && getComputedStyle(mobileHeader).display !== 'none') {
+            const mobileHeader = document.querySelector('.mobile-header.sticky');
+            if (mobileHeader && getComputedStyle(mobileHeader).position === 'sticky') {
                 headerOffset = mobileHeader.offsetHeight;
             }
             
-            mainContent.scrollTo({
-                top: targetY - headerOffset - 20,
+            const buffer = 20;
+
+            window.scrollTo({
+                top: targetY - headerOffset - buffer,
                 behavior: 'smooth'
             });
         };
@@ -310,10 +314,23 @@ export function jumpToSection(tabName, sectionTitleKey) {
     if (isAlreadyOnTab) {
         scrollToAction();
     } else {
-        changeTab(tabName, null, true); // The 'true' here suppresses the default scroll restoration
-        setTimeout(scrollToAction, 150);
+        const previousTabId = activeTab ? activeTab.id : null;
+        changeTab(tabName, null, true); // Switch tab without scrolling
+        
+        const isMobileView = window.innerWidth <= 768;
+        // The search bar animation causes a layout shift. It only happens when moving
+        // from the 'progress' tab to any other tab on mobile.
+        const searchBarWillAnimate = isMobileView && previousTabId === 'progress' && tabName !== 'progress';
+        
+        // The handleSearch function is debounced by 300ms, and its animation takes 400ms.
+        // We wait for all of that to finish before calculating the scroll position.
+        // For other cases, a shorter delay is fine.
+        const delay = searchBarWillAnimate ? 750 : 150; 
+        
+        setTimeout(scrollToAction, delay);
     }
 }
+
 
 export async function deleteLevel(level) {
     if (level === config.defaultLevel) {
