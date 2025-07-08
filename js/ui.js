@@ -89,6 +89,22 @@ const createCard = (item, category, backGradient) => {
     const cardFront = clone.querySelector('.card-face-front');
     const cardBack = clone.querySelector('.card-face-back');
 
+    // Only add the details toggle for Kanji cards
+    if (category === 'kanji') {
+        const detailsToggle = document.createElement('div');
+        detailsToggle.className = 'details-toggle'; // The new CSS class
+        detailsToggle.dataset.action = 'show-kanji-details';
+        detailsToggle.dataset.id = item.id;
+        // A simple info icon
+        detailsToggle.innerHTML = `
+            <svg class="h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+        `;
+        // Prepend it to the root container. Since the checkmark is last, this will appear on the left.
+        root.prepend(detailsToggle);
+    }
+
     const isLearned = state.progress[category]?.includes(item.id);
     const meaningText = item.meaning?.[state.currentLang] || item.meaning?.en || '';
 
@@ -96,10 +112,9 @@ const createCard = (item, category, backGradient) => {
         ? `<p class="text-4xl sm:text-6xl font-bold noto-sans">${item.kanji}</p>`
         : `<div class="text-center p-2"><p class="text-xl sm:text-2xl font-semibold noto-sans">${item.word}</p></div>`;
 
-    // --- UPDATED Back Content Logic ---
     let backContent = '';
     if (category === 'kanji') {
-        // New simplified design for Kanji cards
+        // The "View Details" button is now removed from the back.
         backContent = `
             <div class="w-full text-center">
                 <p class="font-bold text-xl mb-2">${meaningText}</p>
@@ -107,20 +122,16 @@ const createCard = (item, category, backGradient) => {
                     <p>On: ${item.onyomi}</p>
                     <p>Kun: ${item.kunyomi || '–'}</p>
                 </div>
-            </div>
-            <button class="w-full mt-4 bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200" data-action="show-kanji-details" data-id="${item.id}">
-                View Details
-            </button>`;
-        cardBack.style.justifyContent = 'space-between';
+            </div>`;
+        cardBack.style.justifyContent = 'center'; // Center the text content
 
     } else {
-        // Original design for Vocab cards
+        // Vocab cards remain unchanged
         backContent = `
             <p class="text-lg sm:text-xl font-bold">${item.reading}</p>
             <p class="text-sm">${meaningText}</p>`;
         cardBack.style.justifyContent = 'space-around';
     }
-    // --- END OF UPDATED Back Content Logic ---
 
     const searchTerms = generateSearchTerms([
         item.kanji, item.word, item.onyomi, item.kunyomi,
