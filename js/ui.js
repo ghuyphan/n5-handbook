@@ -246,38 +246,61 @@ export function updateLevelUI(level) {
 }
 
 export function updateProgressDashboard() {
-    const { progressOverview, progressTab } = els;
-    if (!progressOverview || !state.appData.ui) return;
+    const containers = [els.progressOverview, els.progressTab];
+    if (!state.appData.ui) return;
 
-    const fragment = document.createDocumentFragment();
+    // On first load, ensure the containers are ready and have the SVG gradients
+    containers.forEach(container => {
+        if (container && !container.querySelector('.progress-item-wrapper')) {
+            const overviewTitle = `<h2 class="text-xl font-bold mb-5" data-lang-key="progressOverview">${state.appData.ui[state.currentLang]?.progressOverview || 'Progress Overview'}</h2>`;
+            const gradientsSVG = `<svg width="0" height="0"><defs>
+                <linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient>
+                <linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient>
+            </defs></svg>`;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'space-y-4';
+            wrapper.id = `progress-wrapper-${container.id}`;
+            container.innerHTML = overviewTitle + gradientsSVG;
+            container.appendChild(wrapper);
+        }
+    });
+
     const dataCategories = { kanji: 'purple', vocab: 'green' };
 
     for (const [categoryName, color] of Object.entries(dataCategories)) {
         if (!state.appData[categoryName]) continue;
+
         for (const key in state.appData[categoryName]) {
             const category = state.appData[categoryName][key];
             if (!category.items) continue;
-            
+
             const total = category.items.length;
             const learned = state.progress[categoryName]?.filter(id => category.items.some(item => item.id === id)).length || 0;
-            fragment.appendChild(createProgressItem(categoryName, category[state.currentLang] || category.en, learned, total, color, key));
+
+            // Find existing items in both progress containers
+            const existingItems = document.querySelectorAll(`[data-section-key="${key}"]`);
+
+            if (existingItems.length > 0) {
+                // If they exist, update them
+                const percentage = total > 0 ? (learned / total) * 100 : 0;
+                const radius = 22;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (percentage / 100) * circumference;
+
+                existingItems.forEach(item => {
+                    item.querySelector('.progress-fill').style.strokeDashoffset = offset;
+                    item.querySelector('.progress-percentage').textContent = `${Math.round(percentage)}%`;
+                    item.querySelector('.progress-stats').textContent = `${learned} / ${total}`;
+                });
+            } else {
+                // If they don't exist, create and append them (for initial render)
+                const newItemFragment = createProgressItem(categoryName, category[state.currentLang] || category.en, learned, total, color, key);
+                document.querySelectorAll('[id^="progress-wrapper-"]').forEach(wrapper => {
+                    wrapper.appendChild(newItemFragment.cloneNode(true));
+                });
+            }
         }
     }
-    
-    const container = document.createElement('div');
-    container.className = 'space-y-4';
-    container.appendChild(fragment);
-    
-    const overviewTitle = `<h2 class="text-xl font-bold mb-5" data-lang-key="progressOverview">${state.appData.ui[state.currentLang]?.progressOverview || 'Progress Overview'}</h2>`;
-    const gradientsSVG = `<svg width="0" height="0"><defs>
-        <linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient>
-        <linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient>
-    </defs></svg>`;
-    
-    const finalHTML = overviewTitle + container.outerHTML + gradientsSVG;
-
-    if (progressOverview) progressOverview.innerHTML = finalHTML;
-    if (progressTab) progressTab.innerHTML = finalHTML;
 }
 
 export function moveLangPill(switcherContainer) {

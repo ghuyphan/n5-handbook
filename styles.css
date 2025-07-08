@@ -1460,3 +1460,19 @@ input:checked+.slider:before {
         opacity: 1;
     }
 }
+
+/* --- NEW STYLES FOR PROGRESS HIGHLIGHT --- */
+@keyframes highlight-progress {
+    0% {
+        background-color: var(--nav-hover-bg);
+        transform: scale(1.03);
+    }
+    100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+}
+
+.progress-item-wrapper.is-highlighted {
+    animation: highlight-progress 1.5s var(--ease-out-quint);
+}

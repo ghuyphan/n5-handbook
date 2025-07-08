@@ -319,21 +319,31 @@ async function init() {
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
 
-        setTimeout(() => {
-            document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
-            document.querySelectorAll('.lang-switch').forEach(moveLangPill);
+        // --- UPDATED LOGIC FOR SMOOTHER LOADING ---
+        if (els.loadingOverlay) {
+            // Start fading out the overlay
+            els.loadingOverlay.style.opacity = '0';
+            
+            // After the transition, hide it completely
+            els.loadingOverlay.addEventListener('transitionend', () => {
+                els.loadingOverlay.classList.add('hidden');
+            }, { once: true });
+        }
+        
+        // This part runs while the overlay is fading out
+        document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
+        document.querySelectorAll('.lang-switch').forEach(moveLangPill);
 
-            const isMobileView = window.innerWidth <= 768;
-            const defaultTab = isMobileView ? 'progress' : 'hiragana';
-            changeTab(state.pinnedTab || defaultTab);
-            updateSidebarPinIcons();
-
-            els.loadingOverlay?.classList.add('hidden');
-        }, 50);
+        const isMobileView = window.innerWidth <= 768;
+        const defaultTab = isMobileView ? 'progress' : 'hiragana';
+        changeTab(state.pinnedTab || defaultTab);
+        updateSidebarPinIcons();
 
     } catch (error) {
         console.error('Initialization failed.', error);
-        els.loadingOverlay?.classList.add('hidden');
+        if (els.loadingOverlay) {
+            els.loadingOverlay.classList.add('hidden');
+        }
     }
 }
 
