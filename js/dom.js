@@ -40,6 +40,7 @@ export const els = {
 
     // Sidebar Controls
     sidebarControls: document.getElementById('sidebar-controls'),
+    closeSidebarBtn: document.getElementById('close-sidebar-btn'),
 
     // Import Modal
     importModal: document.getElementById('import-modal'),

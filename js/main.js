@@ -55,6 +55,10 @@ function openKanjiDetailModal(kanjiId) {
         return;
     }
 
+    const getUIText = (key) => {
+        return state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
+    };
+
     const meaning = kanjiItem.meaning?.[state.currentLang] || kanjiItem.meaning?.en || '';
     const sentenceJP = kanjiItem.sentence?.jp;
     const sentenceEN = kanjiItem.sentence?.en;
@@ -66,13 +70,13 @@ function openKanjiDetailModal(kanjiId) {
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             <div class="text-center mb-4">
-                <h1 class="text-6xl font-bold noto-sans text-primary">${kanjiItem.kanji}</h1>
+                <h1 class="text-6xl font-bold noto-sans text-primary mb-2">${kanjiItem.kanji}</h1>
                 <p class="text-xl text-secondary">${meaning}</p>
             </div>
             <div class="space-y-4 text-sm max-h-[50vh] overflow-y-auto pr-2">
                 ${kanjiItem.examples ? `
                 <div>
-                    <h3 class="font-semibold text-secondary border-b border-glass-border pb-1 mb-2">Examples</h3>
+                    <h3 class="font-semibold text-secondary border-b border-glass-border pb-1 mb-2">${getUIText('modalExamples')}</h3>
                     <ul class="space-y-1 text-primary">
                         ${kanjiItem.examples.map(ex => `
                             <li class="flex justify-between items-baseline">
@@ -89,10 +93,10 @@ function openKanjiDetailModal(kanjiId) {
                 </div>` : ''}
                 ${kanjiItem.mnemonic ? `
                  <div>
-                    <h3 class="font-semibold text-secondary border-b border-glass-border pb-1 mb-2">Info</h3>
+                    <h3 class="font-semibold text-secondary border-b border-glass-border pb-1 mb-2">${getUIText('modalInfo')}</h3>
                     <div class="space-y-2 text-xs text-secondary">
-                        <div><p class="font-semibold text-primary">Radical:</p><p>${kanjiItem.radical}</p></div>
-                        <div><p class="font-semibold text-primary">Mnemonic:</p><p>${kanjiItem.mnemonic}</p></div>
+                        <div><p class="font-semibold text-primary">${getUIText('modalRadical')}</p><p>${kanjiItem.radical}</p></div>
+                        <div><p class="font-semibold text-primary">${getUIText('modalMnemonic')}</p><p>${kanjiItem.mnemonic}</p></div>
                     </div>
                 </div>` : ''}
             </div>
@@ -165,6 +169,7 @@ function setupEventListeners() {
     els.overlay?.addEventListener('click', closeSidebar);
     els.searchInput?.addEventListener('input', handleSearch);
     els.mobileSearchInput?.addEventListener('input', handleSearch);
+    els.closeSidebarBtn?.addEventListener('click', closeSidebar);
 
     const debouncedResize = debounce(() => {
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);

@@ -30,7 +30,11 @@
     "errorLevelNameExists": "This level name already exists.",
     "importButton": "Import Level",
     "importButtonProgress": "Importing...",
-    "importSuccess": "Level '{levelName}' imported successfully!"
+    "importSuccess": "Level '{levelName}' imported successfully!",
+    "modalExamples": "Examples",
+    "modalInfo": "Info",
+    "modalRadical": "Radical:",
+    "modalMnemonic": "Mnemonic:"
   },
   "vi": {
     "dashboard": "Bảng điều khiển",
@@ -63,6 +67,10 @@
     "errorLevelNameExists": "Tên cấp độ này đã tồn tại, vui lòng chọn tên khác.",
     "importButton": "Thêm cấp độ",
     "importButtonProgress": "Đang nhập...",
-    "importSuccess": "Đã nhập thành công cấp độ '{levelName}'!"
+    "importSuccess": "Đã nhập thành công cấp độ '{levelName}'!",
+    "modalExamples": "Ví dụ",
+    "modalInfo": "Thông tin",
+    "modalRadical": "Bộ thủ:",
+    "modalMnemonic": "Gợi ý:"
   }
 }
