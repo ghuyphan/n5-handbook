@@ -52,4 +52,9 @@ export const els = {
     fileImportArea: document.getElementById('file-import-area'),
     fileInput: document.getElementById('file-input'),
     importBtn: document.getElementById('import-btn'),
+
+    // Kanji Modal
+    kanjiDetailModal: document.getElementById('kanji-detail-modal'),
+    kanjiModalBackdrop: document.querySelector('#kanji-detail-modal #modal-backdrop'),
+    kanjiModalContentContainer: document.querySelector('#kanji-detail-modal #modal-content-container'),
 };

@@ -34,6 +34,82 @@ import {
 function getThemeToggleHTML() { return `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`; }
 function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`; }
 
+
+/**
+ * Populates and opens the Kanji Detail Modal.
+ * @param {string} kanjiId - The ID of the kanji to display.
+ */
+function openKanjiDetailModal(kanjiId) {
+    let kanjiItem = null;
+    // Find the kanji data from all available kanji sections in the current level
+    for (const key in state.appData.kanji) {
+        const found = state.appData.kanji[key].items.find(item => item.id === kanjiId);
+        if (found) {
+            kanjiItem = found;
+            break;
+        }
+    }
+
+    if (!kanjiItem) {
+        console.error("Kanji item not found:", kanjiId);
+        return;
+    }
+
+    const meaning = kanjiItem.meaning?.[state.currentLang] || kanjiItem.meaning?.en || '';
+    const sentenceJP = kanjiItem.sentence?.jp;
+    const sentenceEN = kanjiItem.sentence?.en;
+
+    // Populate the modal content
+    els.kanjiModalContentContainer.innerHTML = `
+        <div class="glass-effect p-6 rounded-2xl">
+            <button id="close-kanji-modal-btn" class="absolute top-3 right-3 text-secondary hover:text-primary transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="text-center mb-4">
+                <h1 class="text-6xl font-bold noto-sans text-primary">${kanjiItem.kanji}</h1>
+                <p class="text-xl text-secondary">${meaning}</p>
+            </div>
+            <div class="space-y-4 text-sm max-h-[50vh] overflow-y-auto pr-2">
+                ${kanjiItem.examples ? `
+                <div>
+                    <h3 class="font-semibold text-secondary border-b border-glass-border pb-1 mb-2">Examples</h3>
+                    <ul class="space-y-1 text-primary">
+                        ${kanjiItem.examples.map(ex => `
+                            <li class="flex justify-between items-baseline">
+                                <span class="font-semibold noto-sans">${ex.word} <span class="text-xs text-secondary font-sans">${ex.reading}</span></span>
+                                <span class="text-xs text-secondary">${ex.meaning[state.currentLang] || ex.meaning.en}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    ${sentenceJP ? `
+                    <div class="mt-3 pt-3 border-t border-glass-border text-secondary">
+                        <p class="noto-sans text-primary">${sentenceJP}</p>
+                        <p class="text-xs">${sentenceEN}</p>
+                    </div>` : ''}
+                </div>` : ''}
+                ${kanjiItem.mnemonic ? `
+                 <div>
+                    <h3 class="font-semibold text-secondary border-b border-glass-border pb-1 mb-2">Info</h3>
+                    <div class="space-y-2 text-xs text-secondary">
+                        <div><p class="font-semibold text-primary">Radical:</p><p>${kanjiItem.radical}</p></div>
+                        <div><p class="font-semibold text-primary">Mnemonic:</p><p>${kanjiItem.mnemonic}</p></div>
+                    </div>
+                </div>` : ''}
+            </div>
+        </div>
+    `;
+    
+    els.kanjiDetailModal.classList.add('active');
+    document.body.classList.add('body-no-scroll'); // Prevents background scroll
+}
+
+/** Closes the Kanji Detail Modal */
+function closeKanjiDetailModal() {
+    els.kanjiDetailModal.classList.remove('active');
+    document.body.classList.remove('body-no-scroll'); // Allows background scroll again
+}
+
+
 function setupEventListeners() {
     // Centralized event listener for all actions
     document.body.addEventListener('click', (e) => {
@@ -59,6 +135,8 @@ function setupEventListeners() {
                 toggleSidebarPin(e, actionTarget.dataset.tabName);
                 break;
             case 'flip-card':
+                // Prevent flip if the details button was the target
+                if (e.target.closest('[data-action="show-kanji-details"]')) return;
                 actionTarget.closest('.card').classList.toggle('is-flipped');
                 break;
             case 'toggle-learned':
@@ -75,6 +153,10 @@ function setupEventListeners() {
                 break;
             case 'toggle-accordion':
                 actionTarget.classList.toggle('open');
+                break;
+            // New action for the Kanji Detail Modal
+            case 'show-kanji-details':
+                openKanjiDetailModal(actionTarget.dataset.id);
                 break;
         }
     });
@@ -96,6 +178,19 @@ function setupEventListeners() {
         }
     }, 100);
     window.addEventListener('resize', debouncedResize);
+
+    // Add event listeners for the new modal
+    els.kanjiDetailModal.addEventListener('click', (e) => {
+        if (e.target === els.kanjiModalBackdrop || e.target.closest('#close-kanji-modal-btn')) {
+            closeKanjiDetailModal();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && els.kanjiDetailModal.classList.contains('active')) {
+            closeKanjiDetailModal();
+        }
+    });
 }
 
 function setupImportModal() {
@@ -280,7 +375,7 @@ function populateAndBindControls() {
 
     const headerThemeToggle = document.getElementById('header-theme-toggle');
     if (headerThemeToggle) headerThemeToggle.innerHTML = getThemeToggleHTML();
-    
+
     // Bind listeners to all theme/language switchers after they are created
     document.querySelectorAll('.theme-switch input').forEach(el => el.addEventListener('change', toggleTheme));
     document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
@@ -306,7 +401,7 @@ async function init() {
         const customLevels = await db.getAllKeys('levels');
 
         await loadState();
-        updateLevelUI(state.currentLevel); // FIX: Update UI with loaded level
+        updateLevelUI(state.currentLevel);
 
         setupEventListeners(); // Setup global, delegated event listeners
         buildLevelSwitcher(remoteLevels, customLevels);
@@ -319,18 +414,13 @@ async function init() {
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
 
-        // --- UPDATED LOGIC FOR SMOOTHER LOADING ---
         if (els.loadingOverlay) {
-            // Start fading out the overlay
             els.loadingOverlay.style.opacity = '0';
-            
-            // After the transition, hide it completely
             els.loadingOverlay.addEventListener('transitionend', () => {
                 els.loadingOverlay.classList.add('hidden');
             }, { once: true });
         }
-        
-        // This part runs while the overlay is fading out
+
         document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
 

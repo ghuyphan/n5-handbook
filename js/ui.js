@@ -91,27 +91,49 @@ const createCard = (item, category, backGradient) => {
 
     const isLearned = state.progress[category]?.includes(item.id);
     const meaningText = item.meaning?.[state.currentLang] || item.meaning?.en || '';
-    
+
     const frontContent = category === 'kanji'
         ? `<p class="text-4xl sm:text-6xl font-bold noto-sans">${item.kanji}</p>`
         : `<div class="text-center p-2"><p class="text-xl sm:text-2xl font-semibold noto-sans">${item.word}</p></div>`;
-    
-    const backContent = `
-        <p class="text-lg sm:text-xl font-bold">${category === 'kanji' ? meaningText : item.reading}</p>
-        <p class="text-sm">${category === 'kanji' ? `On: ${item.onyomi}<br>Kun: ${item.kunyomi || '–'}` : meaningText}</p>`;
-    
+
+    // --- UPDATED Back Content Logic ---
+    let backContent = '';
+    if (category === 'kanji') {
+        // New simplified design for Kanji cards
+        backContent = `
+            <div class="w-full text-center">
+                <p class="font-bold text-xl mb-2">${meaningText}</p>
+                <div class="text-sm opacity-80">
+                    <p>On: ${item.onyomi}</p>
+                    <p>Kun: ${item.kunyomi || '–'}</p>
+                </div>
+            </div>
+            <button class="w-full mt-4 bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200" data-action="show-kanji-details" data-id="${item.id}">
+                View Details
+            </button>`;
+        cardBack.style.justifyContent = 'space-between';
+
+    } else {
+        // Original design for Vocab cards
+        backContent = `
+            <p class="text-lg sm:text-xl font-bold">${item.reading}</p>
+            <p class="text-sm">${meaningText}</p>`;
+        cardBack.style.justifyContent = 'space-around';
+    }
+    // --- END OF UPDATED Back Content Logic ---
+
     const searchTerms = generateSearchTerms([
         item.kanji, item.word, item.onyomi, item.kunyomi,
         item.reading, item.meaning?.en, item.meaning?.vi,
     ]);
-    
+
     root.dataset.searchItem = searchTerms;
     root.dataset.itemId = item.id;
-    
+
     learnToggle.classList.toggle('learned', isLearned);
     learnToggle.dataset.category = category;
     learnToggle.dataset.id = item.id;
-    
+
     cardFront.innerHTML = frontContent;
     cardBack.innerHTML = backContent;
     cardBack.style.background = backGradient;
@@ -133,7 +155,7 @@ const createCardSection = (title, data, category, backGradient, titleKey) => {
 
     const cardGrid = document.createElement('div');
     cardGrid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4';
-    
+
     const fragment = document.createDocumentFragment();
     data.forEach(item => fragment.appendChild(createCard(item, category, backGradient)));
     cardGrid.appendChild(fragment);
@@ -141,7 +163,7 @@ const createCardSection = (title, data, category, backGradient, titleKey) => {
     const accordionContentWrapper = document.createElement('div');
     accordionContentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
     accordionContentWrapper.appendChild(cardGrid);
-    
+
     const searchTermsForSection = generateSearchTerms(
         [title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]
     );
@@ -179,7 +201,7 @@ const createStaticSection = (data, icon, color) => {
                 </div>`;
         }).join('')}
         </div>`;
-        
+
         const sectionHTML = `
             <div class="search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6" data-search="${searchTerms}">
                 <h3 class="text-lg sm:text-lg font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${sectionKey}">
@@ -206,7 +228,7 @@ const createStaticSection = (data, icon, color) => {
 function createProgressItem(tab, title, learned, total, color, titleKey) {
     const template = document.getElementById('progress-item-template');
     const clone = template.content.cloneNode(true);
-    
+
     const wrapper = clone.querySelector('.progress-item-wrapper');
     const fillCircle = clone.querySelector('.progress-fill');
     const percentageText = clone.querySelector('.progress-percentage');
@@ -217,22 +239,22 @@ function createProgressItem(tab, title, learned, total, color, titleKey) {
     const radius = 22;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentage / 100) * circumference;
-    
+
     const emojiMatch = title.match(/\s(.*?)$/);
     const cleanTitle = emojiMatch ? title.replace(emojiMatch[0], '') : title;
     const emoji = emojiMatch ? emojiMatch[1] : '';
 
     wrapper.dataset.tabName = tab;
     wrapper.dataset.sectionKey = titleKey;
-    
+
     fillCircle.style.strokeDasharray = circumference;
     fillCircle.style.strokeDashoffset = offset;
     fillCircle.style.stroke = `url(#${color}-gradient)`;
-    
+
     percentageText.textContent = `${Math.round(percentage)}%`;
     titleP.textContent = `${cleanTitle} ${emoji}`;
     statsP.textContent = `${learned} / ${total}`;
-    
+
     return clone;
 }
 
@@ -327,7 +349,7 @@ export function updatePinButtonState(activeTabId) {
     const isPinned = activeTabId && activeTabId === state.pinnedTab;
     pinButton.classList.toggle('pinned', isPinned);
     svg.style.fill = isPinned ? 'var(--pin-pinned-icon)' : 'var(--pin-unpinned)';
-    
+
     svg.style.width = '1.25em';
     svg.style.height = '1.25em';
 }
@@ -340,7 +362,7 @@ export function updateSidebarPinIcons() {
 
         if (wrapper) wrapper.classList.toggle('is-pinned', isPinned);
         button.classList.toggle('is-pinned', isPinned);
-        
+
         if (!button.querySelector('svg')) {
             button.innerHTML = `<svg viewBox="0 0 519.657 1024"><path d="M196.032 704l64 320 64-320c-20.125 2-41.344 3.188-62.281 3.188C239.22 707.188 217.47 706.312 196.032 704zM450.032 404.688c-16.188-15.625-40.312-44.375-62-84.688v-64c7.562-12.406 12.25-39.438 23.375-51.969 15.25-13.375 24-28.594 24-44.875 0-53.094-61.062-95.156-175.375-95.156-114.25 0-182.469 42.062-182.469 95.094 0 16 8.469 31.062 23.375 44.312 13.438 14.844 22.719 38 31.094 52.594v64c-32.375 62.656-82 96.188-82 96.188h0.656C18.749 437.876 0 464.126 0 492.344 0.063 566.625 101.063 640.062 260.032 640c159 0.062 259.625-73.375 259.625-147.656C519.657 458.875 493.407 428.219 450.032 404.688z"/></svg>`;
         }
@@ -361,7 +383,7 @@ function renderCardBasedSection(containerId, data, category, gradient) {
         if (container) container.innerHTML = '';
         return;
     }
-    
+
     const fragment = document.createDocumentFragment();
     for (const key in data) {
         const section = data[key];
@@ -370,7 +392,7 @@ function renderCardBasedSection(containerId, data, category, gradient) {
         const title = section[state.currentLang] || section.en;
         fragment.appendChild(createCardSection(title, section.items, category, gradient, key));
     }
-    
+
     container.innerHTML = ''; // Clear previous content
     const wrapper = document.createElement('div');
     wrapper.className = 'space-y-4';
@@ -465,7 +487,7 @@ export function renderContent() {
         for (const sectionKey in state.appData.grammar) {
             const sectionData = state.appData.grammar[sectionKey];
             const sectionTitle = sectionData[state.currentLang] || sectionData.en;
-            
+
             const grid = document.createElement('div');
             grid.className = 'grammar-grid';
 
@@ -491,7 +513,7 @@ export function renderContent() {
                 `;
                 grid.appendChild(card);
             });
-            
+
             const contentWrapper = document.createElement('div');
             contentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
             contentWrapper.appendChild(grid);
@@ -517,7 +539,7 @@ export function buildLevelSwitcher(remoteLevels = [], customLevels = []) {
     if (!sidebarSwitcher) return;
 
     state.allAvailableLevels = Array.from(new Set([...remoteLevels, ...customLevels]));
-    
+
     const fragment = document.createDocumentFragment();
     state.allAvailableLevels.forEach(level => {
         const isDefault = level === config.defaultLevel;

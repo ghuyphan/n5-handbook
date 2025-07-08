@@ -1476,3 +1476,35 @@ input:checked+.slider:before {
 .progress-item-wrapper.is-highlighted {
     animation: highlight-progress 1.5s var(--ease-out-quint);
 }
+
+#kanji-detail-modal {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+    pointer-events: none;
+}
+
+#kanji-detail-modal.active {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#kanji-detail-modal #modal-content-container {
+    animation: modal-slide-up 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.border-glass-border {
+    border-color: var(--glass-border);
+}
+
+@keyframes modal-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
