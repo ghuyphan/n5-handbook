@@ -2,60 +2,61 @@
 <html lang="en">
 
 <head>
+    <!-- Preconnect to critical third-party origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://raw.githubusercontent.com">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JLPT Handbook</title>
     <link rel="icon" type="image/png" href="./assets/siteIcon.png">
 
+    <!-- Preload critical assets for faster rendering -->
+    <link rel="preload"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        as="style">
+    <link rel="preload" href="./js/main.js" as="script">
+    <link rel="preload" href="./assets/siteIcon.png" as="image">
+
+    <!-- SEO and Social Media Meta Tags (preserved from original) -->
     <meta name="description"
         content="An interactive, multi-level web application to help you study Japanese. Start with the built-in JLPT N5 material or import your own custom study levels.">
-
     <meta property="og:type" content="website">
     <meta property="og:title" content="Your Interactive JLPT Handbook">
     <meta property="og:description"
         content="An interactive, multi-level web application to help you study Japanese, featuring progress tracking, fuzzy search, and a bilingual interface.">
     <meta property="og:image" content="https://ghuyphan.github.io/n5-handbook/assets/og.png">
     <meta property="og:url" content="https://jlpthandbook.space">
-
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Your JLPT Handbook">
     <meta name="twitter:description"
         content="An interactive, multi-level web application to help you study Japanese, featuring progress tracking, fuzzy search, and a bilingual interface.">
     <meta name="twitter:image" content="https://ghuyphan.github.io/n5-handbook/assets/og.png">
 
+    <!-- Minified inline script to prevent Flash of Unstyled Content (FOUC) -->
+    <script>try { const e = localStorage.getItem("theme"), t = window.matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.classList.toggle("dark-mode", e ? "dark" === e : t) } catch (e) { console.error("Theme error", e) }</script>
 
-    <script>
-        (function () {
-            try {
-                // Sets the theme on initial load to prevent a "flash" of the wrong theme
-                const savedTheme = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                    document.documentElement.classList.add('dark-mode');
-                } else {
-                    document.documentElement.classList.remove('dark-mode');
-                }
-            } catch (e) {
-                console.error("Could not set theme from inline script", e);
-            }
-        })();
-    </script>
+    <!-- Self-hosted, minified Tailwind CSS for production -->
+    <link rel="stylesheet" href="build/tailwind.min.css">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
+    <!-- Optimized, non-render-blocking Google Fonts -->
+    <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    
+        media="print" onload="this.media='all'">
+
+    <!-- Placeholder for inlined critical CSS -->
+    <style>
+        /* Critical CSS from your 'styles.css' file should be inlined here for best performance. */
+    </style>
+
 </head>
 
 <body class="min-h-screen">
 
     <header class="mobile-header md:hidden sticky top-0 glass-effect z-40 p-3 flex items-center gap-4">
-        <button id="menu-toggle" data-action="toggle-sidebar" class="p-2 -ml-2">
+        <button id="menu-toggle" data-action="toggle-sidebar" class="p-2 -ml-2" aria-label="Toggle menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
             </svg>
@@ -78,12 +79,13 @@
             </svg>
             <h1 id="mobile-header-title" class="text-lg font-bold text-header truncate"></h1>
         </a>
-        <button id="pin-toggle" data-action="toggle-pin" class="p-2 ml-auto" style="display: none;"></button>
+        <button id="pin-toggle" data-action="toggle-pin" class="p-2 ml-auto" style="display: none;"
+            aria-label="Pin current section"></button>
     </header>
 
     <div class="main-grid p-0 md:p-6 lg:p-8">
         <aside id="sidebar" class="left-sidebar glass-effect p-6 flex flex-col md:rounded-2xl">
-            <button id="close-sidebar-btn" class="absolute top-4 right-4 p-2 md:hidden">
+            <button id="close-sidebar-btn" class="absolute top-4 right-4 p-2 md:hidden" aria-label="Close sidebar">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                     </path>
@@ -135,7 +137,7 @@
                             <span class="font-jp pointer-events-none">ひらがな</span>
                         </button>
                         <button class="sidebar-pin-btn" data-action="toggle-sidebar-pin" data-tab-name="hiragana"
-                            title="Pin Tab"></button>
+                            title="Pin Tab" aria-label="Pin tab"></button>
                     </div>
 
                     <div class="nav-item-wrapper relative">
@@ -149,7 +151,7 @@
                             <span class="font-jp pointer-events-none">カタカナ</span>
                         </button>
                         <button class="sidebar-pin-btn" data-action="toggle-sidebar-pin" data-tab-name="katakana"
-                            title="Pin Tab"></button>
+                            title="Pin Tab" aria-label="Pin tab"></button>
                     </div>
 
                     <div class="nav-item-wrapper relative">
@@ -163,7 +165,7 @@
                             <span class="font-jp pointer-events-none">漢字</span>
                         </button>
                         <button class="sidebar-pin-btn" data-action="toggle-sidebar-pin" data-tab-name="kanji"
-                            title="Pin Tab"></button>
+                            title="Pin Tab" aria-label="Pin tab"></button>
                     </div>
 
                     <div class="nav-item-wrapper relative">
@@ -178,7 +180,7 @@
                                 Points</span>
                         </button>
                         <button class="sidebar-pin-btn" data-action="toggle-sidebar-pin" data-tab-name="key_points"
-                            title="Pin Tab"></button>
+                            title="Pin Tab" aria-label="Pin tab"></button>
                     </div>
 
                     <div class="nav-item-wrapper relative">
@@ -192,7 +194,7 @@
                             <span class="font-jp pointer-events-none" data-lang-key="vocabulary">Vocabulary</span>
                         </button>
                         <button class="sidebar-pin-btn" data-action="toggle-sidebar-pin" data-tab-name="vocab"
-                            title="Pin Tab"></button>
+                            title="Pin Tab" aria-label="Pin tab"></button>
                     </div>
 
                     <div class="nav-item-wrapper relative">
@@ -205,7 +207,7 @@
                             <span class="font-jp pointer-events-none" data-lang-key="grammar">Grammar</span>
                         </button>
                         <button class="sidebar-pin-btn" data-action="toggle-sidebar-pin" data-tab-name="grammar"
-                            title="Pin Tab"></button>
+                            title="Pin Tab" aria-label="Pin tab"></button>
                     </div>
                 </nav>
             </div>
@@ -291,7 +293,7 @@
                 <div class="modal-content glass-effect">
                     <div class="modal-header">
                         <h2 class="modal-title" data-lang-key="importLevel"></h2>
-                        <button id="close-modal-btn" class="modal-close-btn">
+                        <button id="close-modal-btn" class="modal-close-btn" aria-label="Close import dialog">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12"></path>
@@ -384,7 +386,8 @@
         </div>
     </div>
 
-    <script type="module" src="./js/main.js"></script>
+    <!-- Defer non-critical JS to prevent render blocking -->
+    <script type="module" src="./js/main.js" defer></script>
 </body>
 
 </html>
