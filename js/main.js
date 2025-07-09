@@ -39,40 +39,14 @@ function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><bu
  * @param {object} stateObj - The state object from the history event.
  */
 function handleStateChange(stateObj) {
-    // --- MODIFICATION START ---
-    // This function now acts as a gatekeeper for the back button.
-
-    // 1. Check if the Kanji Detail modal is active.
-    if (els.kanjiDetailModal.classList.contains('active')) {
-        closeKanjiDetailModal(true); // Pass true to prevent a history.back() loop
-        return; // Stop further processing.
-    }
-
-    // 2. Check if the Import modal is active.
-    // The `els.closeImportModal` function is exposed from setupImportModal.
-    if (els.closeImportModal && !els.importModal.classList.contains('modal-hidden')) {
-        els.closeImportModal(true); // Call the exposed close function with the flag.
-        return; // Stop further processing.
-    }
-    // --- MODIFICATION END ---
-
-
-    // Original navigation logic only runs if no modals were closed.
-    if (!stateObj) {
-        // If state is null, it might be an old hash. Clear it without navigating.
-        if (location.hash.includes('-modal')) {
-            history.replaceState(history.state, '', window.location.pathname + window.location.search);
-        }
-        return;
-    }
+    if (!stateObj) return;
 
     if (stateObj.level !== state.currentLevel) {
         setLevel(stateObj.level, true); // Pass true to indicate it's from a history event
-    } else if (stateObj.tabName) {
+    } else {
         changeTab(stateObj.tabName, null, false, true); // Pass true for history event
     }
 }
-
 
 /**
  * Populates and opens the Kanji Detail Modal.
@@ -173,14 +147,6 @@ function openKanjiDetailModal(kanjiId) {
         scrollContent.addEventListener('scroll', checkScroll);
         checkScroll(); // Initial check
     }
-    
-    // --- MODIFICATION START ---
-    // Push a new state to the history to handle the back button.
-    const modalState = { modalOpen: 'kanji' };
-    const currentUrl = new URL(window.location);
-    currentUrl.hash = 'kanji-modal';
-    history.pushState(modalState, '', currentUrl);
-    // --- MODIFICATION END ---
 
     els.kanjiDetailModal.classList.add('active');
     document.body.classList.add('body-no-scroll');
@@ -188,22 +154,11 @@ function openKanjiDetailModal(kanjiId) {
 
 /**
  * Closes the Kanji Detail Modal.
- * @param {boolean} [isFromPopState=false] - True if the call is from a popstate event.
  */
-function closeKanjiDetailModal(isFromPopState = false) {
-    if (!els.kanjiDetailModal.classList.contains('active')) return;
-
+function closeKanjiDetailModal() {
     els.kanjiDetailModal.classList.remove('active');
     document.body.classList.remove('body-no-scroll');
-
-    // --- MODIFICATION START ---
-    // If closed manually (not by back button), go back in history to remove the modal state.
-    if (!isFromPopState && location.hash === '#kanji-modal') {
-        history.back();
-    }
-    // --- MODIFICATION END ---
 }
-
 
 /**
  * Sets up all global event listeners for the application.
@@ -281,14 +236,14 @@ function setupEventListeners() {
     // Kanji modal specific listeners
     els.kanjiDetailModal.addEventListener('click', (e) => {
         if (e.target === els.kanjiModalBackdrop || e.target.closest('#close-kanji-modal-btn')) {
-            closeKanjiDetailModal(); // Correctly calls the modified function
+            closeKanjiDetailModal();
         }
     });
 
     // Keyboard accessibility
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && els.kanjiDetailModal.classList.contains('active')) {
-            closeKanjiDetailModal(); // Correctly calls the modified function
+            closeKanjiDetailModal();
         }
     });
 
@@ -321,45 +276,23 @@ function setupImportModal() {
         els.importModal.querySelectorAll('[data-lang-placeholder-key]').forEach(el => el.placeholder = getUIText(el.dataset.langPlaceholderKey));
     };
 
-    // --- MODIFICATION START ---
-    let closeModal; // Define here to be accessible throughout the scope
-
     const openModal = () => {
         document.body.classList.add('body-no-scroll');
         closeSidebar();
         resetModal();
         updateModalLocale();
-
-        // Push a state to history for the import modal
-        const modalState = { modalOpen: 'import' };
-        const currentUrl = new URL(window.location);
-        currentUrl.hash = 'import-modal';
-        history.pushState(modalState, '', currentUrl);
-
         els.importModal.classList.remove('modal-hidden');
         els.importModalBackdrop.classList.add('active');
         els.modalWrapper.classList.add('active');
     };
 
-    closeModal = (isFromPopState = false) => {
-        if (els.importModal.classList.contains('modal-hidden')) return;
-
+    const closeModal = () => {
         document.body.classList.remove('body-no-scroll');
         els.importModalBackdrop.classList.remove('active');
         els.modalWrapper.classList.remove('active');
         setTimeout(() => els.importModal.classList.add('modal-hidden'), 300);
-
-        // If closed manually, go back in history
-        if (!isFromPopState && location.hash === '#import-modal') {
-            history.back();
-        }
     };
-    
-    // EXPOSE the closeModal function so our global popstate handler can use it.
-    els.closeImportModal = closeModal;
-    // --- MODIFICATION END ---
 
-    // **UPDATED**: Stricter validation prevents overwriting existing levels.
     const updateImportButtonState = () => {
         const levelName = els.levelNameInput.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
         levelNameIsValid = false;
@@ -413,36 +346,57 @@ function setupImportModal() {
                 }, {});
             });
         };
-
+        
+        // **UPDATED**: Generic transformer to handle all CSV types
         const transformToJSON = (key, data) => {
             const groupKey = `user_created_${key}`;
             const groupName = {
                 en: `User ${key.charAt(0).toUpperCase() + key.slice(1)}`,
                 vi: `${key.charAt(0).toUpperCase() + key.slice(1)} người dùng`
             };
-            
-            if (key === 'kanji') {
-                return {
-                    [groupKey]: {
-                        ...groupName,
-                        items: data.map((row, index) => ({
-                            id: `${key}_user_${index}`,
-                            kanji: row.kanji || '',
-                            onyomi: row.onyomi || '',
-                            kunyomi: row.kunyomi || '',
-                            meaning: { en: row.meaning_en || '', vi: row.meaning_vi || '' },
-                            radical: { en: row.radical_en || '', vi: row.radical_vi || '' },
-                            mnemonic: { en: row.mnemonic_en || '', vi: row.mnemonic_vi || '' },
-                            examples: [],
-                            sentence: {}
-                        }))
-                    }
+        
+            const items = data.map((row, index) => {
+                const transformedRow = {
+                    id: `${key}_user_${index}` // Unique ID for each item
                 };
-            }
+        
+                // Process all columns from the CSV row
+                for (const colHeader in row) {
+                    if (Object.prototype.hasOwnProperty.call(row, colHeader)) {
+                        const value = row[colHeader];
+                        // Regex to find language suffixes like _en, _vi
+                        const langMatch = colHeader.match(/_(en|vi)$/);
+        
+                        if (langMatch) {
+                            // This is a language-specific column (e.g., 'meaning_en')
+                            const baseKey = colHeader.replace(/_(en|vi)$/, ''); // -> 'meaning'
+                            const lang = langMatch[1]; // -> 'en'
+        
+                            // Initialize the nested object (e.g., 'meaning: {}') if it doesn't exist
+                            if (!transformedRow[baseKey]) {
+                                transformedRow[baseKey] = {};
+                            }
+                            transformedRow[baseKey][lang] = value;
+                        } else {
+                            // This is a regular column (e.g., 'kanji', 'romaji')
+                            transformedRow[colHeader] = value;
+                        }
+                    }
+                }
+        
+                // Special handling for kanji to ensure compatibility with the detail modal
+                if (key === 'kanji') {
+                    if (!transformedRow.examples) transformedRow.examples = [];
+                    if (!transformedRow.sentence) transformedRow.sentence = {};
+                }
+        
+                return transformedRow;
+            });
+        
             return {
                 [groupKey]: {
                     ...groupName,
-                    items: data
+                    items: items
                 }
             };
         };
@@ -455,9 +409,15 @@ function setupImportModal() {
                         const content = e.target.result;
                         const key = file.name.replace('.csv', '');
                         const parsedData = parseCSV(content);
+                        if(parsedData.length === 0) {
+                            console.warn(`CSV file '${file.name}' is empty or invalid. Skipping.`);
+                            resolve(null); // Resolve with null to filter out later
+                            return;
+                        }
                         const jsonData = transformToJSON(key, parsedData);
                         resolve({ name: key, data: jsonData });
                     } catch (err) {
+                        console.error(`Error processing ${file.name}:`, err);
                         reject(`Error parsing ${file.name}`);
                     }
                 };
@@ -467,7 +427,13 @@ function setupImportModal() {
         });
 
         try {
-            const results = await Promise.all(filePromises);
+            const results = (await Promise.all(filePromises)).filter(Boolean); // Filter out null results from empty files
+            if(results.length === 0) {
+                els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoValidData')}</p>`;
+                updateImportButtonState();
+                return;
+            }
+
             results.forEach(result => {
                 importedData[result.name] = result.data;
             });
@@ -491,6 +457,13 @@ function setupImportModal() {
             els.importBtn.querySelector('span').textContent = getUIText('importButtonProgress');
             const db = await dbPromise;
             
+            // Add UI data to the imported level data
+            const uiData = {
+                "en": { "userCreated": "User Created" },
+                "vi": { "userCreated": "Người dùng tạo" }
+            };
+            importedData['ui'] = uiData;
+
             // Save the structured data to IndexedDB.
             await db.put('levels', importedData, levelName);
 
@@ -585,11 +558,9 @@ async function init() {
             state.currentLevel = urlLevel;
         }
 
-        // Must run before setupEventListeners so the exposed close function is available
-        setupImportModal(); 
         setupEventListeners();
-
         buildLevelSwitcher(remoteLevels, customLevels);
+        setupImportModal();
         await loadAllData(state.currentLevel);
         setupTheme();
         renderContent();
