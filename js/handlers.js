@@ -172,11 +172,16 @@ export function toggleTheme(event) {
     });
 }
 
+// In handlers.js
+
 export async function setLevel(level, fromHistory = false) {
-    if (level === state.currentLevel) return;
+    if (level === state.currentLevel) {
+        // It's still good practice to close the sidebar here for the "same level" case
+        closeSidebar();
+        return;
+    }
 
     state.currentLevel = level;
-    // updateLevelUI(level);
     await saveSetting('currentLevel', level);
     els.loadingOverlay?.classList.remove('hidden');
 
@@ -213,7 +218,10 @@ export async function setLevel(level, fromHistory = false) {
         console.error(`Failed to load level ${level}:`, error);
         alert(`Could not load data for level ${level.toUpperCase()}.`);
     } finally {
+        // This 'finally' block runs ALWAYS, after try or catch.
+        // It's the perfect place for cleanup actions.
         els.loadingOverlay?.classList.add('hidden');
+        closeSidebar(); // <-- ADD THIS LINE HERE
     }
 }
 
