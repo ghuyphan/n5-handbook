@@ -1560,20 +1560,20 @@ input:checked+.slider:before {
         radial-gradient(at 95% 95%, hsla(280, 96%, 76%, 0.15) 0px, transparent 50%);
 }
 
-#kanji-detail-modal .text-6xl {
-    font-size: clamp(3rem, 10vw, 4rem);
+#kanji-detail-modal .text-6xl { /* The main Kanji character */
+    font-size: clamp(4rem, 18vw, 5rem); /* More impactful on mobile */
 }
 
-#kanji-detail-modal .text-xl {
-    font-size: clamp(1.125rem, 4vw, 1.25rem);
+#kanji-detail-modal .text-xl { /* The meaning */
+    font-size: clamp(1.25rem, 5vw, 1.5rem); /* Min size ~17px, very readable */
 }
 
-#kanji-detail-modal .text-sm {
-    font-size: clamp(0.875rem, 2.5vw, 1rem);
+#kanji-detail-modal .text-sm { /* Examples, sentence translations */
+    font-size: clamp(1rem, 3.5vw, 1.1rem); /* Min size ~13.5px, a huge improvement */
 }
 
-#kanji-detail-modal .text-xs {
-    font-size: clamp(0.75rem, 2vw, 0.875rem);
+#kanji-detail-modal .text-xs { /* Mnemonic and Radical info */
+    font-size: clamp(0.9rem, 3vw, 1rem); /* Min size ~12px, now legible */
 }
 
 @media (max-width: 480px) {
