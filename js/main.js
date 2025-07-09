@@ -32,7 +32,7 @@ import {
 } from './handlers.js';
 
 function getThemeToggleHTML() { return `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`; }
-function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data--lang="vi">VI</button>`; }
+function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`; }
 
 /**
  * Handles state restoration when user clicks back/forward browser buttons.
@@ -95,7 +95,7 @@ function openKanjiDetailModal(kanjiId) {
             </div>
             <div class="space-y-6 text-sm max-h-[50vh] overflow-y-auto pr-2 kanji-modal-scroll-content">
                 
-                ${kanjiItem.examples ? `
+                ${kanjiItem.examples && kanjiItem.examples.length > 0 ? `
                 <div>
                     <h3 class="font-semibold text-secondary mb-3">${getUIText('modalExamples')}</h3>
                     <ul class="space-y-2 text-primary">
@@ -134,17 +134,13 @@ function openKanjiDetailModal(kanjiId) {
         </div>
     `;
 
-    // **UPDATED CODE**: Add the scroll event listener
     const scrollContent = els.kanjiModalContentContainer.querySelector('.kanji-modal-scroll-content');
     if (scrollContent) {
         const checkScroll = () => {
-            // Check if the user has scrolled to the bottom (with a 1px tolerance)
             const isAtBottom = scrollContent.scrollHeight - scrollContent.scrollTop <= scrollContent.clientHeight + 1;
             scrollContent.classList.toggle('scrolled-to-bottom', isAtBottom);
         };
-        // Listen for scroll events
         scrollContent.addEventListener('scroll', checkScroll);
-        // Run the check once initially to handle content that doesn't need scrolling
         checkScroll();
     }
 
@@ -276,33 +272,95 @@ function setupImportModal() {
         updateImportButtonState();
     };
 
-    const handleFolderSelect = async (files) => {
+    const handleFileSelect = async (files) => {
         const selectedFiles = files ? Array.from(files) : [];
         importedData = {};
         els.fileImportArea.classList.add('state-preview');
-        const supportedFileNames = ['grammar.json', 'hiragana.json', 'kanji.json', 'katakana.json', 'keyPoints.json', 'vocab.json'];
+
+        const supportedFileNames = ['grammar.csv', 'hiragana.csv', 'kanji.csv', 'katakana.csv', 'keyPoints.csv', 'vocab.csv'];
         const validFiles = selectedFiles.filter(file => supportedFileNames.includes(file.name));
+
         if (validFiles.length === 0) {
             els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoSupportedFiles')}</p>`;
             updateImportButtonState();
             return;
         }
+
+        const parseCSV = (content) => {
+            const lines = content.replace(/\r/g, "").split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) return [];
+            const header = lines[0].split(',').map(h => h.trim());
+            return lines.slice(1).map(line => {
+                const values = line.split(',');
+                return header.reduce((obj, h, i) => {
+                    obj[h] = (values[i] || '').trim();
+                    return obj;
+                }, {});
+            });
+        };
+
+        const transformToJSON = (key, data) => {
+            const groupKey = `user_created_${key}`;
+            const groupName = {
+                en: `User ${key.charAt(0).toUpperCase() + key.slice(1)}`,
+                vi: `${key.charAt(0).toUpperCase() + key.slice(1)} người dùng`
+            };
+            
+            if (key === 'kanji') {
+                return {
+                    [groupKey]: {
+                        ...groupName,
+                        items: data.map((row, index) => ({
+                            id: `${key}_user_${index}`,
+                            kanji: row.kanji || '',
+                            onyomi: row.onyomi || '',
+                            kunyomi: row.kunyomi || '',
+                            meaning: { en: row.meaning_en || '', vi: row.meaning_vi || '' },
+                            radical: { en: row.radical_en || '', vi: row.radical_vi || '' },
+                            mnemonic: { en: row.mnemonic_en || '', vi: row.mnemonic_vi || '' },
+                            examples: [],
+                            sentence: {}
+                        }))
+                    }
+                };
+            }
+            // Add other transformers here for vocab, grammar etc. if they have complex structures
+            // For simple structures, you might just need a flat list.
+            return {
+                [groupKey]: {
+                    ...groupName,
+                    items: data
+                }
+            };
+        };
+
         const filePromises = validFiles.map(file => {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = e => {
-                    try { resolve({ name: file.name.replace('.json', ''), data: JSON.parse(e.target.result) }); } catch (err) { reject(`Error parsing ${file.name}`); }
+                    try {
+                        const content = e.target.result;
+                        const key = file.name.replace('.csv', '');
+                        const parsedData = parseCSV(content);
+                        const jsonData = transformToJSON(key, parsedData);
+                        resolve({ name: key, data: jsonData });
+                    } catch (err) {
+                        reject(`Error parsing ${file.name}`);
+                    }
                 };
                 reader.onerror = () => reject(`Could not read ${file.name}`);
                 reader.readAsText(file);
             });
         });
+
         try {
             const results = await Promise.all(filePromises);
-            results.forEach(result => { importedData[result.name] = result.data; });
-            let previewHtml = `<div class="w-full"><p class="text-sm font-medium mb-2 text-primary">${getUIText('filesToBeImported')}</p><div class="space-y-2">`;
             results.forEach(result => {
-                previewHtml += `<div class="preview-item"><p class="font-medium text-primary text-sm">${result.name}.json</p><span class="text-xs font-mono bg-green-500/20 text-green-300 px-2 py-1 rounded-full">✓</span></div>`;
+                importedData[result.name] = result.data;
+            });
+            let previewHtml = `<div class="w-full"><p class="text-sm font-medium mb-2 text-primary">${getUIText('filesToBeImported')}</p><div class="space-y-2">`;
+            validFiles.forEach(file => {
+                previewHtml += `<div class="preview-item"><p class="font-medium text-primary text-sm">${file.name}</p><span class="text-xs font-mono bg-green-500/20 text-green-300 px-2 py-1 rounded-full">✓</span></div>`;
             });
             previewHtml += '</div></div>';
             els.fileImportArea.innerHTML = previewHtml;
@@ -311,6 +369,7 @@ function setupImportModal() {
         }
         updateImportButtonState();
     };
+
 
     const handleConfirm = async () => {
         const levelName = els.levelNameInput.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -342,11 +401,12 @@ function setupImportModal() {
     els.levelNameInput?.addEventListener('input', updateImportButtonState);
     els.importBtn?.addEventListener('click', handleConfirm);
     els.fileImportArea?.addEventListener('click', () => { if (!els.fileImportArea.classList.contains('state-preview')) els.fileInput.click(); });
-    els.fileInput?.addEventListener('change', (e) => handleFolderSelect(e.target.files));
+    els.fileInput?.addEventListener('change', (e) => handleFileSelect(e.target.files));
     els.fileImportArea?.addEventListener('dragover', (e) => { e.preventDefault(); els.fileImportArea.classList.add('drag-active'); });
     els.fileImportArea?.addEventListener('dragleave', () => els.fileImportArea.classList.remove('drag-active'));
-    els.fileImportArea?.addEventListener('drop', (e) => { e.preventDefault(); els.fileImportArea.classList.remove('drag-active'); handleFolderSelect(e.dataTransfer.files); });
+    els.fileImportArea?.addEventListener('drop', (e) => { e.preventDefault(); els.fileImportArea.classList.remove('drag-active'); handleFileSelect(e.dataTransfer.files); });
 }
+
 
 function populateAndBindControls() {
     if (els.sidebarControls) {
@@ -364,7 +424,7 @@ function populateAndBindControls() {
     document.querySelectorAll('.theme-switch input').forEach(el => el.addEventListener('change', toggleTheme));
     document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
         e.preventDefault();
-        setLanguage(el.dataset.lang);
+        setLanguage(e.currentTarget.dataset.lang);
     }));
 }
 
