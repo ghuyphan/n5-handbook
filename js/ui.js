@@ -242,24 +242,11 @@ export function updateProgressDashboard() {
     const containers = [els.progressOverview, els.progressTab];
     if (!state.appData.ui || !containers.every(c => c)) return;
 
-    containers.forEach(container => {
-        container.innerHTML = ''; // FIX: Clear old content to prevent persisting bars
-        const overviewTitle = `<h2 class="text-xl font-bold mb-5" data-lang-key="progressOverview">${state.appData.ui[state.currentLang]?.progressOverview || 'Progress Overview'}</h2>`;
-        const gradientsSVG = `<svg width="0" height="0"><defs><linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient><linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient></defs></svg>`;
-        const wrapper = document.createElement('div');
-        wrapper.className = 'space-y-4';
-        wrapper.id = `progress-wrapper-${container.id}`;
-
-        if (container.id === 'progress-overview') {
-            container.innerHTML = overviewTitle + gradientsSVG;
-        } else {
-            container.innerHTML = gradientsSVG;
-        }
-        container.appendChild(wrapper);
-    });
-
+    const gradientsSVG = `<svg width="0" height="0"><defs><linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient><linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient></defs></svg>`;
     const dataCategories = { kanji: 'purple', vocab: 'green' };
-    const progressWrappers = document.querySelectorAll('[id^="progress-wrapper-"]');
+
+    // Create a fragment to hold all generated progress items
+    const progressItemsFragment = document.createDocumentFragment();
 
     for (const [categoryName, color] of Object.entries(dataCategories)) {
         if (!state.appData[categoryName]) continue;
@@ -271,12 +258,38 @@ export function updateProgressDashboard() {
             const total = category.items.length;
             const learned = state.progress[categoryName]?.filter(id => category.items.some(item => item.id === id)).length || 0;
             const newItemFragment = createProgressItem(categoryName, category[state.currentLang] || category.en, learned, total, color, key);
-
-            progressWrappers.forEach(wrapper => {
-                wrapper.appendChild(newItemFragment.cloneNode(true));
-            });
+            progressItemsFragment.appendChild(newItemFragment);
         }
     }
+
+    // Update both containers
+    containers.forEach(container => {
+        if (!container) return;
+        // Clear existing content
+        container.innerHTML = '';
+
+        // Add necessary wrappers and titles
+        const wrapper = document.createElement('div');
+        wrapper.className = 'space-y-4';
+        wrapper.id = `progress-wrapper-${container.id}`;
+
+        // Append a clone of the fragment to the wrapper
+        wrapper.appendChild(progressItemsFragment.cloneNode(true));
+
+        if (container.id === 'progress-overview') {
+            const overviewTitle = document.createElement('h2');
+            overviewTitle.className = 'text-xl font-bold mb-5';
+            overviewTitle.dataset.langKey = 'progressOverview';
+            overviewTitle.textContent = state.appData.ui[state.currentLang]?.progressOverview || 'Progress Overview';
+
+            container.innerHTML = gradientsSVG; // Set SVG first
+            container.appendChild(overviewTitle);
+            container.appendChild(wrapper);
+        } else {
+            container.innerHTML = gradientsSVG; // Set SVG first
+            container.appendChild(wrapper);
+        }
+    });
 }
 
 /**

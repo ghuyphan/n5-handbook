@@ -465,6 +465,7 @@ function setupImportModal() {
  * Populates the control elements (theme/language switchers) and binds their events.
  */
 function populateAndBindControls() {
+    // This part remains the same
     if (els.sidebarControls) {
         els.sidebarControls.innerHTML = `
             <div class="sidebar-control-group"><label class="sidebar-control-label" data-lang-key="level">Level</label><div id="level-switcher-sidebar" class="level-switch"></div></div>
@@ -472,11 +473,18 @@ function populateAndBindControls() {
             <div class="sidebar-control-group md:hidden"><label class="sidebar-control-label" data-lang-key="theme">Theme</label><div class="theme-switch-wrapper">${getThemeToggleHTML()}</div></div>
             <button id="sidebar-import-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg><span data-lang-key="importLevel" class="pointer-events-none">Import New Level</span></button>`;
     }
-    const headerLangSwitcher = document.getElementById('header-lang-switcher');
-    if (headerLangSwitcher) headerLangSwitcher.innerHTML = getLangSwitcherHTML();
-    const headerThemeToggle = document.getElementById('header-theme-toggle');
-    if (headerThemeToggle) headerThemeToggle.innerHTML = getThemeToggleHTML();
 
+    // Use the helper functions for the header controls as well
+    const headerLangSwitcher = document.getElementById('header-lang-switcher');
+    if (headerLangSwitcher) {
+        headerLangSwitcher.innerHTML = getLangSwitcherHTML();
+    }
+    const headerThemeToggle = document.getElementById('header-theme-toggle');
+    if (headerThemeToggle) {
+        headerThemeToggle.innerHTML = getThemeToggleHTML();
+    }
+
+    // This part remains the same
     document.querySelectorAll('.theme-switch input').forEach(el => el.addEventListener('change', toggleTheme));
     document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
         e.preventDefault();
