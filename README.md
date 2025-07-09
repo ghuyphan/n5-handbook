@@ -82,9 +82,13 @@ You can extend the handbook by creating your own levels.
 
 ## 📝 CSV File Structure Guide
 
-Each CSV file **must** include a header row with the exact column names specified below. Ensure values are comma-separated. The `id` column is internally generated for imported items, so you don't need to provide it in your CSV; however, other unique identifiers like Kanji characters or words should be treated as unique by you.
+Each CSV file **must** include a header row with the exact column names specified below. The importer is case-sensitive and requires these exact names to work.
 
-### Hiragana/Katakana (`hiragana.csv`/`katakana.csv`)
+> **Important:** If any of your content (like an explanation or example sentence) contains a comma, you **must** wrap that entire piece of content in double quotes (`"`). This ensures the file is parsed correctly.
+>
+> **Example:** `"<b>Example:</b> 週末、映画を見に行こう。"`
+
+### Hiragana & Katakana (`hiragana.csv` / `katakana.csv`)
 | kana | romaji |
 |------|--------|
 | あ   | a      |
@@ -92,29 +96,28 @@ Each CSV file **must** include a header row with the exact column names specifie
 | う   | u      |
 | え   | e      |
 | お   | o      |
-| か   | ka     |
 
-- **kana:** The Hiragana or Katakana character(s)
-- **romaji:** The Romaji equivalent
+- **kana:** The Hiragana or Katakana character(s).
+- **romaji:** The Romaji equivalent.
 
 ### Kanji (`kanji.csv`)
-| kanji | onyomi | kunyomi | meaning_en       | meaning_vi         | radical_en | radical_vi | mnemonic_en                                  | mnemonic_vi                                       |
-|-------|--------|---------|------------------|--------------------|------------|------------|----------------------------------------------|--------------------------------------------------|
-| 日    | ニチ   | ひ      | day; sun        | ngày; mặt trời    | Sun        | Mặt trời   | A sun has a single, long ray going down.     | Mặt trời có một tia sáng dài chiếu xuống.        |
-| 一    | イチ   | ひと    | one             | một               | One        | Một        | A single stroke, representing unity or one. | Một nét đơn, tượng trưng cho sự thống nhất hoặc số một. |
-| 人    | ジン   | ひと    | person; people  | người; con người | Person     | Người      | A person standing on two legs.               | Một người đứng trên hai chân.                    |
+| kanji | onyomi | kunyomi | meaning_en | meaning_vi | radical_en | radical_vi | mnemonic_en | mnemonic_vi |
+|-------|--------|---------|------------|------------|------------|------------|-------------|-------------|
+| 日    | ニチ   | ひ      | day; sun   | ngày; mặt trời | Sun        | Mặt trời   | A sun has a single, long ray going down. | Mặt trời có một tia sáng dài chiếu xuống. |
+| 一    | イチ   | ひと    | one        | một        | One        | Một        | A single stroke, representing unity or one. | Một nét đơn, tượng trưng cho sự thống nhất hoặc số một. |
+| 人    | ジン   | ひと    | person; people | người; con người | Person     | Người      | A person standing on two legs. | Một người đứng trên hai chân. |
 
-- **kanji:** The Kanji character
-- **onyomi:** The On'yomi reading (Katakana/Romaji)
-- **kunyomi:** The Kun'yomi reading (Hiragana/Romaji)
-- **meaning_en:** English meaning
-- **meaning_vi:** Vietnamese meaning
-- **radical_en:** English radical information
-- **radical_vi:** Vietnamese radical information
-- **mnemonic_en:** English mnemonic (memory aid)
-- **mnemonic_vi:** Vietnamese mnemonic (memory aid)
+- **kanji:** The Kanji character.
+- **onyomi:** The On'yomi reading (Katakana/Romaji).
+- **kunyomi:** The Kun'yomi reading (Hiragana/Romaji).
+- **meaning_en:** English meaning.
+- **meaning_vi:** Vietnamese meaning.
+- **radical_en:** English radical information.
+- **radical_vi:** Vietnamese radical information.
+- **mnemonic_en:** English mnemonic (memory aid).
+- **mnemonic_vi:** Vietnamese mnemonic (memory aid).
 
-> **Note:** Examples and sentence data are *not* imported via CSV for Kanji cards
+> **Note:** Examples and sentence data are *not* currently supported for import via CSV for Kanji cards.
 
 ### Vocabulary (`vocab.csv`)
 | word | reading | meaning_en | meaning_vi |
@@ -123,39 +126,39 @@ Each CSV file **must** include a header row with the exact column names specifie
 | それ | それ    | that      | cái đó    |
 | あれ | あれ    | that (over there) | cái kia |
 
-- **word:** Japanese vocabulary word (Kanji/Kana)
-- **reading:** Reading in Hiragana
-- **meaning_en:** English meaning
-- **meaning_vi:** Vietnamese meaning
+- **word:** The Japanese vocabulary word (Kanji/Kana).
+- **reading:** The reading in Hiragana.
+- **meaning_en:** The English meaning.
+- **meaning_vi:** The Vietnamese meaning.
 
 ### Grammar (`grammar.csv`)
-| en_title       | en_content                                                               | vi_title     | vi_content                                                  |
+| title_en       | content_en                                                               | title_vi     | content_vi                                                  |
 |----------------|--------------------------------------------------------------------------|--------------|-------------------------------------------------------------|
-| Particle は    | Used to mark the topic of a sentence. It indicates what you are talking about. | Trợ từ は    | Dùng để đánh dấu chủ đề của câu. Nó cho biết bạn đang nói về cái gì. |
-| Particle の    | Indicates possession or modifies a noun.                                 | Trợ từ の    | Chỉ sự sở hữu hoặc bổ nghĩa cho danh từ.                     |
-| Verb ます-form | Used for polite present/future affirmative verbs.                        | Động từ thể ます | Dùng cho động từ khẳng định ở thì hiện tại/tương lai lịch sự. |
+| Particle は    | "Used to mark the topic of a sentence. It indicates what you are talking about." | Trợ từ は    | "Dùng để đánh dấu chủ đề của câu. Nó cho biết bạn đang nói về cái gì." |
+| Particle の    | "Indicates possession or modifies a noun."                                 | Trợ từ の    | "Chỉ sự sở hữu hoặc bổ nghĩa cho danh từ."                     |
+| Verb ます-form | "Used for polite present/future affirmative verbs."                        | Động từ thể ます | "Dùng cho động từ khẳng định ở thì hiện tại/tương lai lịch sự." |
 
-- **en_title:** English title of grammar point
-- **en_content:** English explanation/examples (supports HTML)
-- **vi_title:** Vietnamese title of grammar point
-- **vi_content:** Vietnamese explanation/examples (supports HTML)
+- **title_en:** The English title of the grammar point.
+- **content_en:** The English explanation/examples (supports HTML).
+- **title_vi:** The Vietnamese title of the grammar point.
+- **content_vi:** The Vietnamese explanation/examples (supports HTML).
 
 ### Key Points (`keyPoints.csv`)
-| Kanji | Reading | vi     | en          | Number |
-|-------|---------|--------|-------------|--------|
-| 上    | うえ    | trên   | up; above   |        |
-| 下    | した    | dưới  | down; below |        |
-| 左    | ひだり  | trái   | left        |        |
-| 右    | みぎ    | phải   | right       |        |
-| 千    | せん    | ngàn   | thousand    | 1000   |
+| character | reading | meaning_en | meaning_vi | number |
+|-----------|---------|------------|------------|--------|
+| 上         | うえ    | up; above  | trên       |        |
+| 下         | した    | down; below| dưới      |        |
+| 左         | ひだり  | left       | trái       |        |
+| 右         | みぎ    | right      | phải       |        |
+| 千         | せん    | thousand   | ngàn       | 1000   |
 
-- **Kanji:** Kanji character (optional)
-- **Reading:** Reading in Kana/Romaji
-- **vi:** Vietnamese translation
-- **en:** English translation
-- **Number:** Related number (optional)
+- **character:** The Kanji or Kana character (optional).
+- **reading:** The reading in Kana/Romaji.
+- **meaning_en:** The English translation.
+- **meaning_vi:** The Vietnamese translation.
+- **number:** The related number (optional).
 
-> **Note:** Imported keyPoints will always display as a simple list, even if original data had a table-grid structure.
+> **Note:** Imported keyPoints will always display as a simple list, even if the original data had a table-grid structure.
 
 ## 💻 Setting Up Locally
 
@@ -174,9 +177,11 @@ To run the project locally, you need to have **Node.js** and **npm** installed.
     ```bash
     npm run watch
     ```
+    This command will watch for changes in your CSS files and recompile them automatically.
+
 4.  **Open with Live Server:**
-    - Install [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) in VS Code
-    - Right-click `index.html` → "Open with Live Server"
+    - Install the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension in VS Code.
+    - Right-click `index.html` → "Open with Live Server".
 
 ## 🔧 Built With
 
@@ -186,11 +191,11 @@ To run the project locally, you need to have **Node.js** and **npm** installed.
 - **JSON**
 
 ### Libraries
-- [idb](https://github.com/jakearchibald/idb) - IndexedDB wrapper
-- [Fuse.js](https://fusejs.io/) - Fuzzy search
-- [Wanakana](https://wanakana.com/) - Japanese character conversion
+- [idb](https://github.com/jakearchibald/idb) - A promise-based wrapper for IndexedDB.
+- [Fuse.js](https://fusejs.io/) - A powerful, lightweight fuzzy-search library.
+- [Wanakana](https://wanakana.com/) - A utility library for Japanese character conversion.
 
 ## 🌐 Deployment
-1. **Build production assets:**
-   ```bash
-   npm run build
+To create a production-ready build of the CSS:
+```bash
+npm run build

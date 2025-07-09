@@ -337,41 +337,68 @@ function setupImportModal() {
         const parseCSV = (content) => {
             const lines = content.replace(/\r/g, "").split('\n').filter(line => line.trim() !== '');
             if (lines.length < 2) return [];
-            const header = lines[0].split(',').map(h => h.trim());
+
+            // This is a more robust function for splitting a single CSV line.
+            // It correctly handles values that are wrapped in quotes.
+            const splitLine = (line) => {
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                for (const char of line) {
+                    if (char === '"' && (current.length === 0 || !inQuotes)) {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current);
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current); // Add the last value
+
+                // Remove the quotes that were used for wrapping the fields
+                return values.map(v => v.startsWith('"') && v.endsWith('"') ? v.slice(1, -1) : v);
+            };
+
+            const header = splitLine(lines[0]).map(h => h.trim());
+
             return lines.slice(1).map(line => {
-                const values = line.split(',');
+                const values = splitLine(line);
+                // Basic check to ensure row and header lengths match
+                if (values.length !== header.length) {
+                    console.warn("Skipping malformed CSV line:", line);
+                    return null; // Skip this row if it's broken
+                }
                 return header.reduce((obj, h, i) => {
                     obj[h] = (values[i] || '').trim();
                     return obj;
                 }, {});
-            });
+            }).filter(Boolean);
         };
-        
-        // **UPDATED**: Generic transformer to handle all CSV types
         const transformToJSON = (key, data) => {
             const groupKey = `user_created_${key}`;
             const groupName = {
                 en: `User ${key.charAt(0).toUpperCase() + key.slice(1)}`,
                 vi: `${key.charAt(0).toUpperCase() + key.slice(1)} người dùng`
             };
-        
+
             const items = data.map((row, index) => {
                 const transformedRow = {
                     id: `${key}_user_${index}` // Unique ID for each item
                 };
-        
+
                 // Process all columns from the CSV row
                 for (const colHeader in row) {
                     if (Object.prototype.hasOwnProperty.call(row, colHeader)) {
                         const value = row[colHeader];
                         // Regex to find language suffixes like _en, _vi
                         const langMatch = colHeader.match(/_(en|vi)$/);
-        
+
                         if (langMatch) {
                             // This is a language-specific column (e.g., 'meaning_en')
                             const baseKey = colHeader.replace(/_(en|vi)$/, ''); // -> 'meaning'
                             const lang = langMatch[1]; // -> 'en'
-        
+
                             // Initialize the nested object (e.g., 'meaning: {}') if it doesn't exist
                             if (!transformedRow[baseKey]) {
                                 transformedRow[baseKey] = {};
@@ -383,16 +410,16 @@ function setupImportModal() {
                         }
                     }
                 }
-        
+
                 // Special handling for kanji to ensure compatibility with the detail modal
                 if (key === 'kanji') {
                     if (!transformedRow.examples) transformedRow.examples = [];
                     if (!transformedRow.sentence) transformedRow.sentence = {};
                 }
-        
+
                 return transformedRow;
             });
-        
+
             return {
                 [groupKey]: {
                     ...groupName,
@@ -409,7 +436,7 @@ function setupImportModal() {
                         const content = e.target.result;
                         const key = file.name.replace('.csv', '');
                         const parsedData = parseCSV(content);
-                        if(parsedData.length === 0) {
+                        if (parsedData.length === 0) {
                             console.warn(`CSV file '${file.name}' is empty or invalid. Skipping.`);
                             resolve(null); // Resolve with null to filter out later
                             return;
@@ -428,7 +455,7 @@ function setupImportModal() {
 
         try {
             const results = (await Promise.all(filePromises)).filter(Boolean); // Filter out null results from empty files
-            if(results.length === 0) {
+            if (results.length === 0) {
                 els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoValidData')}</p>`;
                 updateImportButtonState();
                 return;
@@ -456,7 +483,7 @@ function setupImportModal() {
             els.importBtn.disabled = true;
             els.importBtn.querySelector('span').textContent = getUIText('importButtonProgress');
             const db = await dbPromise;
-            
+
             // Add UI data to the imported level data
             const uiData = {
                 "en": { "userCreated": "User Created" },
@@ -472,10 +499,10 @@ function setupImportModal() {
             const remoteData = remoteResponse.ok ? await remoteResponse.json() : { levels: [] };
             const customLevels = await db.getAllKeys('levels');
             buildLevelSwitcher(remoteData.levels, customLevels);
-            
+
             // Switch to the newly imported level.
             await setLevel(levelName);
-            
+
             alert(getUIText('importSuccess', { levelName: levelName.toUpperCase() }));
             closeModal();
         } catch (error) {
@@ -546,7 +573,7 @@ async function init() {
             console.warn("Could not fetch remote levels list. Falling back to default.", error);
             remoteLevels = [config.defaultLevel];
         }
-        
+
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
         await loadState(); // Load user settings and progress from IndexedDB
