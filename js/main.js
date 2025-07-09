@@ -32,7 +32,7 @@ import {
 } from './handlers.js';
 
 function getThemeToggleHTML() { return `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`; }
-function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`; }
+function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data--lang="vi">VI</button>`; }
 
 /**
  * Handles state restoration when user clicks back/forward browser buttons.
@@ -83,7 +83,7 @@ function openKanjiDetailModal(kanjiId) {
         sentenceHTML = sentenceJP;
     }
 
-    // --- LAYOUT IMPROVEMENTS ARE HERE ---
+    // --- LAYOUT AND SCROLL LOGIC ARE HERE ---
     els.kanjiModalContentContainer.innerHTML = `
         <div class="glass-effect p-6 rounded-2xl">
             <button id="close-kanji-modal-btn" class="modal-close-btn absolute top-4 right-4">
@@ -93,7 +93,7 @@ function openKanjiDetailModal(kanjiId) {
                 <h1 class="text-6xl font-bold noto-sans text-primary mb-2">${kanjiItem.kanji}</h1>
                 <p class="text-xl text-secondary">${meaning}</p>
             </div>
-            <div class="space-y-6 text-sm max-h-[50vh] overflow-y-auto pr-2">
+            <div class="space-y-6 text-sm max-h-[50vh] overflow-y-auto pr-2 kanji-modal-scroll-content">
                 
                 ${kanjiItem.examples ? `
                 <div>
@@ -133,6 +133,21 @@ function openKanjiDetailModal(kanjiId) {
             </div>
         </div>
     `;
+
+    // **UPDATED CODE**: Add the scroll event listener
+    const scrollContent = els.kanjiModalContentContainer.querySelector('.kanji-modal-scroll-content');
+    if (scrollContent) {
+        const checkScroll = () => {
+            // Check if the user has scrolled to the bottom (with a 1px tolerance)
+            const isAtBottom = scrollContent.scrollHeight - scrollContent.scrollTop <= scrollContent.clientHeight + 1;
+            scrollContent.classList.toggle('scrolled-to-bottom', isAtBottom);
+        };
+        // Listen for scroll events
+        scrollContent.addEventListener('scroll', checkScroll);
+        // Run the check once initially to handle content that doesn't need scrolling
+        checkScroll();
+    }
+
     els.kanjiDetailModal.classList.add('active');
     document.body.classList.add('body-no-scroll');
 }
