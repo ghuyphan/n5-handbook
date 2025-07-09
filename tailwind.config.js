@@ -103,10 +103,7 @@ module.exports = {
           '0%': { backgroundColor: 'var(--nav-hover-bg)', transform: 'scale(1.03)' },
           '100%': { backgroundColor: 'transparent', transform: 'scale(1)' },
         },
-        modalSlideUp: {
-          'from': { opacity: 0, transform: 'translateY(20px) scale(0.98)' },
-          'to': { opacity: 1, transform: 'translateY(0) scale(1)' },
-        }
+        // REMOVED modalSlideUp keyframe as it's now handled by CSS transitions
       },
       animation: {
         'fade-in': 'fadeIn 0.5s var(--ease-out-quint) forwards',
@@ -118,7 +115,7 @@ module.exports = {
         'pulse-in': 'pulsIn 1.8s ease-in-out infinite',
         'pulse-out': 'pulsOut 1.8s ease-in-out infinite',
         'highlight-progress': 'highlightProgress 1.5s var(--ease-out-quint)',
-        'modal-slide-up': 'modalSlideUp 0.4s var(--ease-out-quint)',
+        // REMOVED 'modal-slide-up' animation as it's now handled by CSS transitions
       },
 
       // 5. TRANSITION TIMING
