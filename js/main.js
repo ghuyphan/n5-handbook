@@ -32,7 +32,7 @@ import {
 } from './handlers.js';
 
 function getThemeToggleHTML() { return `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`; }
-function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`; }
+function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data--lang="vi">VI</button>`; }
 
 
 /**
@@ -69,7 +69,7 @@ function openKanjiDetailModal(kanjiId) {
     // Populate the modal content
     els.kanjiModalContentContainer.innerHTML = `
         <div class="glass-effect p-6 rounded-2xl">
-            <button id="close-kanji-modal-btn" class="absolute top-3 right-3 text-secondary hover:text-primary transition-colors">
+            <button id="close-kanji-modal-btn" class="modal-close-btn absolute top-4 right-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             <div class="text-center mb-4">
