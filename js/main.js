@@ -32,7 +32,8 @@ import {
 } from './handlers.js';
 
 function getThemeToggleHTML() { return `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`; }
-function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data--lang="vi">VI</button>`; }
+// Corrected the data attribute for the Vietnamese button
+function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`; }
 
 
 /**

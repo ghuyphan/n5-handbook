@@ -20,6 +20,67 @@ import {
 } from './ui.js';
 
 
+/**
+ * Removes previously highlighted search terms from a container.
+ * @param {HTMLElement} container - The element to clear highlights from.
+ */
+function removeHighlights(container) {
+    const marks = Array.from(container.querySelectorAll('mark.search-highlight'));
+    marks.forEach(mark => {
+        const parent = mark.parentNode;
+        if (parent) {
+            // Replace the <mark> tag with its own text content
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            // After replacing, normalize the parent to merge adjacent text nodes
+            parent.normalize();
+        }
+    });
+}
+
+/**
+ * Finds and highlights search query matches within a given element.
+ * @param {HTMLElement} element - The element to search within.
+ * @param {string} query - The search query to highlight.
+ */
+function highlightMatches(element, query) {
+    if (!query) return;
+
+    // Create a regular expression to find the query, ignoring case
+    const regex = new RegExp(`(${query.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1")})`, 'gi');
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+    const nodesToModify = [];
+
+    // First, find all text nodes that contain a match
+    let currentNode;
+    while (currentNode = walker.nextNode()) {
+        if (regex.test(currentNode.nodeValue)) {
+            nodesToModify.push(currentNode);
+        }
+    }
+
+    // Then, process each node to wrap matches in <mark> tags
+    nodesToModify.forEach(node => {
+        const fragment = document.createDocumentFragment();
+        const parts = node.nodeValue.split(regex);
+
+        parts.forEach(part => {
+            if (part.toLowerCase() === query.toLowerCase()) {
+                const mark = document.createElement('mark');
+                mark.className = 'search-highlight';
+                mark.textContent = part;
+                fragment.appendChild(mark);
+            } else {
+                fragment.appendChild(document.createTextNode(part));
+            }
+        });
+        
+        if (node.parentNode) {
+            node.parentNode.replaceChild(fragment, node);
+        }
+    });
+}
+
+
 export function toggleLearned(category, id, element) {
     if (!state.progress[category]) state.progress[category] = [];
     const arr = state.progress[category];
@@ -60,9 +121,13 @@ export function setupFuseForTab(tabId) {
 
 export const handleSearch = debounce(() => {
     const isMobileView = window.innerWidth <= 768;
-    const query = (isMobileView ? els.mobileSearchInput.value : els.searchInput.value).trim().toLowerCase();
+    const query = (isMobileView ? els.mobileSearchInput.value : els.searchInput.value).trim();
+    const lowerCaseQuery = query.toLowerCase();
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
+
+    // Clear any existing highlights from the previous search
+    removeHighlights(activeTab);
 
     const activeTabId = activeTab.id;
     if (isMobileView && els.mobileSearchBar) {
@@ -73,7 +138,7 @@ export const handleSearch = debounce(() => {
     const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
     const allWrappers = activeTab.querySelectorAll('.search-wrapper');
 
-    if (!query) {
+    if (!lowerCaseQuery) {
         allItems.forEach(item => { item.style.display = ''; });
         allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
         return;
@@ -84,11 +149,15 @@ export const handleSearch = debounce(() => {
     allItems.forEach(item => { item.style.display = 'none'; });
     allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
 
-    const results = fuse.search(query);
+    const results = fuse.search(lowerCaseQuery);
     results.forEach(result => {
         const itemElement = result.item.element;
         itemElement.style.display = '';
 
+        // Apply new highlights
+        highlightMatches(itemElement, query);
+
+        // Show parent wrappers and expand accordions if needed
         let parent = itemElement.parentElement;
         while (parent) {
             if (parent.hasAttribute('data-search') || parent.classList.contains('search-wrapper')) {
@@ -131,8 +200,6 @@ export function setLanguage(lang, skipRender = false) {
 }
 
 export function toggleTheme(event) {
-    document.body.classList.add('no-transitions');
-
     const isChecked = event.target.checked;
     document.documentElement.classList.toggle('dark-mode', isChecked);
 
@@ -142,13 +209,10 @@ export function toggleTheme(event) {
         console.warn("Could not save theme to localStorage.", e);
     }
 
+    // Ensure all toggles are in sync
     document.querySelectorAll('.theme-switch input').forEach(input => {
         if (input !== event.target) input.checked = isChecked;
     });
-
-    setTimeout(() => {
-        document.body.classList.remove('no-transitions');
-    }, 100);
 }
 
 export async function setLevel(level) {
