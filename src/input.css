@@ -1560,8 +1560,8 @@ input:checked+.slider:before {
         radial-gradient(at 95% 95%, hsla(280, 96%, 76%, 0.15) 0px, transparent 50%);
 }
 
-#kanji-detail-modal .text-6xl { /* The main Kanji character */
-    font-size: clamp(4rem, 18vw, 5rem); /* More impactful on mobile */
+#kanji-detail-modal .text-5xl {
+  font-size: clamp(2rem, 8vw, 3rem);
 }
 
 #kanji-detail-modal .text-xl { /* The meaning */
