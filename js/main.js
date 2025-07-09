@@ -251,7 +251,10 @@ function setupImportModal() {
         if (!levelName) {
             els.levelNameError.textContent = getUIText('errorLevelNameRequired');
         } else if (state.allAvailableLevels.includes(levelName)) {
-            els.levelNameError.textContent = getUIText('errorLevelNameExists');
+            // It's okay if the level exists now, since we are merging. 
+            // We can remove this error check or change the text.
+            els.levelNameError.textContent = ""; // Allow existing names
+            levelNameIsValid = true;
         } else {
             els.levelNameError.textContent = "";
             levelNameIsValid = true;
@@ -324,8 +327,6 @@ function setupImportModal() {
                     }
                 };
             }
-            // Add other transformers here for vocab, grammar etc. if they have complex structures
-            // For simple structures, you might just need a flat list.
             return {
                 [groupKey]: {
                     ...groupName,
@@ -370,7 +371,6 @@ function setupImportModal() {
         updateImportButtonState();
     };
 
-
     const handleConfirm = async () => {
         const levelName = els.levelNameInput.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
         if (!levelNameIsValid || Object.keys(importedData).length === 0) return;
@@ -378,7 +378,24 @@ function setupImportModal() {
             els.importBtn.disabled = true;
             els.importBtn.querySelector('span').textContent = getUIText('importButtonProgress');
             const db = await dbPromise;
-            await db.put('levels', importedData, levelName);
+
+            // --- MODIFIED LOGIC START ---
+            const existingData = await db.get('levels', levelName);
+            let dataToSave;
+
+            if (existingData) {
+                // Merge new data into existing data
+                console.log("Level exists. Merging data...");
+                dataToSave = { ...existingData, ...importedData };
+            } else {
+                // This is a new level
+                console.log("New level. Saving data...");
+                dataToSave = importedData;
+            }
+            
+            await db.put('levels', dataToSave, levelName);
+            // --- MODIFIED LOGIC END ---
+
             const remoteResponse = await fetch(`${config.dataPath}/levels.json`);
             const remoteData = remoteResponse.ok ? await remoteResponse.json() : { levels: [] };
             const customLevels = await db.getAllKeys('levels');
@@ -406,7 +423,6 @@ function setupImportModal() {
     els.fileImportArea?.addEventListener('dragleave', () => els.fileImportArea.classList.remove('drag-active'));
     els.fileImportArea?.addEventListener('drop', (e) => { e.preventDefault(); els.fileImportArea.classList.remove('drag-active'); handleFileSelect(e.dataTransfer.files); });
 }
-
 
 function populateAndBindControls() {
     if (els.sidebarControls) {
