@@ -16,7 +16,7 @@ import {
     updateSidebarPinIcons,
     closeSidebar,
     buildLevelSwitcher,
-    updateLevelUI
+    scrollActiveLevelIntoView
 } from './ui.js';
 import {
     setLanguage,
@@ -54,6 +54,7 @@ function handleStateChange(stateObj) {
  */
 function openKanjiDetailModal(kanjiId) {
     let kanjiItem = null;
+    // Find the kanji item across all sections in the current level's data
     for (const key in state.appData.kanji) {
         const found = state.appData.kanji[key].items.find(item => item.id === kanjiId);
         if (found) {
@@ -67,6 +68,7 @@ function openKanjiDetailModal(kanjiId) {
         return;
     }
 
+    // Helper to get UI text safely
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
 
     const meaning = kanjiItem.meaning?.[state.currentLang] || kanjiItem.meaning?.en || '';
@@ -76,6 +78,7 @@ function openKanjiDetailModal(kanjiId) {
     const sentenceJP = kanjiItem.sentence?.jp;
     const sentenceTranslation = kanjiItem.sentence?.[state.currentLang] || kanjiItem.sentence?.en || '';
 
+    // Build sentence with furigana if available
     let sentenceHTML = '';
     if (sentenceTokens) {
         sentenceHTML = sentenceTokens.map(token => token.r ? `<ruby>${token.w}<rt>${token.r}</rt></ruby>` : token.w).join('');
@@ -83,7 +86,7 @@ function openKanjiDetailModal(kanjiId) {
         sentenceHTML = sentenceJP;
     }
 
-    // --- LAYOUT AND SCROLL LOGIC ARE HERE ---
+    // Populate the modal content
     els.kanjiModalContentContainer.innerHTML = `
         <div class="glass-effect p-6 rounded-2xl">
             <button id="close-kanji-modal-btn" class="modal-close-btn absolute top-4 right-4">
@@ -134,51 +137,89 @@ function openKanjiDetailModal(kanjiId) {
         </div>
     `;
 
+    // Add scroll fade effect logic
     const scrollContent = els.kanjiModalContentContainer.querySelector('.kanji-modal-scroll-content');
     if (scrollContent) {
         const checkScroll = () => {
-            const isAtBottom = scrollContent.scrollHeight - scrollContent.scrollTop <= scrollContent.clientHeight + 1;
+            const isAtBottom = scrollContent.scrollHeight - scrollContent.scrollTop <= scrollContent.clientHeight + 1; // +1 for pixel precision
             scrollContent.classList.toggle('scrolled-to-bottom', isAtBottom);
         };
         scrollContent.addEventListener('scroll', checkScroll);
-        checkScroll();
+        checkScroll(); // Initial check
     }
 
     els.kanjiDetailModal.classList.add('active');
     document.body.classList.add('body-no-scroll');
 }
 
+/**
+ * Closes the Kanji Detail Modal.
+ */
 function closeKanjiDetailModal() {
     els.kanjiDetailModal.classList.remove('active');
     document.body.classList.remove('body-no-scroll');
 }
 
+/**
+ * Sets up all global event listeners for the application.
+ */
 function setupEventListeners() {
+    // Use a single delegated event listener on the body for performance.
     document.body.addEventListener('click', (e) => {
         const target = e.target;
         const actionTarget = target.closest('[data-action]');
         if (!actionTarget) return;
+
         const action = actionTarget.dataset.action;
         switch (action) {
-            case 'change-tab': changeTab(actionTarget.dataset.tabName, actionTarget); break;
-            case 'toggle-sidebar': els.sidebar?.classList.add('open'); els.overlay?.classList.add('active'); document.body.classList.add('sidebar-open'); break;
-            case 'toggle-pin': togglePin(); break;
-            case 'toggle-sidebar-pin': toggleSidebarPin(e, actionTarget.dataset.tabName); break;
-            case 'flip-card': if (!e.target.closest('[data-action="show-kanji-details"]')) actionTarget.closest('.card').classList.toggle('is-flipped'); break;
-            case 'toggle-learned': toggleLearned(actionTarget.dataset.category, actionTarget.dataset.id, actionTarget); break;
-            case 'jump-to-section': jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey); break;
-            case 'delete-level': deleteLevel(actionTarget.dataset.levelName); break;
-            case 'set-level': setLevel(actionTarget.dataset.levelName); break;
-            case 'toggle-accordion': actionTarget.classList.toggle('open'); break;
-            case 'show-kanji-details': openKanjiDetailModal(actionTarget.dataset.id); break;
+            case 'change-tab':
+                changeTab(actionTarget.dataset.tabName, actionTarget);
+                break;
+            case 'toggle-sidebar':
+                els.sidebar?.classList.add('open');
+                els.overlay?.classList.add('active');
+                document.body.classList.add('sidebar-open');
+                break;
+            case 'toggle-pin':
+                togglePin();
+                break;
+            case 'toggle-sidebar-pin':
+                toggleSidebarPin(e, actionTarget.dataset.tabName);
+                break;
+            case 'flip-card':
+                // Prevent flipping if the details button within the card was clicked.
+                if (!e.target.closest('[data-action="show-kanji-details"]')) {
+                    actionTarget.closest('.card').classList.toggle('is-flipped');
+                }
+                break;
+            case 'toggle-learned':
+                toggleLearned(actionTarget.dataset.category, actionTarget.dataset.id, actionTarget);
+                break;
+            case 'jump-to-section':
+                jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey);
+                break;
+            case 'delete-level':
+                deleteLevel(actionTarget.dataset.levelName);
+                break;
+            case 'set-level':
+                setLevel(actionTarget.dataset.levelName);
+                break;
+            case 'toggle-accordion':
+                actionTarget.classList.toggle('open');
+                break;
+            case 'show-kanji-details':
+                openKanjiDetailModal(actionTarget.dataset.id);
+                break;
         }
     });
 
+    // Listeners for specific elements
     els.overlay?.addEventListener('click', closeSidebar);
     els.searchInput?.addEventListener('input', handleSearch);
     els.mobileSearchInput?.addEventListener('input', handleSearch);
     els.closeSidebarBtn?.addEventListener('click', closeSidebar);
 
+    // Debounced resize handler for performance
     const debouncedResize = debounce(() => {
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
         const isMobileView = window.innerWidth <= 768;
@@ -192,29 +233,36 @@ function setupEventListeners() {
     }, 100);
     window.addEventListener('resize', debouncedResize);
 
+    // Kanji modal specific listeners
     els.kanjiDetailModal.addEventListener('click', (e) => {
         if (e.target === els.kanjiModalBackdrop || e.target.closest('#close-kanji-modal-btn')) {
             closeKanjiDetailModal();
         }
     });
 
+    // Keyboard accessibility
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && els.kanjiDetailModal.classList.contains('active')) {
             closeKanjiDetailModal();
         }
     });
 
+    // Browser history navigation
     window.addEventListener('popstate', (e) => {
         handleStateChange(e.state);
     });
 }
 
+/**
+ * Initializes the import modal and its event listeners.
+ */
 function setupImportModal() {
     if (!els.importModal) return;
 
     let importedData = {};
     let levelNameIsValid = false;
 
+    // Helper to get UI text safely
     const getUIText = (key, replacements = {}) => {
         let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
         for (const [placeholder, value] of Object.entries(replacements)) {
@@ -245,16 +293,14 @@ function setupImportModal() {
         setTimeout(() => els.importModal.classList.add('modal-hidden'), 300);
     };
 
+    // **UPDATED**: Stricter validation prevents overwriting existing levels.
     const updateImportButtonState = () => {
         const levelName = els.levelNameInput.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
         levelNameIsValid = false;
         if (!levelName) {
             els.levelNameError.textContent = getUIText('errorLevelNameRequired');
         } else if (state.allAvailableLevels.includes(levelName)) {
-            // It's okay if the level exists now, since we are merging. 
-            // We can remove this error check or change the text.
-            els.levelNameError.textContent = ""; // Allow existing names
-            levelNameIsValid = true;
+            els.levelNameError.textContent = getUIText('errorLevelNameExists');
         } else {
             els.levelNameError.textContent = "";
             levelNameIsValid = true;
@@ -378,29 +424,19 @@ function setupImportModal() {
             els.importBtn.disabled = true;
             els.importBtn.querySelector('span').textContent = getUIText('importButtonProgress');
             const db = await dbPromise;
-
-            // --- MODIFIED LOGIC START ---
-            const existingData = await db.get('levels', levelName);
-            let dataToSave;
-
-            if (existingData) {
-                // Merge new data into existing data
-                console.log("Level exists. Merging data...");
-                dataToSave = { ...existingData, ...importedData };
-            } else {
-                // This is a new level
-                console.log("New level. Saving data...");
-                dataToSave = importedData;
-            }
             
-            await db.put('levels', dataToSave, levelName);
-            // --- MODIFIED LOGIC END ---
+            // Save the structured data to IndexedDB.
+            await db.put('levels', importedData, levelName);
 
+            // Refresh the level switcher with the new level list.
             const remoteResponse = await fetch(`${config.dataPath}/levels.json`);
             const remoteData = remoteResponse.ok ? await remoteResponse.json() : { levels: [] };
             const customLevels = await db.getAllKeys('levels');
             buildLevelSwitcher(remoteData.levels, customLevels);
+            
+            // Switch to the newly imported level.
             await setLevel(levelName);
+            
             alert(getUIText('importSuccess', { levelName: levelName.toUpperCase() }));
             closeModal();
         } catch (error) {
@@ -412,6 +448,7 @@ function setupImportModal() {
         }
     };
 
+    // Bind all event listeners for the modal
     document.getElementById('sidebar-import-btn')?.addEventListener('click', openModal);
     els.closeModalBtn?.addEventListener('click', closeModal);
     els.modalWrapper?.addEventListener('click', (e) => { if (e.target === els.modalWrapper) closeModal(); });
@@ -424,6 +461,9 @@ function setupImportModal() {
     els.fileImportArea?.addEventListener('drop', (e) => { e.preventDefault(); els.fileImportArea.classList.remove('drag-active'); handleFileSelect(e.dataTransfer.files); });
 }
 
+/**
+ * Populates the control elements (theme/language switchers) and binds their events.
+ */
 function populateAndBindControls() {
     if (els.sidebarControls) {
         els.sidebarControls.innerHTML = `
@@ -444,10 +484,14 @@ function populateAndBindControls() {
     }));
 }
 
+/**
+ * Main application initialization function.
+ */
 async function init() {
     try {
         populateAndBindControls();
         let remoteLevels = [];
+        // Fetch the list of official levels, falling back to just 'n5' on failure.
         try {
             const response = await fetch(`${config.dataPath}/levels.json`);
             remoteLevels = response.ok ? (await response.json()).levels : [config.defaultLevel];
@@ -455,9 +499,10 @@ async function init() {
             console.warn("Could not fetch remote levels list. Falling back to default.", error);
             remoteLevels = [config.defaultLevel];
         }
+        
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
-        await loadState();
+        await loadState(); // Load user settings and progress from IndexedDB
 
         const params = new URLSearchParams(window.location.search);
         const urlLevel = params.get('level');
@@ -466,7 +511,6 @@ async function init() {
             state.currentLevel = urlLevel;
         }
 
-        updateLevelUI(state.currentLevel);
         setupEventListeners();
         buildLevelSwitcher(remoteLevels, customLevels);
         setupImportModal();
@@ -474,23 +518,27 @@ async function init() {
         setupTheme();
         renderContent();
         updateProgressDashboard();
-        setLanguage(state.currentLang, true);
+        setLanguage(state.currentLang, true); // Set language without re-rendering
 
+        // Hide loading overlay once everything is ready
         if (els.loadingOverlay) {
             els.loadingOverlay.style.opacity = '0';
             els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
         }
 
+        // Set the active level and language switchers correctly
         document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
+        scrollActiveLevelIntoView();
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
 
+        // Determine and set the initial tab to show
         const isMobileView = window.innerWidth <= 768;
         const defaultTab = isMobileView ? 'progress' : 'hiragana';
         const initialTab = urlTab || state.pinnedTab || defaultTab;
-        changeTab(initialTab, null, false, true); // Set initial tab without creating history entry
+        changeTab(initialTab, null, false, true); // Set tab without creating history entry
         updateSidebarPinIcons();
 
-        // Set the initial state in the history API
+        // Set the initial state in the browser's history API for back/forward navigation
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;
         history.replaceState(initialState, '', initialUrl);
@@ -500,7 +548,10 @@ async function init() {
         if (els.loadingOverlay) {
             els.loadingOverlay.classList.add('hidden');
         }
+        // Optionally, display a user-friendly error message on the page
+        document.body.innerHTML = `<div style="text-align: center; padding: 40px; font-family: sans-serif;"><h2>Application Error</h2><p>Something went wrong during startup. Please try refreshing the page.</p></div>`;
     }
 }
 
+// Start the application once the DOM is ready
 document.addEventListener('DOMContentLoaded', init);

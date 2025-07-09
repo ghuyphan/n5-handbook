@@ -9,7 +9,7 @@ import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
 import {
-    updateLevelUI,
+    // updateLevelUI,
     renderContent,
     updateProgressDashboard,
     moveLangPill,
@@ -176,7 +176,7 @@ export async function setLevel(level, fromHistory = false) {
     if (level === state.currentLevel) return;
 
     state.currentLevel = level;
-    updateLevelUI(level);
+    // updateLevelUI(level);
     await saveSetting('currentLevel', level);
     els.loadingOverlay?.classList.remove('hidden');
 

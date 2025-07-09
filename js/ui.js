@@ -29,7 +29,7 @@ function createAccordion(title, contentNode, searchData, titleKey) {
 
     wrapper.dataset.search = searchData;
     button.dataset.sectionTitleKey = titleKey;
-    button.dataset.action = 'toggle-accordion'; // Add this line
+    button.dataset.action = 'toggle-accordion'; // Ensures accordion animation works
     titleSpan.textContent = title;
     contentDiv.appendChild(contentNode);
 
@@ -89,19 +89,12 @@ const createCard = (item, category, backGradient) => {
     const cardFront = clone.querySelector('.card-face-front');
     const cardBack = clone.querySelector('.card-face-back');
 
-    // Only add the details toggle for Kanji cards
     if (category === 'kanji') {
         const detailsToggle = document.createElement('div');
-        detailsToggle.className = 'details-toggle'; // The new CSS class
+        detailsToggle.className = 'details-toggle';
         detailsToggle.dataset.action = 'show-kanji-details';
         detailsToggle.dataset.id = item.id;
-        // A simple info icon
-        detailsToggle.innerHTML = `
-            <svg class="h-4 w-4 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512" fill="currentColor">
-                <path d="M48 80a48 48 0 1 1 96 0A48 48 0 1 1 48 80zM0 224c0-17.7 14.3-32 32-32l64 0c17.7 0 32 14.3 32 32l0 224 32 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 512c-17.7 0-32-14.3-32-32s14.3-32 32-32l32 0 0-192-32 0c-17.7 0-32-14.3-32-32z"/>
-            </svg>
-        `;
-        // Prepend it to the root container. Since the checkmark is last, this will appear on the left.
+        detailsToggle.innerHTML = `<svg class="h-4 w-4 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512" fill="currentColor"><path d="M48 80a48 48 0 1 1 96 0A48 48 0 1 1 48 80zM0 224c0-17.7 14.3-32 32-32l64 0c17.7 0 32 14.3 32 32l0 224 32 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 512c-17.7 0-32-14.3-32-32s14.3-32 32-32l32 0 0-192-32 0c-17.7 0-32-14.3-32-32z"/></svg>`;
         root.prepend(detailsToggle);
     }
 
@@ -114,30 +107,14 @@ const createCard = (item, category, backGradient) => {
 
     let backContent = '';
     if (category === 'kanji') {
-        // The "View Details" button is now removed from the back.
-        backContent = `
-            <div class="w-full text-center">
-                <p class="font-bold text-xl mb-2">${meaningText}</p>
-                <div class="text-sm opacity-80">
-                    <p>On: ${item.onyomi}</p>
-                    <p>Kun: ${item.kunyomi || '–'}</p>
-                </div>
-            </div>`;
-        cardBack.style.justifyContent = 'center'; // Center the text content
-
+        backContent = `<div class="w-full text-center"><p class="font-bold text-xl mb-2">${meaningText}</p><div class="text-sm opacity-80"><p>On: ${item.onyomi}</p><p>Kun: ${item.kunyomi || '–'}</p></div></div>`;
+        cardBack.style.justifyContent = 'center';
     } else {
-        // Vocab cards remain unchanged
-        backContent = `
-            <p class="text-lg sm:text-xl font-bold">${item.reading}</p>
-            <p class="text-sm">${meaningText}</p>`;
+        backContent = `<p class="text-lg sm:text-xl font-bold">${item.reading}</p><p class="text-sm">${meaningText}</p>`;
         cardBack.style.justifyContent = 'space-around';
     }
 
-    const searchTerms = generateSearchTerms([
-        item.kanji, item.word, item.onyomi, item.kunyomi,
-        item.reading, item.meaning?.en, item.meaning?.vi,
-    ]);
-
+    const searchTerms = generateSearchTerms([item.kanji, item.word, item.onyomi, item.kunyomi, item.reading, item.meaning?.en, item.meaning?.vi]);
     root.dataset.searchItem = searchTerms;
     root.dataset.itemId = item.id;
 
@@ -175,10 +152,7 @@ const createCardSection = (title, data, category, backGradient, titleKey) => {
     accordionContentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
     accordionContentWrapper.appendChild(cardGrid);
 
-    const searchTermsForSection = generateSearchTerms(
-        [title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]
-    );
-
+    const searchTermsForSection = generateSearchTerms([title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]);
     return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey);
 };
 
@@ -199,27 +173,15 @@ const createStaticSection = (data, icon, color) => {
         const title = sectionData[state.currentLang] || sectionData['en'] || sectionKey;
         const searchTerms = generateSearchTerms([title, ...items.flatMap(i => i.isPlaceholder ? [] : [i.kana, i.romaji])]);
 
-        const content = `<div class="kana-grid">
-          ${items.map((item) => {
+        const content = `<div class="kana-grid">${items.map((item) => {
             if (item.isPlaceholder) return `<div></div>`;
             const isDigraph = item.kana && item.kana.length > 1;
             const fontClass = isDigraph ? 'kana-font-digraph' : 'kana-font';
             const itemSearchData = generateSearchTerms([item.kana, item.romaji]);
-            return `
-                <div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg" data-search-item="${itemSearchData}">
-                    <p class="noto-sans ${fontClass}" style="color:${color};">${item.kana}</p>
-                    <p class="text-xs sm:text-sm text-secondary">${item.romaji}</p>
-                </div>`;
-        }).join('')}
-        </div>`;
+            return `<div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg" data-search-item="${itemSearchData}"><p class="noto-sans ${fontClass}" style="color:${color};">${item.kana}</p><p class="text-xs sm:text-sm text-secondary">${item.romaji}</p></div>`;
+        }).join('')}</div>`;
 
-        const sectionHTML = `
-            <div class="search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6" data-search="${searchTerms}">
-                <h3 class="text-lg sm:text-lg font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${sectionKey}">
-                    <span class="text-2xl">${icon}</span> ${title}
-                </h3>
-                ${content}
-            </div>`;
+        const sectionHTML = `<div class="search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6" data-search="${searchTerms}"><h3 class="text-lg sm:text-lg font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${sectionKey}"><span class="text-2xl">${icon}</span> ${title}</h3>${content}</div>`;
         fragment.appendChild(document.createRange().createContextualFragment(sectionHTML));
     });
 
@@ -257,6 +219,7 @@ function createProgressItem(tab, title, learned, total, color, titleKey) {
 
     wrapper.dataset.tabName = tab;
     wrapper.dataset.sectionKey = titleKey;
+    wrapper.dataset.action = 'jump-to-section';
 
     fillCircle.style.strokeDasharray = circumference;
     fillCircle.style.strokeDashoffset = offset;
@@ -271,71 +234,55 @@ function createProgressItem(tab, title, learned, total, color, titleKey) {
 
 // --- Main UI Update Functions ---
 
-export function updateLevelUI(level) {
-    // This function is no longer needed as the level badges have been replaced by the site icon.
-    // const levelText = level.toUpperCase();
-    // if (els.levelBadgeDesktop) els.levelBadgeDesktop.textContent = levelText;
-    // if (els.levelBadgeMobile) els.levelBadgeMobile.textContent = levelText;
-}
-
+/**
+ * Updates the progress dashboard in the sidebar and the main progress tab.
+ * This function clears and redraws the progress items based on the current level's data.
+ */
 export function updateProgressDashboard() {
     const containers = [els.progressOverview, els.progressTab];
-    if (!state.appData.ui) return;
+    if (!state.appData.ui || !containers.every(c => c)) return;
 
-    // On first load, ensure the containers are ready and have the SVG gradients
     containers.forEach(container => {
-        if (container && !container.querySelector('.progress-item-wrapper')) {
-            const overviewTitle = `<h2 class="text-xl font-bold mb-5" data-lang-key="progressOverview">${state.appData.ui[state.currentLang]?.progressOverview || 'Progress Overview'}</h2>`;
-            const gradientsSVG = `<svg width="0" height="0"><defs>
-                <linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient>
-                <linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient>
-            </defs></svg>`;
-            const wrapper = document.createElement('div');
-            wrapper.className = 'space-y-4';
-            wrapper.id = `progress-wrapper-${container.id}`;
+        container.innerHTML = ''; // FIX: Clear old content to prevent persisting bars
+        const overviewTitle = `<h2 class="text-xl font-bold mb-5" data-lang-key="progressOverview">${state.appData.ui[state.currentLang]?.progressOverview || 'Progress Overview'}</h2>`;
+        const gradientsSVG = `<svg width="0" height="0"><defs><linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient><linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient></defs></svg>`;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'space-y-4';
+        wrapper.id = `progress-wrapper-${container.id}`;
+
+        if (container.id === 'progress-overview') {
             container.innerHTML = overviewTitle + gradientsSVG;
-            container.appendChild(wrapper);
+        } else {
+            container.innerHTML = gradientsSVG;
         }
+        container.appendChild(wrapper);
     });
 
     const dataCategories = { kanji: 'purple', vocab: 'green' };
+    const progressWrappers = document.querySelectorAll('[id^="progress-wrapper-"]');
 
     for (const [categoryName, color] of Object.entries(dataCategories)) {
         if (!state.appData[categoryName]) continue;
 
         for (const key in state.appData[categoryName]) {
             const category = state.appData[categoryName][key];
-            if (!category.items) continue;
+            if (!category.items || category.items.length === 0) continue;
 
             const total = category.items.length;
             const learned = state.progress[categoryName]?.filter(id => category.items.some(item => item.id === id)).length || 0;
+            const newItemFragment = createProgressItem(categoryName, category[state.currentLang] || category.en, learned, total, color, key);
 
-            // Find existing items in both progress containers
-            const existingItems = document.querySelectorAll(`[data-section-key="${key}"]`);
-
-            if (existingItems.length > 0) {
-                // If they exist, update them
-                const percentage = total > 0 ? (learned / total) * 100 : 0;
-                const radius = 22;
-                const circumference = 2 * Math.PI * radius;
-                const offset = circumference - (percentage / 100) * circumference;
-
-                existingItems.forEach(item => {
-                    item.querySelector('.progress-fill').style.strokeDashoffset = offset;
-                    item.querySelector('.progress-percentage').textContent = `${Math.round(percentage)}%`;
-                    item.querySelector('.progress-stats').textContent = `${learned} / ${total}`;
-                });
-            } else {
-                // If they don't exist, create and append them (for initial render)
-                const newItemFragment = createProgressItem(categoryName, category[state.currentLang] || category.en, learned, total, color, key);
-                document.querySelectorAll('[id^="progress-wrapper-"]').forEach(wrapper => {
-                    wrapper.appendChild(newItemFragment.cloneNode(true));
-                });
-            }
+            progressWrappers.forEach(wrapper => {
+                wrapper.appendChild(newItemFragment.cloneNode(true));
+            });
         }
     }
 }
 
+/**
+ * Moves the language switcher's pill to the active language button.
+ * @param {HTMLElement} switcherContainer - The container of the language switcher.
+ */
 export function moveLangPill(switcherContainer) {
     const pill = switcherContainer.querySelector('.lang-switch-pill');
     const activeButton = switcherContainer.querySelector('button.active');
@@ -344,11 +291,18 @@ export function moveLangPill(switcherContainer) {
     pill.style.transform = `translateX(${activeButton.offsetLeft}px)`;
 }
 
+/**
+ * Sets the theme switch to the correct state based on the current theme.
+ */
 export function setupTheme() {
     const isDark = document.documentElement.classList.contains('dark-mode');
     document.querySelectorAll('.theme-switch input').forEach((input) => (input.checked = isDark));
 }
 
+/**
+ * Updates the state of the pin button in the mobile header.
+ * @param {string} activeTabId - The ID of the currently active tab.
+ */
 export function updatePinButtonState(activeTabId) {
     const pinButton = els.pinToggle;
     if (!pinButton) return;
@@ -365,6 +319,9 @@ export function updatePinButtonState(activeTabId) {
     svg.style.height = '1.25em';
 }
 
+/**
+ * Updates the pin icons next to each tab in the sidebar.
+ */
 export function updateSidebarPinIcons() {
     document.querySelectorAll('.sidebar-pin-btn').forEach(button => {
         const tabId = button.dataset.tabName;
@@ -382,18 +339,26 @@ export function updateSidebarPinIcons() {
     });
 }
 
+/**
+ * Closes the mobile sidebar and overlay.
+ */
 export function closeSidebar() {
     els.sidebar?.classList.remove('open');
     els.overlay?.classList.remove('active');
     document.body.classList.remove('sidebar-open');
 }
 
+/**
+ * Renders a section containing cards (Kanji or Vocab).
+ * @param {string} containerId - The ID of the tab container element.
+ * @param {Object} data - The data object for the category.
+ * @param {string} category - The category name ('kanji' or 'vocab').
+ * @param {string} gradient - The CSS gradient for the card backs.
+ */
 function renderCardBasedSection(containerId, data, category, gradient) {
     const container = document.getElementById(containerId);
-    if (!data || !container) {
-        if (container) container.innerHTML = '';
-        return;
-    }
+    if (container) container.innerHTML = ''; // Always clear previous content
+    if (!data || !container) return;
 
     const fragment = document.createDocumentFragment();
     for (const key in data) {
@@ -404,7 +369,6 @@ function renderCardBasedSection(containerId, data, category, gradient) {
         fragment.appendChild(createCardSection(title, section.items, category, gradient, key));
     }
 
-    container.innerHTML = ''; // Clear previous content
     const wrapper = document.createElement('div');
     wrapper.className = 'space-y-4';
     wrapper.appendChild(fragment);
@@ -413,6 +377,9 @@ function renderCardBasedSection(containerId, data, category, gradient) {
     setupFuseForTab(category);
 }
 
+/**
+ * Main function to render all content sections of the application.
+ */
 export function renderContent() {
     const renderSafely = (renderFn) => {
         try { renderFn(); } catch (e) { console.error("Render error:", e); }
@@ -425,12 +392,7 @@ export function renderContent() {
         if (gojuonSectionKey) {
             const originalItems = data[gojuonSectionKey].items;
             const findChar = (romaji) => originalItems.find(i => i.romaji === romaji) || { isPlaceholder: true };
-            const gridItems = [
-                'a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so',
-                'ta', 'chi', 'tsu', 'te', 'to', 'na', 'ni', 'nu', 'ne', 'no', 'ha', 'hi', 'fu', 'he', 'ho',
-                'ma', 'mi', 'mu', 'me', 'mo', 'ya', null, 'yu', null, 'yo', 'ra', 'ri', 'ru', 're', 'ro',
-                'wa', null, null, null, 'wo', 'n', null, null, null, null
-            ].map(r => r ? findChar(r) : { isPlaceholder: true });
+            const gridItems = ['a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so', 'ta', 'chi', 'tsu', 'te', 'to', 'na', 'ni', 'nu', 'ne', 'no', 'ha', 'hi', 'fu', 'he', 'ho', 'ma', 'mi', 'mu', 'me', 'mo', 'ya', null, 'yu', null, 'yo', 'ra', 'ri', 'ru', 're', 'ro', 'wa', null, null, null, 'wo', 'n', null, null, null, null].map(r => r ? findChar(r) : { isPlaceholder: true });
             data[gojuonSectionKey].items = gridItems;
         }
         return data;
@@ -439,21 +401,28 @@ export function renderContent() {
     renderSafely(() => {
         if (els.hiraganaTab) {
             els.hiraganaTab.innerHTML = '';
-            els.hiraganaTab.appendChild(createStaticSection(prepareGojuonData(state.appData.hiragana), '🌸', 'var(--accent-pink)'));
-            setupFuseForTab('hiragana');
+            if (state.appData.hiragana) {
+                els.hiraganaTab.appendChild(createStaticSection(prepareGojuonData(state.appData.hiragana), '🌸', 'var(--accent-pink)'));
+                setupFuseForTab('hiragana');
+            }
         }
     });
 
     renderSafely(() => {
         if (els.katakanaTab) {
             els.katakanaTab.innerHTML = '';
-            els.katakanaTab.appendChild(createStaticSection(prepareGojuonData(state.appData.katakana), '🤖', 'var(--accent-blue)'));
-            setupFuseForTab('katakana');
+            if (state.appData.katakana) {
+                els.katakanaTab.appendChild(createStaticSection(prepareGojuonData(state.appData.katakana), '🤖', 'var(--accent-blue)'));
+                setupFuseForTab('katakana');
+            }
         }
     });
 
+    // **FIXED**: Ensures the tab is always cleared, even if no new data exists.
     renderSafely(() => {
+        if (els.keyPointsTab) els.keyPointsTab.innerHTML = '';
         if (!state.appData.keyPoints || !els.keyPointsTab) return;
+
         const fragment = document.createDocumentFragment();
         for (const key in state.appData.keyPoints) {
             const section = state.appData.keyPoints[key];
@@ -479,7 +448,6 @@ export function renderContent() {
                 fragment.appendChild(createAccordion(title, contentWrapper, searchTerms, key));
             }
         }
-        els.keyPointsTab.innerHTML = '';
         const wrapper = document.createElement('div');
         wrapper.className = 'space-y-4';
         wrapper.appendChild(fragment);
@@ -488,11 +456,8 @@ export function renderContent() {
     });
 
     renderSafely(() => {
-        const grammarTab = els.grammarTab;
-        if (!state.appData.grammar || !grammarTab) {
-            if (grammarTab) grammarTab.innerHTML = '';
-            return;
-        }
+        if (els.grammarTab) els.grammarTab.innerHTML = '';
+        if (!state.appData.grammar || !els.grammarTab) return;
 
         const fragment = document.createDocumentFragment();
         for (const sectionKey in state.appData.grammar) {
@@ -501,7 +466,6 @@ export function renderContent() {
 
             const grid = document.createElement('div');
             grid.className = 'grammar-grid';
-
             sectionData.items.forEach(item => {
                 const langItem = item[state.currentLang] || item.en;
                 const itemSearchData = generateSearchTerms([langItem.title, langItem.content]);
@@ -517,11 +481,7 @@ export function renderContent() {
                 const card = document.createElement('div');
                 card.className = 'grammar-card cell-bg rounded-lg';
                 card.dataset.searchItem = itemSearchData;
-                card.innerHTML = `
-                    <h4 class="font-semibold text-primary noto-sans">${langItem.title}</h4>
-                    <div class="grammar-description mt-2 text-secondary leading-relaxed text-sm">${description}</div>
-                    ${exampleHTML ? `<div class="grammar-example mt-3 text-sm">${exampleHTML}</div>` : ''}
-                `;
+                card.innerHTML = `<h4 class="font-semibold text-primary noto-sans">${langItem.title}</h4><div class="grammar-description mt-2 text-secondary leading-relaxed text-sm">${description}</div>${exampleHTML ? `<div class="grammar-example mt-3 text-sm">${exampleHTML}</div>` : ''}`;
                 grid.appendChild(card);
             });
 
@@ -532,11 +492,10 @@ export function renderContent() {
             fragment.appendChild(createAccordion(sectionTitle, contentWrapper, searchData, sectionKey));
         }
 
-        grammarTab.innerHTML = '';
         const wrapper = document.createElement('div');
         wrapper.className = 'space-y-4';
         wrapper.appendChild(fragment);
-        grammarTab.appendChild(wrapper);
+        els.grammarTab.appendChild(wrapper);
 
         setupFuseForTab('grammar');
     });
@@ -545,6 +504,11 @@ export function renderContent() {
     renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)'));
 }
 
+/**
+ * Builds the level switcher UI in the sidebar.
+ * @param {Array<string>} remoteLevels - List of levels available from the remote source.
+ * @param {Array<string>} customLevels - List of levels imported by the user.
+ */
 export function buildLevelSwitcher(remoteLevels = [], customLevels = []) {
     const sidebarSwitcher = document.getElementById('level-switcher-sidebar');
     if (!sidebarSwitcher) return;
@@ -556,22 +520,29 @@ export function buildLevelSwitcher(remoteLevels = [], customLevels = []) {
         const isDefault = level === config.defaultLevel;
         const canBeDeleted = customLevels.includes(level) && !isDefault;
 
-        const deleteButtonHTML = canBeDeleted ? `
-            <button class="delete-level-btn" data-action="delete-level" data-level-name="${level}" title="Delete level ${level.toUpperCase()}">
-                <svg class="w-4 h-4 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
-                </svg>
-            </button>` : '';
-
+        const deleteButtonHTML = canBeDeleted ? `<button class="delete-level-btn" data-action="delete-level" data-level-name="${level}" title="Delete level ${level.toUpperCase()}"><svg class="w-4 h-4 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>` : '';
         const itemWrapper = document.createElement('div');
         itemWrapper.className = 'level-switch-item-wrapper';
-        itemWrapper.innerHTML = `
-            <button data-action="set-level" data-level-name="${level}" class="level-switch-button">${level.toUpperCase()}</button>
-            ${deleteButtonHTML}
-        `;
+        itemWrapper.innerHTML = `<button data-action="set-level" data-level-name="${level}" class="level-switch-button">${level.toUpperCase()}</button>${deleteButtonHTML}`;
         fragment.appendChild(itemWrapper);
     });
 
     sidebarSwitcher.innerHTML = '';
     sidebarSwitcher.appendChild(fragment);
+}
+
+/**
+ * Scrolls the level switcher to bring the active level into view.
+ */
+export function scrollActiveLevelIntoView() {
+    const activeButton = document.querySelector('#level-switcher-sidebar .level-switch-button.active');
+    if (activeButton) {
+        setTimeout(() => {
+            activeButton.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center'
+            });
+        }, 100);
+    }
 }
