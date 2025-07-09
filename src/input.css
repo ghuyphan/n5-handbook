@@ -308,7 +308,7 @@ body {
             visibility 0s 0.4s,
             margin-bottom 0.4s var(--ease-out-quint);
     }
-    
+
     .mobile-search-bar .glass-effect {
         border-radius: var(--radius-full);
     }
@@ -686,7 +686,8 @@ input:checked+.slider:before {
     flex-wrap: nowrap;
     gap: 0.5rem;
     background-color: transparent;
-    padding-top: 5px; /* Add this line */
+    padding-top: 5px;
+    /* Add this line */
     padding-bottom: 8px;
     overflow-x: auto;
     scroll-behavior: smooth;
@@ -695,7 +696,8 @@ input:checked+.slider:before {
 }
 
 .level-switch::-webkit-scrollbar {
-    display: none; /* Hide for Chrome, Safari, and Opera */
+    display: none;
+    /* Hide for Chrome, Safari, and Opera */
 }
 
 .level-switch-item-wrapper {
@@ -728,6 +730,9 @@ input:checked+.slider:before {
     font-weight: 700;
     box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.5);
     transform: translateY(-2px);
+    pointer-events: none;
+    cursor: default;
+    opacity: 1;
 }
 
 .delete-level-btn {
@@ -1482,7 +1487,7 @@ input:checked+.slider:before {
     content: "";
     position: absolute;
     border-radius: 50%;
-    filter: drop-shadow(0 0 1rem var(--accent-blue)); 
+    filter: drop-shadow(0 0 1rem var(--accent-blue));
 }
 
 .loader:before {
@@ -1504,17 +1509,22 @@ input:checked+.slider:before {
         box-shadow: inset 0 0 0 1rem var(--accent-blue);
         opacity: 1;
     }
-    50%, 100% {
+
+    50%,
+    100% {
         box-shadow: inset 0 0 0 0 var(--accent-blue);
         opacity: 0;
     }
 }
 
 @keyframes pulsOut {
-    0%, 50% {
+
+    0%,
+    50% {
         box-shadow: 0 0 0 0 var(--accent-blue);
         opacity: 0;
     }
+
     100% {
         box-shadow: 0 0 0 1rem var(--accent-blue);
         opacity: 1;
@@ -1526,6 +1536,7 @@ input:checked+.slider:before {
         background-color: var(--nav-hover-bg);
         transform: scale(1.03);
     }
+
     100% {
         background-color: transparent;
         transform: scale(1);
@@ -1561,19 +1572,25 @@ input:checked+.slider:before {
 }
 
 #kanji-detail-modal .text-5xl {
-  font-size: clamp(2rem, 8vw, 3rem);
+    font-size: clamp(2rem, 8vw, 3rem);
 }
 
-#kanji-detail-modal .text-xl { /* The meaning */
-    font-size: clamp(1.25rem, 5vw, 1.5rem); /* Min size ~17px, very readable */
+#kanji-detail-modal .text-xl {
+    /* The meaning */
+    font-size: clamp(1.25rem, 5vw, 1.5rem);
+    /* Min size ~17px, very readable */
 }
 
-#kanji-detail-modal .text-sm { /* Examples, sentence translations */
-    font-size: clamp(1rem, 3.5vw, 1.1rem); /* Min size ~13.5px, a huge improvement */
+#kanji-detail-modal .text-sm {
+    /* Examples, sentence translations */
+    font-size: clamp(1rem, 3.5vw, 1.1rem);
+    /* Min size ~13.5px, a huge improvement */
 }
 
-#kanji-detail-modal .text-xs { /* Mnemonic and Radical info */
-    font-size: clamp(0.9rem, 3vw, 1rem); /* Min size ~12px, now legible */
+#kanji-detail-modal .text-xs {
+    /* Mnemonic and Radical info */
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    /* Min size ~12px, now legible */
 }
 
 @media (max-width: 480px) {
@@ -1592,6 +1609,7 @@ input:checked+.slider:before {
         opacity: 0;
         transform: translateY(20px) scale(0.98);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
