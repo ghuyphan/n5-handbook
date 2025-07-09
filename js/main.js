@@ -63,6 +63,8 @@ function openKanjiDetailModal(kanjiId) {
     // --- CÁC THAY ĐỔI CHÍNH NẰM Ở ĐÂY ---
     const meaning = kanjiItem.meaning?.[state.currentLang] || kanjiItem.meaning?.en || '';
     const mnemonicText = kanjiItem.mnemonic?.[state.currentLang] || kanjiItem.mnemonic?.en || '';
+    // Handle the new radical format
+    const radicalText = kanjiItem.radical?.[state.currentLang] || kanjiItem.radical?.en || '';
     const sentenceJP = kanjiItem.sentence?.jp;
     // Tự động chọn câu ví dụ dịch theo ngôn ngữ hiện tại
     const sentenceTranslation = kanjiItem.sentence?.[state.currentLang] || kanjiItem.sentence?.en || '';
@@ -95,12 +97,12 @@ function openKanjiDetailModal(kanjiId) {
                         <p class="text-xs">${sentenceTranslation}</p>
                     </div>` : ''}
                 </div>` : ''}
-                ${mnemonicText ? `
+                ${mnemonicText || radicalText ? `
                  <div>
                     <h3 class="font-semibold text-secondary border-b border-glass-border pb-1 mb-2">${getUIText('modalInfo')}</h3>
                     <div class="space-y-2 text-xs text-secondary">
-                        <div><p class="font-semibold text-primary">${getUIText('modalRadical')}</p><p>${kanjiItem.radical}</p></div>
-                        <div><p class="font-semibold text-primary">${getUIText('modalMnemonic')}</p><p>${mnemonicText}</p></div>
+                        ${radicalText ? `<div><p class="font-semibold text-primary">${getUIText('modalRadical')}</p><p>${radicalText}</p></div>` : ''}
+                        ${mnemonicText ? `<div><p class="font-semibold text-primary">${getUIText('modalMnemonic')}</p><p>${mnemonicText}</p></div>` : ''}
                     </div>
                 </div>` : ''}
             </div>
@@ -110,6 +112,7 @@ function openKanjiDetailModal(kanjiId) {
     els.kanjiDetailModal.classList.add('active');
     document.body.classList.add('body-no-scroll'); // Prevents background scroll
 }
+
 
 /** Closes the Kanji Detail Modal */
 function closeKanjiDetailModal() {
