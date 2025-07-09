@@ -59,9 +59,12 @@ function openKanjiDetailModal(kanjiId) {
         return state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
     };
 
+    // --- CÁC THAY ĐỔI CHÍNH NẰM Ở ĐÂY ---
     const meaning = kanjiItem.meaning?.[state.currentLang] || kanjiItem.meaning?.en || '';
+    const mnemonicText = kanjiItem.mnemonic?.[state.currentLang] || kanjiItem.mnemonic?.en || '';
     const sentenceJP = kanjiItem.sentence?.jp;
-    const sentenceEN = kanjiItem.sentence?.en;
+    // Tự động chọn câu ví dụ dịch theo ngôn ngữ hiện tại
+    const sentenceTranslation = kanjiItem.sentence?.[state.currentLang] || kanjiItem.sentence?.en || '';
 
     // Populate the modal content
     els.kanjiModalContentContainer.innerHTML = `
@@ -88,21 +91,21 @@ function openKanjiDetailModal(kanjiId) {
                     ${sentenceJP ? `
                     <div class="mt-3 pt-3 border-t border-glass-border text-secondary">
                         <p class="noto-sans text-primary">${sentenceJP}</p>
-                        <p class="text-xs">${sentenceEN}</p>
+                        <p class="text-xs">${sentenceTranslation}</p>
                     </div>` : ''}
                 </div>` : ''}
-                ${kanjiItem.mnemonic ? `
+                ${mnemonicText ? `
                  <div>
                     <h3 class="font-semibold text-secondary border-b border-glass-border pb-1 mb-2">${getUIText('modalInfo')}</h3>
                     <div class="space-y-2 text-xs text-secondary">
                         <div><p class="font-semibold text-primary">${getUIText('modalRadical')}</p><p>${kanjiItem.radical}</p></div>
-                        <div><p class="font-semibold text-primary">${getUIText('modalMnemonic')}</p><p>${kanjiItem.mnemonic}</p></div>
+                        <div><p class="font-semibold text-primary">${getUIText('modalMnemonic')}</p><p>${mnemonicText}</p></div>
                     </div>
                 </div>` : ''}
             </div>
         </div>
     `;
-    
+
     els.kanjiDetailModal.classList.add('active');
     document.body.classList.add('body-no-scroll'); // Prevents background scroll
 }

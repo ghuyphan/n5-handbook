@@ -1515,6 +1515,7 @@ input:checked+.slider:before {
     animation: highlight-progress 1.5s var(--ease-out-quint);
 }
 
+
 #kanji-detail-modal {
     display: none;
     opacity: 0;
@@ -1537,6 +1538,29 @@ input:checked+.slider:before {
     background-image:
         radial-gradient(at 5% 5%, hsla(215, 98%, 70%, 0.15) 0px, transparent 50%),
         radial-gradient(at 95% 95%, hsla(280, 96%, 76%, 0.15) 0px, transparent 50%);
+}
+
+#kanji-detail-modal .text-6xl {
+    font-size: clamp(3rem, 10vw, 4rem); /* Responsive font size for the Kanji character */
+}
+
+#kanji-detail-modal .text-xl {
+    font-size: clamp(1.125rem, 4vw, 1.25rem); /* Responsive font size for the meaning */
+}
+
+#kanji-detail-modal .text-sm {
+    font-size: clamp(0.875rem, 2.5vw, 1rem); /* Responsive font size for other text */
+}
+
+#kanji-detail-modal .text-xs {
+    font-size: clamp(0.75rem, 2vw, 0.875rem);
+}
+
+/* Ensure the modal content doesn't get too cramped on small screens */
+@media (max-width: 480px) {
+    #kanji-detail-modal .p-6 {
+        padding: 1rem;
+    }
 }
 
 
