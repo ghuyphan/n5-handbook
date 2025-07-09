@@ -1,5 +1,3 @@
-/* Add this to the end of your styles.css file */
-
 mark.search-highlight {
     background-color: var(--accent-yellow);
     color: var(--text-primary);
@@ -283,7 +281,7 @@ body {
         display: flex;
         padding: 0.75rem;
         margin: 0;
-        transition: filter 0.4s var(--ease-in-out-quad);
+        transition: filter 0.4s var(--ease-in-quad);
         border-radius: 0;
     }
 
@@ -1626,4 +1624,34 @@ input:checked+.slider:before {
 .kanji-modal-translation {
     font-size: 0.875rem; /* 14px */
     color: var(--text-secondary);
+}
+
+/* Styles for Kanji Detail Modal Scroll Hint */
+.kanji-modal-scroll-content {
+    /* Hide scrollbar for WebKit (Chrome, Safari) */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+    /* Hide scrollbar for IE, Edge, and Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+
+    position: relative; /* Needed for the pseudo-element */
+}
+
+.kanji-modal-scroll-content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px; /* Adjust the height of the fade */
+    background: linear-gradient(to bottom, transparent, var(--glass-bg));
+    pointer-events: none; /* Allows clicks to pass through */
+    transition: opacity 0.3s ease-in-out;
+    opacity: 1;
+}
+
+.kanji-modal-scroll-content.scrolled-to-bottom::after {
+    opacity: 0; /* Hide the fade when at the bottom */
 }

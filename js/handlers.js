@@ -263,10 +263,9 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
         history.pushState(historyState, '', url);
     }
 
-    const mainContent = els.mainContent;
     const oldActiveTab = document.querySelector('.tab-content.active');
     if (oldActiveTab) {
-        state.tabScrollPositions.set(oldActiveTab.id, mainContent.scrollTop);
+        state.tabScrollPositions.set(oldActiveTab.id, window.scrollY);
     }
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const activeTab = document.getElementById(tabName);
@@ -298,7 +297,7 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
 
     if (!suppressScroll) {
         const newScrollY = state.tabScrollPositions.get(tabName) || 0;
-        mainContent.scrollTo({
+        window.scrollTo({
             top: newScrollY,
             behavior: 'instant'
         });
@@ -313,21 +312,24 @@ export function jumpToSection(tabName, sectionTitleKey) {
         if (!sectionHeader) return;
         const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
         const accordionContent = accordionWrapper ? accordionWrapper.querySelector('.accordion-content') : null;
+        
         const executeScroll = () => {
-            const elementTop = sectionHeader.getBoundingClientRect().top;
-            const mainContentTop = els.mainContent.getBoundingClientRect().top;
-            const currentScrollY = els.mainContent.scrollTop;
+            const elementRect = sectionHeader.getBoundingClientRect();
+            const elementTopInDocument = window.scrollY + elementRect.top;
+
             let headerOffset = 0;
             const mobileHeader = document.querySelector('.mobile-header.sticky');
             if (mobileHeader && getComputedStyle(mobileHeader).position === 'sticky') {
                 headerOffset = mobileHeader.offsetHeight;
             }
             const buffer = 20;
-            els.mainContent.scrollTo({
-                top: (elementTop - mainContentTop + currentScrollY) - buffer,
-                behavior: 'smooth'
+
+            window.scrollTo({
+                top: elementTopInDocument - headerOffset - buffer,
+                behavior: 'auto' // Changed from 'smooth' to 'auto' for an instant jump
             });
         };
+
         if (accordionWrapper && sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
             accordionContent.addEventListener('transitionend', executeScroll, { once: true });
             sectionHeader.click();
@@ -335,6 +337,7 @@ export function jumpToSection(tabName, sectionTitleKey) {
             executeScroll();
         }
     };
+
     if (isAlreadyOnTab) {
         scrollToAction();
     } else {
