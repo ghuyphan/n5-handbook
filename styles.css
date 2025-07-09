@@ -1615,3 +1615,15 @@ input:checked+.slider:before {
 .dark-mode .details-toggle svg {
     color: var(--text-primary);
 }
+
+/* Add to the end of your styles.css file */
+.with-furigana {
+    font-size: 1.2rem;
+    line-height: 2.4; /* Increased for more space */
+}
+
+/* Make the right-side text in the modal more consistent */
+.kanji-modal-translation {
+    font-size: 0.875rem; /* 14px */
+    color: var(--text-secondary);
+}

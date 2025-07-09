@@ -20,49 +20,31 @@ import {
 } from './ui.js';
 
 
-/**
- * Removes previously highlighted search terms from a container.
- * @param {HTMLElement} container - The element to clear highlights from.
- */
 function removeHighlights(container) {
     const marks = Array.from(container.querySelectorAll('mark.search-highlight'));
     marks.forEach(mark => {
         const parent = mark.parentNode;
         if (parent) {
-            // Replace the <mark> tag with its own text content
             parent.replaceChild(document.createTextNode(mark.textContent), mark);
-            // After replacing, normalize the parent to merge adjacent text nodes
             parent.normalize();
         }
     });
 }
 
-/**
- * Finds and highlights search query matches within a given element.
- * @param {HTMLElement} element - The element to search within.
- * @param {string} query - The search query to highlight.
- */
 function highlightMatches(element, query) {
     if (!query) return;
-
-    // Create a regular expression to find the query, ignoring case
     const regex = new RegExp(`(${query.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1")})`, 'gi');
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
     const nodesToModify = [];
-
-    // First, find all text nodes that contain a match
     let currentNode;
     while (currentNode = walker.nextNode()) {
         if (regex.test(currentNode.nodeValue)) {
             nodesToModify.push(currentNode);
         }
     }
-
-    // Then, process each node to wrap matches in <mark> tags
     nodesToModify.forEach(node => {
         const fragment = document.createDocumentFragment();
         const parts = node.nodeValue.split(regex);
-
         parts.forEach(part => {
             if (part.toLowerCase() === query.toLowerCase()) {
                 const mark = document.createElement('mark');
@@ -73,19 +55,16 @@ function highlightMatches(element, query) {
                 fragment.appendChild(document.createTextNode(part));
             }
         });
-        
         if (node.parentNode) {
             node.parentNode.replaceChild(fragment, node);
         }
     });
 }
 
-
 export function toggleLearned(category, id, element) {
     if (!state.progress[category]) state.progress[category] = [];
     const arr = state.progress[category];
     const idx = arr.indexOf(id);
-
     if (idx > -1) {
         arr.splice(idx, 1);
         element.classList.remove('learned');
@@ -98,17 +77,14 @@ export function toggleLearned(category, id, element) {
 
 export function setupFuseForTab(tabId) {
     if (state.fuseInstances[tabId] || !state.appData[tabId]) return;
-
     const container = document.getElementById(tabId);
     if (!container) return;
-
     const searchableElements = container.querySelectorAll('[data-search-item], [data-search]');
     const collection = Array.from(searchableElements).map((el, index) => ({
         id: el.dataset.itemId || `${tabId}-${index}`,
         element: el,
         searchData: el.dataset.searchItem || el.dataset.search
     }));
-
     if (collection.length > 0) {
         state.fuseInstances[tabId] = new Fuse(collection, {
             keys: ['searchData'],
@@ -125,39 +101,27 @@ export const handleSearch = debounce(() => {
     const lowerCaseQuery = query.toLowerCase();
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
-
-    // Clear any existing highlights from the previous search
     removeHighlights(activeTab);
-
     const activeTabId = activeTab.id;
     if (isMobileView && els.mobileSearchBar) {
         els.mobileSearchBar.classList.toggle('visible', activeTabId !== 'progress');
     }
-
     const fuse = state.fuseInstances[activeTabId];
     const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
     const allWrappers = activeTab.querySelectorAll('.search-wrapper');
-
     if (!lowerCaseQuery) {
         allItems.forEach(item => { item.style.display = ''; });
         allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
         return;
     }
-
     if (!fuse) return;
-
     allItems.forEach(item => { item.style.display = 'none'; });
     allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
-
     const results = fuse.search(lowerCaseQuery);
     results.forEach(result => {
         const itemElement = result.item.element;
         itemElement.style.display = '';
-
-        // Apply new highlights
         highlightMatches(itemElement, query);
-
-        // Show parent wrappers and expand accordions if needed
         let parent = itemElement.parentElement;
         while (parent) {
             if (parent.hasAttribute('data-search') || parent.classList.contains('search-wrapper')) {
@@ -175,23 +139,19 @@ export const handleSearch = debounce(() => {
 export function setLanguage(lang, skipRender = false) {
     state.currentLang = lang;
     saveSetting('language', lang);
-
     const uiStrings = state.appData.ui;
     const processText = (textKey) => {
         let text = uiStrings?.[lang]?.[textKey] || uiStrings?.['en']?.[textKey] || `[${textKey}]`;
         return text.replace('{level}', state.currentLevel.toUpperCase());
     };
-
     document.querySelectorAll('[data-lang-key]').forEach(el => {
         el.textContent = processText(el.dataset.langKey);
     });
     document.querySelectorAll('[data-lang-placeholder-key]').forEach(el => {
         el.placeholder = processText(el.dataset.langPlaceholderKey);
     });
-
     document.querySelectorAll('.lang-switch button').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
     document.querySelectorAll('.lang-switch').forEach(moveLangPill);
-
     if (!skipRender) {
         state.fuseInstances = {};
         renderContent();
@@ -202,20 +162,17 @@ export function setLanguage(lang, skipRender = false) {
 export function toggleTheme(event) {
     const isChecked = event.target.checked;
     document.documentElement.classList.toggle('dark-mode', isChecked);
-
     try {
         localStorage.setItem('theme', isChecked ? 'dark' : 'light');
     } catch (e) {
         console.warn("Could not save theme to localStorage.", e);
     }
-
-    // Ensure all toggles are in sync
     document.querySelectorAll('.theme-switch input').forEach(input => {
         if (input !== event.target) input.checked = isChecked;
     });
 }
 
-export async function setLevel(level) {
+export async function setLevel(level, fromHistory = false) {
     if (level === state.currentLevel) return;
 
     state.currentLevel = level;
@@ -227,23 +184,31 @@ export async function setLevel(level) {
         await loadAllData(level);
         const db = await dbPromise;
         state.progress = (await db.get('progress', state.currentLevel)) || { kanji: [], vocab: [] };
-
         const levelSettings = await db.get('settings', 'levelSettings') || {};
         const currentLevelSettings = levelSettings[state.currentLevel];
         state.pinnedTab = currentLevelSettings?.pinnedTab || null;
         updateSidebarPinIcons();
-
         state.fuseInstances = {};
         renderContent();
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
-
         document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
-        
+
         const isMobileView = window.innerWidth <= 768;
         const defaultTab = isMobileView ? 'progress' : 'hiragana';
-        changeTab(state.pinnedTab || defaultTab);
+        const targetTab = state.pinnedTab || defaultTab;
 
+        if (fromHistory) {
+            const params = new URLSearchParams(window.location.search);
+            const urlTab = params.get('tab');
+            if (urlTab !== targetTab) {
+                const newUrl = `?level=${state.currentLevel}&tab=${targetTab}`;
+                const newState = { type: 'tab', tabName: targetTab, level: state.currentLevel };
+                history.replaceState(newState, '', newUrl);
+            }
+        }
+        
+        changeTab(targetTab, null, false, fromHistory);
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
         alert(`Could not load data for level ${level.toUpperCase()}.`);
@@ -261,7 +226,6 @@ async function savePinnedTab(tabId) {
         }
         levelSettings[state.currentLevel].pinnedTab = tabId || null;
         await saveSetting('levelSettings', levelSettings);
-
         updatePinButtonState(tabId);
         updateSidebarPinIcons();
     } catch (error) {
@@ -272,7 +236,6 @@ async function savePinnedTab(tabId) {
 export function togglePin() {
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
-
     const tabId = activeTab.id;
     if (state.pinnedTab === tabId) {
         els.pinToggle.classList.add('unpinning');
@@ -288,20 +251,28 @@ export function toggleSidebarPin(event, tabId) {
     savePinnedTab(state.pinnedTab);
 }
 
-export function changeTab(tabName, buttonElement, suppressScroll = false) {
-    const mainContent = els.mainContent;
+export function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false) {
+    const activeTabEl = document.querySelector('.tab-content.active');
+    if (activeTabEl && activeTabEl.id === tabName && !fromHistory) {
+        return; 
+    }
 
+    if (!fromHistory) {
+        const url = `?level=${state.currentLevel}&tab=${tabName}`;
+        const historyState = { type: 'tab', tabName: tabName, level: state.currentLevel };
+        history.pushState(historyState, '', url);
+    }
+
+    const mainContent = els.mainContent;
     const oldActiveTab = document.querySelector('.tab-content.active');
     if (oldActiveTab) {
         state.tabScrollPositions.set(oldActiveTab.id, mainContent.scrollTop);
     }
-
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const activeTab = document.getElementById(tabName);
     if (activeTab) {
         activeTab.classList.add('active');
     }
-
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     const targetButton = buttonElement || document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
     if (targetButton) {
@@ -337,33 +308,26 @@ export function changeTab(tabName, buttonElement, suppressScroll = false) {
 export function jumpToSection(tabName, sectionTitleKey) {
     const activeTab = document.querySelector('.tab-content.active');
     const isAlreadyOnTab = activeTab && activeTab.id === tabName;
-
     const scrollToAction = () => {
         const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
         if (!sectionHeader) return;
-
         const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
         const accordionContent = accordionWrapper ? accordionWrapper.querySelector('.accordion-content') : null;
-
         const executeScroll = () => {
             const elementTop = sectionHeader.getBoundingClientRect().top;
-            const currentScrollY = window.scrollY;
-            const targetY = elementTop + currentScrollY;
-
+            const mainContentTop = els.mainContent.getBoundingClientRect().top;
+            const currentScrollY = els.mainContent.scrollTop;
             let headerOffset = 0;
             const mobileHeader = document.querySelector('.mobile-header.sticky');
             if (mobileHeader && getComputedStyle(mobileHeader).position === 'sticky') {
                 headerOffset = mobileHeader.offsetHeight;
             }
-            
             const buffer = 20;
-
-            window.scrollTo({
-                top: targetY - headerOffset - buffer,
+            els.mainContent.scrollTo({
+                top: (elementTop - mainContentTop + currentScrollY) - buffer,
                 behavior: 'smooth'
             });
         };
-
         if (accordionWrapper && sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
             accordionContent.addEventListener('transitionend', executeScroll, { once: true });
             sectionHeader.click();
@@ -371,26 +335,20 @@ export function jumpToSection(tabName, sectionTitleKey) {
             executeScroll();
         }
     };
-
     if (isAlreadyOnTab) {
         scrollToAction();
     } else {
         const previousTabId = activeTab ? activeTab.id : null;
         changeTab(tabName, null, true);
-        
         const isMobileView = window.innerWidth <= 768;
         const searchBarWillAnimate = isMobileView && previousTabId === 'progress' && tabName !== 'progress';
-        
         if (searchBarWillAnimate && els.mobileSearchBar) {
-            // This is the key: we wait for the animation to end before scrolling.
             els.mobileSearchBar.addEventListener('transitionend', scrollToAction, { once: true });
         } else {
-            // For other cases, a tiny delay is enough for the DOM to update.
             setTimeout(scrollToAction, 50);
         }
     }
 }
-
 
 export async function deleteLevel(level) {
     if (level === config.defaultLevel) {
