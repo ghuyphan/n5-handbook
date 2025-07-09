@@ -296,12 +296,19 @@ export function updateProgressDashboard() {
  * Moves the language switcher's pill to the active language button.
  * @param {HTMLElement} switcherContainer - The container of the language switcher.
  */
-export function moveLangPill(switcherContainer) {
-    const pill = switcherContainer.querySelector('.lang-switch-pill');
-    const activeButton = switcherContainer.querySelector('button.active');
-    if (!activeButton || !pill) return;
-    pill.style.width = `${activeButton.offsetWidth}px`;
-    pill.style.transform = `translateX(${activeButton.offsetLeft}px)`;
+export function moveLangPill(langSwitchElement) {
+    const activeBtn = langSwitchElement.querySelector('button.active');
+    const pill = langSwitchElement.querySelector('.lang-switch-pill');
+
+    if (!activeBtn || !pill) return;
+
+    // 1. READ all measurements first
+    const buttonWidth = activeBtn.offsetWidth;
+    const buttonOffsetLeft = activeBtn.offsetLeft;
+
+    // 2. WRITE all updates last
+    pill.style.width = `${buttonWidth}px`;
+    pill.style.transform = `translateX(${buttonOffsetLeft}px)`;
 }
 
 /**
