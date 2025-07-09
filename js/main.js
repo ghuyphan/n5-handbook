@@ -39,14 +39,40 @@ function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><bu
  * @param {object} stateObj - The state object from the history event.
  */
 function handleStateChange(stateObj) {
-    if (!stateObj) return;
+    // --- MODIFICATION START ---
+    // This function now acts as a gatekeeper for the back button.
+
+    // 1. Check if the Kanji Detail modal is active.
+    if (els.kanjiDetailModal.classList.contains('active')) {
+        closeKanjiDetailModal(true); // Pass true to prevent a history.back() loop
+        return; // Stop further processing.
+    }
+
+    // 2. Check if the Import modal is active.
+    // The `els.closeImportModal` function is exposed from setupImportModal.
+    if (els.closeImportModal && !els.importModal.classList.contains('modal-hidden')) {
+        els.closeImportModal(true); // Call the exposed close function with the flag.
+        return; // Stop further processing.
+    }
+    // --- MODIFICATION END ---
+
+
+    // Original navigation logic only runs if no modals were closed.
+    if (!stateObj) {
+        // If state is null, it might be an old hash. Clear it without navigating.
+        if (location.hash.includes('-modal')) {
+            history.replaceState(history.state, '', window.location.pathname + window.location.search);
+        }
+        return;
+    }
 
     if (stateObj.level !== state.currentLevel) {
         setLevel(stateObj.level, true); // Pass true to indicate it's from a history event
-    } else {
+    } else if (stateObj.tabName) {
         changeTab(stateObj.tabName, null, false, true); // Pass true for history event
     }
 }
+
 
 /**
  * Populates and opens the Kanji Detail Modal.
@@ -147,6 +173,14 @@ function openKanjiDetailModal(kanjiId) {
         scrollContent.addEventListener('scroll', checkScroll);
         checkScroll(); // Initial check
     }
+    
+    // --- MODIFICATION START ---
+    // Push a new state to the history to handle the back button.
+    const modalState = { modalOpen: 'kanji' };
+    const currentUrl = new URL(window.location);
+    currentUrl.hash = 'kanji-modal';
+    history.pushState(modalState, '', currentUrl);
+    // --- MODIFICATION END ---
 
     els.kanjiDetailModal.classList.add('active');
     document.body.classList.add('body-no-scroll');
@@ -154,11 +188,22 @@ function openKanjiDetailModal(kanjiId) {
 
 /**
  * Closes the Kanji Detail Modal.
+ * @param {boolean} [isFromPopState=false] - True if the call is from a popstate event.
  */
-function closeKanjiDetailModal() {
+function closeKanjiDetailModal(isFromPopState = false) {
+    if (!els.kanjiDetailModal.classList.contains('active')) return;
+
     els.kanjiDetailModal.classList.remove('active');
     document.body.classList.remove('body-no-scroll');
+
+    // --- MODIFICATION START ---
+    // If closed manually (not by back button), go back in history to remove the modal state.
+    if (!isFromPopState && location.hash === '#kanji-modal') {
+        history.back();
+    }
+    // --- MODIFICATION END ---
 }
+
 
 /**
  * Sets up all global event listeners for the application.
@@ -236,14 +281,14 @@ function setupEventListeners() {
     // Kanji modal specific listeners
     els.kanjiDetailModal.addEventListener('click', (e) => {
         if (e.target === els.kanjiModalBackdrop || e.target.closest('#close-kanji-modal-btn')) {
-            closeKanjiDetailModal();
+            closeKanjiDetailModal(); // Correctly calls the modified function
         }
     });
 
     // Keyboard accessibility
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && els.kanjiDetailModal.classList.contains('active')) {
-            closeKanjiDetailModal();
+            closeKanjiDetailModal(); // Correctly calls the modified function
         }
     });
 
@@ -276,22 +321,43 @@ function setupImportModal() {
         els.importModal.querySelectorAll('[data-lang-placeholder-key]').forEach(el => el.placeholder = getUIText(el.dataset.langPlaceholderKey));
     };
 
+    // --- MODIFICATION START ---
+    let closeModal; // Define here to be accessible throughout the scope
+
     const openModal = () => {
         document.body.classList.add('body-no-scroll');
         closeSidebar();
         resetModal();
         updateModalLocale();
+
+        // Push a state to history for the import modal
+        const modalState = { modalOpen: 'import' };
+        const currentUrl = new URL(window.location);
+        currentUrl.hash = 'import-modal';
+        history.pushState(modalState, '', currentUrl);
+
         els.importModal.classList.remove('modal-hidden');
         els.importModalBackdrop.classList.add('active');
         els.modalWrapper.classList.add('active');
     };
 
-    const closeModal = () => {
+    closeModal = (isFromPopState = false) => {
+        if (els.importModal.classList.contains('modal-hidden')) return;
+
         document.body.classList.remove('body-no-scroll');
         els.importModalBackdrop.classList.remove('active');
         els.modalWrapper.classList.remove('active');
         setTimeout(() => els.importModal.classList.add('modal-hidden'), 300);
+
+        // If closed manually, go back in history
+        if (!isFromPopState && location.hash === '#import-modal') {
+            history.back();
+        }
     };
+    
+    // EXPOSE the closeModal function so our global popstate handler can use it.
+    els.closeImportModal = closeModal;
+    // --- MODIFICATION END ---
 
     // **UPDATED**: Stricter validation prevents overwriting existing levels.
     const updateImportButtonState = () => {
@@ -519,9 +585,11 @@ async function init() {
             state.currentLevel = urlLevel;
         }
 
+        // Must run before setupEventListeners so the exposed close function is available
+        setupImportModal(); 
         setupEventListeners();
+
         buildLevelSwitcher(remoteLevels, customLevels);
-        setupImportModal();
         await loadAllData(state.currentLevel);
         setupTheme();
         renderContent();
