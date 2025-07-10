@@ -1686,3 +1686,98 @@ input:checked+.slider:before {
 .kanji-modal-scroll-content.scrolled-to-bottom::after {
     opacity: 0;
 }
+
+/*
+==============================================
+External Search Results Styling
+==============================================
+*/
+
+/* Add spacing to search result section titles */
+#external-search h3 {
+    margin-top: 2.5rem; /* 40px */
+    margin-bottom: 1rem; /* 16px */
+}
+
+/* Style container for dictionary results */
+.grammar-grid > div {
+    padding: 1.25rem;
+    background-color: var(--card-front-bg);
+    border: 1px solid var(--card-front-border);
+    border-radius: var(--radius-lg);
+    transition: transform 0.4s var(--ease-out-quint), box-shadow 0.4s var(--ease-out-quint);
+    will-change: transform, box-shadow;
+}
+
+.grammar-grid > div:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 22px -6px var(--shadow-color);
+}
+
+/* Kanji Card Specifics */
+.kanji-character {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-bottom: 0.75rem;
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+.onyomi::before {
+    content: 'On:';
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-right: 0.5rem;
+}
+
+.kunyomi::before {
+    content: 'Kun:';
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-right: 0.5rem;
+}
+
+.onyomi, .kunyomi {
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.kunyomi {
+    margin-top: 0.25rem;
+}
+
+.kanji-definitions {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--glass-border);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+/* Vocabulary Card Specifics */
+.vocab-term {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.vocab-reading {
+    color: var(--text-secondary);
+    margin-left: 0.5rem;
+}
+
+.vocab-definitions {
+    margin-top: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.vocab-definitions p {
+    margin-bottom: 0.5rem;
+}
+
+.vocab-definitions p:last-child {
+    margin-bottom: 0;
+}

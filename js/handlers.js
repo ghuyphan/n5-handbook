@@ -8,8 +8,8 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
-import { renderContent, updateProgressDashboard, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderExternalSearchResults } from './ui.js';
-import { handleExternalSearch } from './jotoba.js'; // Import the new handler
+import { renderContent, updateProgressDashboard, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher } from './ui.js';
+import { handleExternalSearch } from './jotoba.js';
 
 function removeHighlights(container) {
     const marks = Array.from(container.querySelectorAll('mark.search-highlight'));
@@ -100,11 +100,9 @@ export const handleSearch = debounce(() => {
         els.mobileSearchBar.classList.toggle('visible', isSearchTab || activeTabId !== 'progress');
     }
 
-    // Route to the appropriate search handler
     if (activeTabId === 'external-search') {
         handleExternalSearch(query);
     } else {
-        // Handle internal search for all other tabs
         removeHighlights(activeTab);
         const fuse = state.fuseInstances[activeTabId];
         const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
@@ -153,6 +151,18 @@ export function setLanguage(lang, skipRender = false) {
     });
     document.querySelectorAll('.lang-switch button').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
     document.querySelectorAll('.lang-switch').forEach(moveLangPill);
+
+    const activeNavButton = document.querySelector('.nav-item.active');
+    if (activeNavButton) {
+        const titleSpan = activeNavButton.querySelector('span');
+        const titleKey = titleSpan?.dataset.langKey;
+        if (titleKey && els.mobileHeaderTitle) {
+            els.mobileHeaderTitle.textContent = processText(titleKey);
+        } else if (titleSpan && els.mobileHeaderTitle) {
+            els.mobileHeaderTitle.textContent = titleSpan.textContent;
+        }
+    }
+
     if (!skipRender) {
         state.fuseInstances = {};
         renderContent();
@@ -275,10 +285,13 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
     const activeTab = document.getElementById(tabName);
     if (activeTab) {
         activeTab.classList.add('active');
+        // --- CHANGE IS HERE ---
+        // If the dictionary tab is empty, show a simple, clean prompt.
         if (tabName === 'external-search' && activeTab.innerHTML.trim() === '') {
             const promptText = state.appData.ui?.[state.currentLang]?.dictionaryPrompt || 'Enter a word to search.';
-            activeTab.innerHTML = `<p class="text-center text-secondary my-8" data-lang-key="dictionaryPrompt">${promptText}</p>`;
+            activeTab.innerHTML = `<div class="text-center py-16"><h3 class="text-lg font-medium text-primary">${promptText}</h3></div>`;
         }
+        // --- END OF CHANGE ---
     }
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     const targetButton = buttonElement || document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
@@ -319,7 +332,6 @@ export function jumpToSection(tabName, sectionTitleKey) {
         const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
         if (!sectionHeader) return;
         const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
-        const accordionContent = accordionWrapper ? accordionWrapper.querySelector('.accordion-content') : null;
         
         const executeScroll = () => {
             const elementRect = sectionHeader.getBoundingClientRect();
@@ -339,8 +351,9 @@ export function jumpToSection(tabName, sectionTitleKey) {
         };
 
         if (accordionWrapper && sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
-            accordionContent.addEventListener('transitionend', executeScroll, { once: true });
             sectionHeader.click();
+            const accordionContent = accordionWrapper.querySelector('.accordion-content');
+            accordionContent.addEventListener('transitionend', executeScroll, { once: true });
         } else {
             executeScroll();
         }

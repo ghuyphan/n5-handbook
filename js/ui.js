@@ -327,7 +327,7 @@ function findKanjiData(kanjiCharacter) {
 
 /**
  * Renders the results from the external Jotoba search.
- * @param {{words: Array}} results - The search results from the Jotoba API.
+ * @param {{words: Array, kanji: Array}} results - The search results from the Jotoba API.
  * @param {string} query - The original search query.
  */
 export function renderExternalSearchResults(results, query) {
@@ -337,13 +337,21 @@ export function renderExternalSearchResults(results, query) {
     els.externalSearchTab.innerHTML = '';
     const fragment = document.createDocumentFragment();
 
-    if (results.words && results.words.length > 0) {
+    const hasWords = results.words && results.words.length > 0;
+    const hasKanji = results.kanji && results.kanji.length > 0;
+
+    if (hasWords) {
+        const vocabHeader = document.createElement('h3');
+        vocabHeader.className = 'text-xl font-bold mb-4 text-primary';
+        vocabHeader.textContent = getUIText('vocabResults');
+        fragment.appendChild(vocabHeader);
+
         const vocabGrid = document.createElement('div');
         vocabGrid.className = 'grammar-grid';
         results.words.forEach(word => {
             const template = document.getElementById('external-vocab-result-template').content.cloneNode(true);
             const term = word.reading.kanji || word.reading.kana;
-            
+
             const termWithClickableKanji = term.split('').map(char => {
                 if (/[\u4e00-\u9faf]/.test(char)) {
                     const kanjiItem = findKanjiData(char);
@@ -353,15 +361,62 @@ export function renderExternalSearchResults(results, query) {
                 }
                 return char;
             }).join('');
-            
+
             template.querySelector('.vocab-term').innerHTML = termWithClickableKanji;
             const reading = term !== word.reading.kana ? `(${word.reading.kana})` : '';
             template.querySelector('.vocab-reading').textContent = reading;
-            template.querySelector('.vocab-definitions').textContent = word.translatedSenses;
+
+            const sensesHTML = word.senses.map(sense => {
+                const glosses = sense.glosses.join(', ');
+                let posText = '';
+
+                if (sense.pos && sense.pos.length > 0) {
+                    const posArray = sense.pos.map(p => {
+                        if (typeof p === 'object' && p !== null) {
+                            return Object.keys(p)[0];
+                        }
+                        return p;
+                    });
+
+                    const uniquePosArray = [...new Set(posArray)];
+                    posText = `<span class="text-xs opacity-70 font-mono">[${uniquePosArray.join(', ')}]</span>`;
+                }
+                return `<p>${glosses} ${posText}</p>`;
+            }).join('');
+            template.querySelector('.vocab-definitions').innerHTML = sensesHTML;
+
             vocabGrid.appendChild(template);
         });
         fragment.appendChild(vocabGrid);
-    } else {
+    }
+
+    if (hasKanji) {
+        const kanjiHeader = document.createElement('h3');
+        // Apply classes for font and color, but set margins directly
+        kanjiHeader.className = 'text-xl font-bold text-primary';
+        // --- FIX IS HERE ---
+        // Set margin directly on the style object to ensure it applies
+        kanjiHeader.style.marginTop = '2.5rem';    // 40px
+        kanjiHeader.style.marginBottom = '1rem'; // 16px
+        // --- END OF FIX ---
+
+        kanjiHeader.textContent = getUIText('kanjiResults');
+        fragment.appendChild(kanjiHeader);
+
+        const kanjiGrid = document.createElement('div');
+        kanjiGrid.className = 'grammar-grid';
+        results.kanji.forEach(k => {
+            const template = document.getElementById('external-kanji-result-template').content.cloneNode(true);
+            template.querySelector('.kanji-character').textContent = k.literal;
+            template.querySelector('.onyomi').textContent = k.onyomi ? k.onyomi.join(', ') : 'N/A';
+            template.querySelector('.kunyomi').textContent = k.kunyomi ? k.kunyomi.join(', ') : 'N/A';
+            template.querySelector('.kanji-definitions').textContent = k.meanings ? k.meanings.join('; ') : 'N/A';
+            kanjiGrid.appendChild(template);
+        });
+        fragment.appendChild(kanjiGrid);
+    }
+
+    if (!hasWords && !hasKanji) {
         const noResults = document.createElement('p');
         noResults.className = 'text-center text-secondary my-8';
         noResults.innerHTML = `${getUIText('noResults')} "<b>${query}</b>".
