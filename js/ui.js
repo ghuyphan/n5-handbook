@@ -11,13 +11,15 @@ import { setupFuseForTab } from './handlers.js';
 
 export function createSearchPlaceholder(type, query = '') {
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
-    let icon, title, subtitle;
+    let icon, title, subtitle, notice = '';
 
     switch (type) {
         case 'searching':
             return `
                 <div class="search-placeholder-wrapper">
-                    <div class="loader"></div>
+                    <div class="glass-effect p-8 rounded-2xl flex flex-col items-center">
+                        <div class="loader"></div>
+                    </div>
                 </div>`;
         case 'no-results':
             icon = `<svg class="w-16 h-16 text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -32,15 +34,19 @@ export function createSearchPlaceholder(type, query = '') {
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                     </svg>`;
             title = getUIText('dictionaryPrompt');
-            subtitle = 'Search for Japanese words, kanji, or English definitions.';
+            subtitle = getUIText('dictionarySubtitle');
+            notice = `<p class="text-xs text-secondary opacity-70 mt-4">${getUIText('dictionaryNotice')}</p>`;
             break;
     }
 
     return `
         <div class="search-placeholder-wrapper">
-            ${icon}
-            <h3 class="text-lg font-medium text-primary">${title}</h3>
-            <p class="text-secondary text-sm mt-1">${subtitle}</p>
+             <div class="glass-effect p-8 rounded-2xl flex flex-col items-center">
+                ${icon}
+                <h3 class="text-lg font-medium text-primary">${title}</h3>
+                <p class="text-secondary text-sm mt-1">${subtitle}</p>
+                ${notice}
+            </div>
         </div>`;
 }
 

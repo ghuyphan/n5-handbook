@@ -8,7 +8,7 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
-import { renderContent, updateProgressDashboard, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher } from './ui.js';
+import { renderContent, updateProgressDashboard, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, createSearchPlaceholder } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
 function removeHighlights(container) {
@@ -168,6 +168,14 @@ export function setLanguage(lang, skipRender = false) {
         renderContent();
         updateProgressDashboard();
     }
+    
+    const externalSearchTab = els.externalSearchTab;
+    const searchInputs = [els.searchInput, els.mobileSearchInput];
+    const isSearchEmpty = searchInputs.every(input => !input || input.value.trim() === '');
+    
+    if (externalSearchTab && externalSearchTab.classList.contains('active') && isSearchEmpty) {
+        externalSearchTab.innerHTML = createSearchPlaceholder('prompt');
+    }
 }
 
 export function toggleTheme(event) {
@@ -286,16 +294,7 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
     if (activeTab) {
         activeTab.classList.add('active');
         if (tabName === 'external-search' && activeTab.innerHTML.trim() === '') {
-            const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
-            const promptText = getUIText('dictionaryPrompt');
-            activeTab.innerHTML = `
-                <div class="text-center py-16 flex flex-col items-center justify-center">
-                    <svg class="w-16 h-16 text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                    </svg>
-                    <h3 class="text-lg font-medium text-primary">${promptText}</h3>
-                    <p class="text-secondary text-sm mt-1">Search for Japanese words, kanji, or English definitions.</p>
-                </div>`;
+            activeTab.innerHTML = createSearchPlaceholder('prompt');
         }
     }
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
