@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-    <!-- Preconnect to critical third-party origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -13,14 +12,12 @@
     <title>JLPT Handbook</title>
     <link rel="icon" type="image/png" href="./assets/siteIcon.png">
 
-    <!-- Preload critical assets for faster rendering -->
     <link rel="preload"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
         as="style">
     <link rel="preload" href="./js/main.js" as="script">
     <link rel="preload" href="./assets/siteIcon.png" as="image">
 
-    <!-- SEO and Social Media Meta Tags (preserved from original) -->
     <meta name="description"
         content="An interactive, multi-level web application to help you study Japanese. Start with the built-in JLPT N5 material or import your own custom study levels.">
     <meta property="og:type" content="website">
@@ -35,18 +32,14 @@
         content="An interactive, multi-level web application to help you study Japanese, featuring progress tracking, fuzzy search, and a bilingual interface.">
     <meta name="twitter:image" content="https://ghuyphan.github.io/n5-handbook/assets/og.png">
 
-    <!-- Minified inline script to prevent Flash of Unstyled Content (FOUC) -->
     <script>try { const e = localStorage.getItem("theme"), t = window.matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.classList.toggle("dark-mode", e ? "dark" === e : t) } catch (e) { console.error("Theme error", e) }</script>
 
-    <!-- Self-hosted, minified Tailwind CSS for production -->
     <link rel="stylesheet" href="build/tailwind.min.css">
 
-    <!-- Optimized, non-render-blocking Google Fonts -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
         media="print" onload="this.media='all'">
 
-    <!-- Placeholder for inlined critical CSS -->
     <style>
         /* Critical CSS from your 'styles.css' file should be inlined here for best performance. */
     </style>
@@ -255,6 +248,20 @@
                 <div id="loading-overlay">
                     <div class="loader"></div>
                 </div>
+
+                <div class="mb-8">
+                    <div class="relative">
+                        <input type="search" id="external-search-input" placeholder="Search JMdict/Kanjidic..."
+                               class="w-full p-4 pl-12 rounded-full glass-effect border-none focus:ring-2 focus:ring-accent-blue text-primary">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                            <svg class="w-6 h-6 text-secondary" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div id="external-search-results" class="mt-4"></div>
+                </div>
+
                 <div id="progress" class="tab-content"></div>
                 <div id="hiragana" class="tab-content"></div>
                 <div id="katakana" class="tab-content"></div>
@@ -386,7 +393,6 @@
         </div>
     </div>
 
-    <!-- Defer non-critical JS to prevent render blocking -->
     <script type="module" src="./js/main.js" defer></script>
 </body>
 
