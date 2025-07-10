@@ -94,16 +94,18 @@ export const handleSearch = debounce(() => {
     if (!activeTab) return;
 
     const activeTabId = activeTab.id;
-    
+
+    if (isMobileView && els.mobileSearchBar) {
+        const isSearchTab = activeTabId === 'external-search';
+        els.mobileSearchBar.classList.toggle('visible', isSearchTab || activeTabId !== 'progress');
+    }
+
     // Route to the appropriate search handler
     if (activeTabId === 'external-search') {
         handleExternalSearch(query);
     } else {
         // Handle internal search for all other tabs
         removeHighlights(activeTab);
-        if (isMobileView && els.mobileSearchBar) {
-            els.mobileSearchBar.classList.toggle('visible', activeTabId !== 'progress');
-        }
         const fuse = state.fuseInstances[activeTabId];
         const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
         const allWrappers = activeTab.querySelectorAll('.search-wrapper');

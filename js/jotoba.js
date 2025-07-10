@@ -5,6 +5,7 @@
 import { els } from './dom.js';
 import { state } from './config.js';
 import { renderExternalSearchResults } from './ui.js';
+import { dbPromise } from './database.js';
 
 /**
  * Translates text using the Google Translate API.
@@ -58,6 +59,13 @@ export async function handleExternalSearch(query) {
         return;
     }
 
+    const db = await dbPromise;
+    const cachedResult = await db.get('dictionary_cache', query);
+    if (cachedResult) {
+        renderExternalSearchResults(cachedResult, query);
+        return;
+    }
+
     els.externalSearchTab.innerHTML = `<p class="text-center text-secondary my-8">${getUIText('searching')}</p>`;
 
     try {
@@ -104,7 +112,11 @@ export async function handleExternalSearch(query) {
         });
 
         const translatedWords = await Promise.all(translationPromises);
-        renderExternalSearchResults({ words: translatedWords }, query);
+        const resultsToRender = { words: translatedWords };
+
+        await db.put('dictionary_cache', resultsToRender, query);
+
+        renderExternalSearchResults(resultsToRender, query);
         
     } catch (error) {
         console.error("External Search Error:", error);

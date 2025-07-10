@@ -314,6 +314,17 @@ function renderCardBasedSection(containerId, data, category, gradient) {
     setupFuseForTab(category);
 }
 
+function findKanjiData(kanjiCharacter) {
+    if (!state.appData.kanji) return null;
+    for (const key in state.appData.kanji) {
+        const found = state.appData.kanji[key].items.find(item => item.kanji === kanjiCharacter);
+        if (found) {
+            return found;
+        }
+    }
+    return null;
+}
+
 /**
  * Renders the results from the external Jotoba search.
  * @param {{words: Array}} results - The search results from the Jotoba API.
@@ -332,8 +343,19 @@ export function renderExternalSearchResults(results, query) {
         results.words.forEach(word => {
             const template = document.getElementById('external-vocab-result-template').content.cloneNode(true);
             const term = word.reading.kanji || word.reading.kana;
+            
+            const termWithClickableKanji = term.split('').map(char => {
+                if (/[\u4e00-\u9faf]/.test(char)) {
+                    const kanjiItem = findKanjiData(char);
+                    if (kanjiItem) {
+                        return `<span class="hover:text-accent-blue cursor-pointer" data-action="show-kanji-details" data-id="${kanjiItem.id}">${char}</span>`;
+                    }
+                }
+                return char;
+            }).join('');
+            
+            template.querySelector('.vocab-term').innerHTML = termWithClickableKanji;
             const reading = term !== word.reading.kana ? `(${word.reading.kana})` : '';
-            template.querySelector('.vocab-term').textContent = term;
             template.querySelector('.vocab-reading').textContent = reading;
             template.querySelector('.vocab-definitions').textContent = word.translatedSenses;
             vocabGrid.appendChild(template);
@@ -342,7 +364,8 @@ export function renderExternalSearchResults(results, query) {
     } else {
         const noResults = document.createElement('p');
         noResults.className = 'text-center text-secondary my-8';
-        noResults.innerHTML = `${getUIText('noResults')} "<b>${query}</b>"`;
+        noResults.innerHTML = `${getUIText('noResults')} "<b>${query}</b>".
+        <br><small>Try checking your spelling or using a different term.</small>`;
         fragment.appendChild(noResults);
     }
 
