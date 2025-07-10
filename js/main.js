@@ -16,8 +16,7 @@ import {
     updateSidebarPinIcons,
     closeSidebar,
     buildLevelSwitcher,
-    scrollActiveLevelIntoView,
-    renderExternalSearchResults
+    scrollActiveLevelIntoView
 } from './ui.js';
 import {
     setLanguage,
@@ -29,11 +28,8 @@ import {
     jumpToSection,
     toggleLearned,
     deleteLevel,
-    setLevel,
-    handleExternalSearch
+    setLevel
 } from './handlers.js';
-import { initExternalSearch } from './externalSearch.js';
-
 
 function getThemeToggleHTML() { return `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`; }
 function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`; }
@@ -222,7 +218,6 @@ function setupEventListeners() {
     els.searchInput?.addEventListener('input', handleSearch);
     els.mobileSearchInput?.addEventListener('input', handleSearch);
     els.closeSidebarBtn?.addEventListener('click', closeSidebar);
-    document.getElementById('external-search-input')?.addEventListener('input', handleExternalSearch);
 
     // Debounced resize handler for performance
     const debouncedResize = debounce(() => {
@@ -594,7 +589,6 @@ async function init() {
         buildLevelSwitcher(remoteLevels, customLevels);
         setupImportModal();
         await loadAllData(state.currentLevel);
-        await initExternalSearch(); // Initialize the external dictionary search
         setupTheme();
         renderContent();
         updateProgressDashboard();

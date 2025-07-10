@@ -292,62 +292,6 @@ export function updateProgressDashboard() {
     });
 }
 
-export function renderExternalSearchResults(results) {
-    const container = document.getElementById('external-search-results');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    const { vocab, kanji } = results;
-    if (vocab.length === 0 && kanji.length === 0) {
-        return;
-    }
-
-    const fragment = document.createDocumentFragment();
-
-    if (vocab.length > 0) {
-        const vocabHeader = document.createElement('h3');
-        vocabHeader.className = 'text-lg font-bold mb-2 text-primary';
-        vocabHeader.textContent = 'Vocabulary';
-        fragment.appendChild(vocabHeader);
-
-        vocab.slice(0, 10).forEach(item => { // Limit to 10 results for performance
-            const resultEl = document.createElement('div');
-            resultEl.className = 'p-4 mb-2 glass-effect rounded-lg';
-            // This join will now work correctly
-            const definition = item.definitions.join('; ');
-            resultEl.innerHTML = `
-                <p class="font-bold text-primary">${item.term} [${item.reading}]</p>
-                <p class="text-secondary text-sm">${definition}</p>
-            `;
-            fragment.appendChild(resultEl);
-        });
-    }
-
-    if (kanji.length > 0) {
-        const kanjiHeader = document.createElement('h3');
-        kanjiHeader.className = 'text-lg font-bold my-2 text-primary';
-        kanjiHeader.textContent = 'Kanji';
-        fragment.appendChild(kanjiHeader);
-
-        kanji.slice(0, 10).forEach(item => { // Limit to 10 results for performance
-            const resultEl = document.createElement('div');
-            resultEl.className = 'p-4 mb-2 glass-effect rounded-lg';
-            // This join will also work correctly
-            const definition = item.definitions.join('; ');
-            resultEl.innerHTML = `
-                <p class="font-bold text-primary text-2xl">${item.character}</p>
-                <p class="text-sm text-secondary"><strong>On:</strong> ${item.onyomi}</p>
-                <p class="text-sm text-secondary"><strong>Kun:</strong> ${item.kunyomi}</p>
-                <p class="text-sm text-secondary"><strong>Meanings:</strong> ${definition}</p>
-            `;
-            fragment.appendChild(resultEl);
-        });
-    }
-
-    container.appendChild(fragment);
-}
-
 /**
  * Moves the language switcher's pill to the active language button.
  * @param {HTMLElement} switcherContainer - The container of the language switcher.

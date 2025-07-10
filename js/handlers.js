@@ -9,16 +9,15 @@ import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
 import {
+    // updateLevelUI,
     renderContent,
     updateProgressDashboard,
     moveLangPill,
     updatePinButtonState,
     updateSidebarPinIcons,
     closeSidebar,
-    buildLevelSwitcher,
-    renderExternalSearchResults
+    buildLevelSwitcher
 } from './ui.js';
-import { searchExternal } from './externalSearch.js';
 
 
 function removeHighlights(container) {
@@ -135,16 +134,6 @@ export const handleSearch = debounce(() => {
             parent = parent.parentElement;
         }
     });
-}, 300);
-
-export const handleExternalSearch = debounce(() => {
-    const query = document.getElementById('external-search-input').value.trim();
-    if (query.length < 2) {
-        renderExternalSearchResults({ vocab: [], kanji: [] });
-        return;
-    }
-    const results = searchExternal(query);
-    renderExternalSearchResults(results);
 }, 300);
 
 export function setLanguage(lang, skipRender = false) {
