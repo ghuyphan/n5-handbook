@@ -19,4 +19,10 @@ export const state = {
     pinnedTab: null,
     fuseInstances: {},
     tabScrollPositions: new Map(),
+    externalDB: {
+        vocab: [],
+        kanji: [],
+        vocabFuse: null,
+        kanjiFuse: null,
+    },
 };

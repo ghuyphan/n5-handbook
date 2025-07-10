@@ -3,59 +3,66 @@
  * @description Centralized object for all DOM element selections.
  */
 
-export const els = {
+// Export an object that will be populated later.
+export const els = {};
+
+/**
+ * Populates the `els` object with all necessary DOM element references.
+ * This should be called after the DOM is fully loaded.
+ */
+export function populateEls() {
     // Main layout
-    sidebar: document.getElementById('sidebar'),
-    overlay: document.getElementById('overlay'),
-    mainContent: document.getElementById('main-content'),
+    els.sidebar = document.getElementById('sidebar');
+    els.overlay = document.getElementById('overlay');
+    els.mainContent = document.getElementById('main-content');
 
     // Loading
-    loadingOverlay: document.getElementById('loading-overlay'),
+    els.loadingOverlay = document.getElementById('loading-overlay');
 
     // Header
-    levelBadgeDesktop: document.getElementById('level-badge-desktop'),
-    levelBadgeMobile: document.getElementById('level-badge-mobile'),
-    mobileHeaderTitle: document.getElementById('mobile-header-title'),
+    els.levelBadgeDesktop = document.getElementById('level-badge-desktop');
+    els.levelBadgeMobile = document.getElementById('level-badge-mobile');
+    els.mobileHeaderTitle = document.getElementById('mobile-header-title');
 
     // Search
-    searchInput: document.getElementById('search-input'),
-    mobileSearchInput: document.getElementById('mobile-search-input'),
-    mobileSearchBar: document.querySelector('.mobile-search-bar'),
+    els.searchInput = document.getElementById('search-input');
+    els.mobileSearchInput = document.getElementById('mobile-search-input');
+    els.mobileSearchBar = document.querySelector('.mobile-search-bar');
 
     // Controls
-    menuToggle: document.getElementById('menu-toggle'),
-    pinToggle: document.getElementById('pin-toggle'),
+    els.menuToggle = document.getElementById('menu-toggle');
+    els.pinToggle = document.getElementById('pin-toggle');
 
     // Content containers
-    progressOverview: document.getElementById('progress-overview'),
-    progressTab: document.getElementById('progress'),
-    hiraganaTab: document.getElementById('hiragana'),
-    katakanaTab: document.getElementById('katakana'),
-    kanjiTab: document.getElementById('kanji'),
-    keyPointsTab: document.getElementById('key_points'),
-    vocabTab: document.getElementById('vocab'),
-    grammarContainer: document.getElementById('grammar-container'),
-    grammarTab: document.getElementById('grammar'),
-
+    els.progressOverview = document.getElementById('progress-overview');
+    els.progressTab = document.getElementById('progress');
+    els.hiraganaTab = document.getElementById('hiragana');
+    els.katakanaTab = document.getElementById('katakana');
+    els.kanjiTab = document.getElementById('kanji');
+    els.keyPointsTab = document.getElementById('key_points');
+    els.vocabTab = document.getElementById('vocab');
+    els.grammarContainer = document.getElementById('grammar-container');
+    els.grammarTab = document.getElementById('grammar');
+    els.externalSearchTab = document.getElementById('external-search');
 
     // Sidebar Controls
-    sidebarControls: document.getElementById('sidebar-controls'),
-    closeSidebarBtn: document.getElementById('close-sidebar-btn'),
+    els.sidebarControls = document.getElementById('sidebar-controls');
+    els.closeSidebarBtn = document.getElementById('close-sidebar-btn');
 
     // Import Modal
-    importModal: document.getElementById('import-modal'),
-    importModalBackdrop: document.getElementById('import-modal-backdrop'),
-    modalWrapper: document.querySelector('#import-modal .modal-wrapper'),
-    openModalBtn: document.getElementById('sidebar-import-btn'),
-    closeModalBtn: document.getElementById('close-modal-btn'),
-    levelNameInput: document.getElementById('level-name-input'),
-    levelNameError: document.getElementById('level-name-error'),
-    fileImportArea: document.getElementById('file-import-area'),
-    fileInput: document.getElementById('file-input'),
-    importBtn: document.getElementById('import-btn'),
+    els.importModal = document.getElementById('import-modal');
+    els.importModalBackdrop = document.getElementById('import-modal-backdrop');
+    els.modalWrapper = document.querySelector('#import-modal .modal-wrapper');
+    els.openModalBtn = document.getElementById('sidebar-import-btn');
+    els.closeModalBtn = document.getElementById('close-modal-btn');
+    els.levelNameInput = document.getElementById('level-name-input');
+    els.levelNameError = document.getElementById('level-name-error');
+    els.fileImportArea = document.getElementById('file-import-area');
+    els.fileInput = document.getElementById('file-input');
+    els.importBtn = document.getElementById('import-btn');
 
     // Kanji Modal
-    kanjiDetailModal: document.getElementById('kanji-detail-modal'),
-    kanjiModalBackdrop: document.querySelector('#kanji-detail-modal #modal-backdrop'),
-    kanjiModalContentContainer: document.querySelector('#kanji-detail-modal #modal-content-container'),
-};
+    els.kanjiDetailModal = document.getElementById('kanji-detail-modal');
+    els.kanjiModalBackdrop = document.querySelector('#kanji-detail-modal #modal-backdrop');
+    els.kanjiModalContentContainer = document.querySelector('#kanji-detail-modal #modal-content-container');
+}

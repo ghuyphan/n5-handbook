@@ -7,16 +7,24 @@ import { openDB } from 'https://cdn.jsdelivr.net/npm/idb@8/+esm';
 import { state, config } from './config.js';
 import { updateProgressDashboard } from './ui.js';
 
-export const dbPromise = openDB('HandbookDB', 1, {
-    upgrade(db) {
-        if (!db.objectStoreNames.contains('levels')) {
-            db.createObjectStore('levels');
+export const dbPromise = openDB('HandbookDB', 2, { // Version updated to 2
+    upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+            if (!db.objectStoreNames.contains('levels')) {
+                db.createObjectStore('levels');
+            }
+            if (!db.objectStoreNames.contains('progress')) {
+                db.createObjectStore('progress');
+            }
+            if (!db.objectStoreNames.contains('settings')) {
+                db.createObjectStore('settings');
+            }
         }
-        if (!db.objectStoreNames.contains('progress')) {
-            db.createObjectStore('progress');
-        }
-        if (!db.objectStoreNames.contains('settings')) {
-            db.createObjectStore('settings');
+        if (oldVersion < 2) {
+            // New stores for the dictionary cache
+            if (!db.objectStoreNames.contains('dictionary_cache')) {
+                db.createObjectStore('dictionary_cache');
+            }
         }
     },
 });

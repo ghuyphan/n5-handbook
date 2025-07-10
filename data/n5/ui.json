@@ -34,7 +34,15 @@
     "modalExamples": "Examples",
     "modalInfo": "Info",
     "modalRadical": "Radical:",
-    "modalMnemonic": "Mnemonic:"
+    "modalMnemonic": "Mnemonic:",
+    "dictionarySearch": "Dictionary Search",
+    "dictionaryPrompt": "Enter a Japanese or Vietnamese word to search.",
+    "vocabResults": "Vocabulary Results",
+    "kanjiResults": "Kanji Results",
+    "noResults": "No results found for",
+    "searching": "Searching...",
+    "onyomi": "On'yomi:",
+    "kunyomi": "Kun'yomi:"
   },
   "vi": {
     "dashboard": "Bảng điều khiển",
@@ -71,6 +79,14 @@
     "modalExamples": "Ví dụ",
     "modalInfo": "Thông tin",
     "modalRadical": "Bộ thủ:",
-    "modalMnemonic": "Gợi ý:"
+    "modalMnemonic": "Gợi ý:",
+    "dictionarySearch": "Tra từ điển",
+    "dictionaryPrompt": "Nhập một từ tiếng Nhật hoặc tiếng Việt để tìm kiếm.",
+    "vocabResults": "Kết quả từ vựng",
+    "kanjiResults": "Kết quả Kanji",
+    "noResults": "Không tìm thấy kết quả nào cho",
+    "searching": "Đang tìm...",
+    "onyomi": "On'yomi:",
+    "kunyomi": "Kun'yomi:"
   }
 }

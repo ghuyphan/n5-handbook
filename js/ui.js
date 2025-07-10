@@ -10,14 +10,6 @@ import { setupFuseForTab } from './handlers.js';
 
 // --- Template-based Component Creators ---
 
-/**
- * Creates an accordion component from its HTML template.
- * @param {string} title - The title of the accordion.
- * @param {DocumentFragment | HTMLElement} contentNode - The DOM node or fragment to insert as content.
- * @param {string} searchData - The string of search terms for the accordion.
- * @param {string} titleKey - The language key for the title.
- * @returns {DocumentFragment} The populated accordion component.
- */
 function createAccordion(title, contentNode, searchData, titleKey) {
     const template = document.getElementById('accordion-template');
     const clone = template.content.cloneNode(true);
@@ -29,18 +21,13 @@ function createAccordion(title, contentNode, searchData, titleKey) {
 
     wrapper.dataset.search = searchData;
     button.dataset.sectionTitleKey = titleKey;
-    button.dataset.action = 'toggle-accordion'; // Ensures accordion animation works
+    button.dataset.action = 'toggle-accordion';
     titleSpan.textContent = title;
     contentDiv.appendChild(contentNode);
 
     return clone;
 }
 
-/**
- * Creates a styled list for Key Points sections.
- * @param {Array<Object>} items - Array of data for list items.
- * @returns {HTMLElement} A div element containing the grid of styled items.
- */
 function createStyledList(items) {
     const grid = document.createElement('div');
     grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
@@ -73,13 +60,6 @@ function createStyledList(items) {
     return grid;
 }
 
-/**
- * Creates a flippable card component from its HTML template.
- * @param {Object} item - The data object for the card (kanji or vocab).
- * @param {string} category - The category of the card ('kanji' or 'vocab').
- * @param {string} backGradient - The CSS gradient for the card's back face.
- * @returns {DocumentFragment} The populated card component.
- */
 const createCard = (item, category, backGradient) => {
     const template = document.getElementById('card-template');
     const clone = template.content.cloneNode(true);
@@ -129,15 +109,6 @@ const createCard = (item, category, backGradient) => {
     return clone;
 };
 
-/**
- * Creates an accordion section filled with cards.
- * @param {string} title - The title for the section's accordion header.
- * @param {Array<Object>} data - The array of items to create cards from.
- * @param {string} category - The category of the items ('kanji' or 'vocab').
- * @param {string} backGradient - The CSS gradient for the cards' back faces.
- * @param {string} titleKey - The language key for the accordion title.
- * @returns {DocumentFragment} The complete accordion section component.
- */
 const createCardSection = (title, data, category, backGradient, titleKey) => {
     if (!data || data.length === 0) return document.createDocumentFragment();
 
@@ -156,13 +127,6 @@ const createCardSection = (title, data, category, backGradient, titleKey) => {
     return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey);
 };
 
-/**
- * Creates a static section for Hiragana or Katakana.
- * @param {Object} data - The data for the static sections.
- * @param {string} icon - The emoji icon for the section header.
- * @param {string} color - The color for the kana characters.
- * @returns {DocumentFragment} A fragment containing all the static sections.
- */
 const createStaticSection = (data, icon, color) => {
     const fragment = document.createDocumentFragment();
     if (!data) return fragment;
@@ -188,16 +152,6 @@ const createStaticSection = (data, icon, color) => {
     return fragment;
 }
 
-/**
- * Creates a progress item component from its HTML template.
- * @param {string} tab - The tab ID to jump to.
- * @param {string} title - The title of the progress item.
- * @param {number} learned - The number of items learned.
- * @param {number} total - The total number of items.
- * @param {string} color - The base color for the progress circle gradient.
- * @param {string} titleKey - The language key for jumping to the section.
- * @returns {DocumentFragment} The populated progress item component.
- */
 function createProgressItem(tab, title, learned, total, color, titleKey) {
     const template = document.getElementById('progress-item-template');
     const clone = template.content.cloneNode(true);
@@ -232,12 +186,6 @@ function createProgressItem(tab, title, learned, total, color, titleKey) {
     return clone;
 }
 
-// --- Main UI Update Functions ---
-
-/**
- * Updates the progress dashboard in the sidebar and the main progress tab.
- * This function clears and redraws the progress items based on the current level's data.
- */
 export function updateProgressDashboard() {
     const containers = [els.progressOverview, els.progressTab];
     if (!state.appData.ui || !containers.every(c => c)) return;
@@ -245,7 +193,6 @@ export function updateProgressDashboard() {
     const gradientsSVG = `<svg width="0" height="0"><defs><linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient><linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient></defs></svg>`;
     const dataCategories = { kanji: 'purple', vocab: 'green' };
 
-    // Create a fragment to hold all generated progress items
     const progressItemsFragment = document.createDocumentFragment();
 
     for (const [categoryName, color] of Object.entries(dataCategories)) {
@@ -262,18 +209,14 @@ export function updateProgressDashboard() {
         }
     }
 
-    // Update both containers
     containers.forEach(container => {
         if (!container) return;
-        // Clear existing content
         container.innerHTML = '';
 
-        // Add necessary wrappers and titles
         const wrapper = document.createElement('div');
         wrapper.className = 'space-y-4';
         wrapper.id = `progress-wrapper-${container.id}`;
 
-        // Append a clone of the fragment to the wrapper
         wrapper.appendChild(progressItemsFragment.cloneNode(true));
 
         if (container.id === 'progress-overview') {
@@ -282,47 +225,34 @@ export function updateProgressDashboard() {
             overviewTitle.dataset.langKey = 'progressOverview';
             overviewTitle.textContent = state.appData.ui[state.currentLang]?.progressOverview || 'Progress Overview';
 
-            container.innerHTML = gradientsSVG; // Set SVG first
+            container.innerHTML = gradientsSVG;
             container.appendChild(overviewTitle);
             container.appendChild(wrapper);
         } else {
-            container.innerHTML = gradientsSVG; // Set SVG first
+            container.innerHTML = gradientsSVG;
             container.appendChild(wrapper);
         }
     });
 }
 
-/**
- * Moves the language switcher's pill to the active language button.
- * @param {HTMLElement} switcherContainer - The container of the language switcher.
- */
 export function moveLangPill(langSwitchElement) {
     const activeBtn = langSwitchElement.querySelector('button.active');
     const pill = langSwitchElement.querySelector('.lang-switch-pill');
 
     if (!activeBtn || !pill) return;
 
-    // 1. READ all measurements first
     const buttonWidth = activeBtn.offsetWidth;
     const buttonOffsetLeft = activeBtn.offsetLeft;
 
-    // 2. WRITE all updates last
     pill.style.width = `${buttonWidth}px`;
     pill.style.transform = `translateX(${buttonOffsetLeft}px)`;
 }
 
-/**
- * Sets the theme switch to the correct state based on the current theme.
- */
 export function setupTheme() {
     const isDark = document.documentElement.classList.contains('dark-mode');
     document.querySelectorAll('.theme-switch input').forEach((input) => (input.checked = isDark));
 }
 
-/**
- * Updates the state of the pin button in the mobile header.
- * @param {string} activeTabId - The ID of the currently active tab.
- */
 export function updatePinButtonState(activeTabId) {
     const pinButton = els.pinToggle;
     if (!pinButton) return;
@@ -339,9 +269,6 @@ export function updatePinButtonState(activeTabId) {
     svg.style.height = '1.25em';
 }
 
-/**
- * Updates the pin icons next to each tab in the sidebar.
- */
 export function updateSidebarPinIcons() {
     document.querySelectorAll('.sidebar-pin-btn').forEach(button => {
         const tabId = button.dataset.tabName;
@@ -359,25 +286,15 @@ export function updateSidebarPinIcons() {
     });
 }
 
-/**
- * Closes the mobile sidebar and overlay.
- */
 export function closeSidebar() {
     els.sidebar?.classList.remove('open');
     els.overlay?.classList.remove('active');
     document.body.classList.remove('sidebar-open');
 }
 
-/**
- * Renders a section containing cards (Kanji or Vocab).
- * @param {string} containerId - The ID of the tab container element.
- * @param {Object} data - The data object for the category.
- * @param {string} category - The category name ('kanji' or 'vocab').
- * @param {string} gradient - The CSS gradient for the card backs.
- */
 function renderCardBasedSection(containerId, data, category, gradient) {
     const container = document.getElementById(containerId);
-    if (container) container.innerHTML = ''; // Always clear previous content
+    if (container) container.innerHTML = '';
     if (!data || !container) return;
 
     const fragment = document.createDocumentFragment();
@@ -398,8 +315,40 @@ function renderCardBasedSection(containerId, data, category, gradient) {
 }
 
 /**
- * Main function to render all content sections of the application.
+ * Renders the results from the external Jotoba search.
+ * @param {{words: Array}} results - The search results from the Jotoba API.
+ * @param {string} query - The original search query.
  */
+export function renderExternalSearchResults(results, query) {
+    if (!els.externalSearchTab) return;
+
+    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+    els.externalSearchTab.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    if (results.words && results.words.length > 0) {
+        const vocabGrid = document.createElement('div');
+        vocabGrid.className = 'grammar-grid';
+        results.words.forEach(word => {
+            const template = document.getElementById('external-vocab-result-template').content.cloneNode(true);
+            const term = word.reading.kanji || word.reading.kana;
+            const reading = term !== word.reading.kana ? `(${word.reading.kana})` : '';
+            template.querySelector('.vocab-term').textContent = term;
+            template.querySelector('.vocab-reading').textContent = reading;
+            template.querySelector('.vocab-definitions').textContent = word.translatedSenses;
+            vocabGrid.appendChild(template);
+        });
+        fragment.appendChild(vocabGrid);
+    } else {
+        const noResults = document.createElement('p');
+        noResults.className = 'text-center text-secondary my-8';
+        noResults.innerHTML = `${getUIText('noResults')} "<b>${query}</b>"`;
+        fragment.appendChild(noResults);
+    }
+
+    els.externalSearchTab.appendChild(fragment);
+}
+
 export function renderContent() {
     const renderSafely = (renderFn) => {
         try { renderFn(); } catch (e) { console.error("Render error:", e); }
@@ -438,7 +387,6 @@ export function renderContent() {
         }
     });
 
-    // **FIXED**: Ensures the tab is always cleared, even if no new data exists.
     renderSafely(() => {
         if (els.keyPointsTab) els.keyPointsTab.innerHTML = '';
         if (!state.appData.keyPoints || !els.keyPointsTab) return;
@@ -524,11 +472,6 @@ export function renderContent() {
     renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)'));
 }
 
-/**
- * Builds the level switcher UI in the sidebar.
- * @param {Array<string>} remoteLevels - List of levels available from the remote source.
- * @param {Array<string>} customLevels - List of levels imported by the user.
- */
 export function buildLevelSwitcher(remoteLevels = [], customLevels = []) {
     const sidebarSwitcher = document.getElementById('level-switcher-sidebar');
     if (!sidebarSwitcher) return;
@@ -551,9 +494,6 @@ export function buildLevelSwitcher(remoteLevels = [], customLevels = []) {
     sidebarSwitcher.appendChild(fragment);
 }
 
-/**
- * Scrolls the level switcher to bring the active level into view.
- */
 export function scrollActiveLevelIntoView() {
     const activeButton = document.querySelector('#level-switcher-sidebar .level-switch-button.active');
     if (activeButton) {

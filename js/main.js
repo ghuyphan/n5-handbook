@@ -3,58 +3,29 @@
  * @description Main application entry point. Initializes the app and sets up event listeners.
  */
 
-import { els } from './dom.js';
+import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData } from './database.js';
 import { debounce } from './utils.js';
-import {
-    renderContent,
-    updateProgressDashboard,
-    setupTheme,
-    moveLangPill,
-    updatePinButtonState,
-    updateSidebarPinIcons,
-    closeSidebar,
-    buildLevelSwitcher,
-    scrollActiveLevelIntoView
-} from './ui.js';
-import {
-    setLanguage,
-    toggleTheme,
-    handleSearch,
-    changeTab,
-    togglePin,
-    toggleSidebarPin,
-    jumpToSection,
-    toggleLearned,
-    deleteLevel,
-    setLevel
-} from './handlers.js';
+import { renderContent, updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView } from './ui.js';
+import { setLanguage, toggleTheme, handleSearch, changeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
+import { handleExternalSearch } from './jotoba.js'; // Use the Jotoba handler
 
 function getThemeToggleHTML() { return `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`; }
 function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`; }
 
-/**
- * Handles state restoration when user clicks back/forward browser buttons.
- * @param {object} stateObj - The state object from the history event.
- */
 function handleStateChange(stateObj) {
     if (!stateObj) return;
 
     if (stateObj.level !== state.currentLevel) {
-        setLevel(stateObj.level, true); // Pass true to indicate it's from a history event
+        setLevel(stateObj.level, true);
     } else {
-        changeTab(stateObj.tabName, null, false, true); // Pass true for history event
+        changeTab(stateObj.tabName, null, false, true);
     }
 }
 
-/**
- * Populates and opens the Kanji Detail Modal.
- * @param {string} kanjiId - The ID of the kanji to display.
- */
 function openKanjiDetailModal(kanjiId) {
     let kanjiItem = null;
-    // Find the kanji item across all sections in the current level's data
     for (const key in state.appData.kanji) {
         const found = state.appData.kanji[key].items.find(item => item.id === kanjiId);
         if (found) {
@@ -68,7 +39,6 @@ function openKanjiDetailModal(kanjiId) {
         return;
     }
 
-    // Helper to get UI text safely
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
 
     const meaning = kanjiItem.meaning?.[state.currentLang] || kanjiItem.meaning?.en || '';
@@ -78,7 +48,6 @@ function openKanjiDetailModal(kanjiId) {
     const sentenceJP = kanjiItem.sentence?.jp;
     const sentenceTranslation = kanjiItem.sentence?.[state.currentLang] || kanjiItem.sentence?.en || '';
 
-    // Build sentence with furigana if available
     let sentenceHTML = '';
     if (sentenceTokens) {
         sentenceHTML = sentenceTokens.map(token => token.r ? `<ruby>${token.w}<rt>${token.r}</rt></ruby>` : token.w).join('');
@@ -86,7 +55,6 @@ function openKanjiDetailModal(kanjiId) {
         sentenceHTML = sentenceJP;
     }
 
-    // Populate the modal content
     els.kanjiModalContentContainer.innerHTML = `
         <div class="glass-effect p-6 rounded-2xl">
             <button id="close-kanji-modal-btn" class="modal-close-btn absolute top-4 right-4">
@@ -137,34 +105,26 @@ function openKanjiDetailModal(kanjiId) {
         </div>
     `;
 
-    // Add scroll fade effect logic
     const scrollContent = els.kanjiModalContentContainer.querySelector('.kanji-modal-scroll-content');
     if (scrollContent) {
         const checkScroll = () => {
-            const isAtBottom = scrollContent.scrollHeight - scrollContent.scrollTop <= scrollContent.clientHeight + 1; // +1 for pixel precision
+            const isAtBottom = scrollContent.scrollHeight - scrollContent.scrollTop <= scrollContent.clientHeight + 1;
             scrollContent.classList.toggle('scrolled-to-bottom', isAtBottom);
         };
         scrollContent.addEventListener('scroll', checkScroll);
-        checkScroll(); // Initial check
+        checkScroll();
     }
 
     els.kanjiDetailModal.classList.add('active');
     document.body.classList.add('body-no-scroll');
 }
 
-/**
- * Closes the Kanji Detail Modal.
- */
 function closeKanjiDetailModal() {
     els.kanjiDetailModal.classList.remove('active');
     document.body.classList.remove('body-no-scroll');
 }
 
-/**
- * Sets up all global event listeners for the application.
- */
 function setupEventListeners() {
-    // Use a single delegated event listener on the body for performance.
     document.body.addEventListener('click', (e) => {
         const target = e.target;
         const actionTarget = target.closest('[data-action]');
@@ -187,7 +147,6 @@ function setupEventListeners() {
                 toggleSidebarPin(e, actionTarget.dataset.tabName);
                 break;
             case 'flip-card':
-                // Prevent flipping if the details button within the card was clicked.
                 if (!e.target.closest('[data-action="show-kanji-details"]')) {
                     actionTarget.closest('.card').classList.toggle('is-flipped');
                 }
@@ -213,13 +172,11 @@ function setupEventListeners() {
         }
     });
 
-    // Listeners for specific elements
     els.overlay?.addEventListener('click', closeSidebar);
     els.searchInput?.addEventListener('input', handleSearch);
     els.mobileSearchInput?.addEventListener('input', handleSearch);
     els.closeSidebarBtn?.addEventListener('click', closeSidebar);
 
-    // Debounced resize handler for performance
     const debouncedResize = debounce(() => {
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
         const isMobileView = window.innerWidth <= 768;
@@ -233,36 +190,29 @@ function setupEventListeners() {
     }, 100);
     window.addEventListener('resize', debouncedResize);
 
-    // Kanji modal specific listeners
     els.kanjiDetailModal.addEventListener('click', (e) => {
         if (e.target === els.kanjiModalBackdrop || e.target.closest('#close-kanji-modal-btn')) {
             closeKanjiDetailModal();
         }
     });
 
-    // Keyboard accessibility
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && els.kanjiDetailModal.classList.contains('active')) {
             closeKanjiDetailModal();
         }
     });
 
-    // Browser history navigation
     window.addEventListener('popstate', (e) => {
         handleStateChange(e.state);
     });
 }
 
-/**
- * Initializes the import modal and its event listeners.
- */
 function setupImportModal() {
     if (!els.importModal) return;
 
     let importedData = {};
     let levelNameIsValid = false;
 
-    // Helper to get UI text safely
     const getUIText = (key, replacements = {}) => {
         let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
         for (const [placeholder, value] of Object.entries(replacements)) {
@@ -338,8 +288,6 @@ function setupImportModal() {
             const lines = content.replace(/\r/g, "").split('\n').filter(line => line.trim() !== '');
             if (lines.length < 2) return [];
 
-            // This is a more robust function for splitting a single CSV line.
-            // It correctly handles values that are wrapped in quotes.
             const splitLine = (line) => {
                 const values = [];
                 let current = '';
@@ -354,9 +302,7 @@ function setupImportModal() {
                         current += char;
                     }
                 }
-                values.push(current); // Add the last value
-
-                // Remove the quotes that were used for wrapping the fields
+                values.push(current);
                 return values.map(v => v.startsWith('"') && v.endsWith('"') ? v.slice(1, -1) : v);
             };
 
@@ -364,10 +310,9 @@ function setupImportModal() {
 
             return lines.slice(1).map(line => {
                 const values = splitLine(line);
-                // Basic check to ensure row and header lengths match
                 if (values.length !== header.length) {
                     console.warn("Skipping malformed CSV line:", line);
-                    return null; // Skip this row if it's broken
+                    return null;
                 }
                 return header.reduce((obj, h, i) => {
                     obj[h] = (values[i] || '').trim();
@@ -384,34 +329,27 @@ function setupImportModal() {
 
             const items = data.map((row, index) => {
                 const transformedRow = {
-                    id: `${key}_user_${index}` // Unique ID for each item
+                    id: `${key}_user_${index}`
                 };
 
-                // Process all columns from the CSV row
                 for (const colHeader in row) {
                     if (Object.prototype.hasOwnProperty.call(row, colHeader)) {
                         const value = row[colHeader];
-                        // Regex to find language suffixes like _en, _vi
                         const langMatch = colHeader.match(/_(en|vi)$/);
 
                         if (langMatch) {
-                            // This is a language-specific column (e.g., 'meaning_en')
-                            const baseKey = colHeader.replace(/_(en|vi)$/, ''); // -> 'meaning'
-                            const lang = langMatch[1]; // -> 'en'
-
-                            // Initialize the nested object (e.g., 'meaning: {}') if it doesn't exist
+                            const baseKey = colHeader.replace(/_(en|vi)$/, '');
+                            const lang = langMatch[1];
                             if (!transformedRow[baseKey]) {
                                 transformedRow[baseKey] = {};
                             }
                             transformedRow[baseKey][lang] = value;
                         } else {
-                            // This is a regular column (e.g., 'kanji', 'romaji')
                             transformedRow[colHeader] = value;
                         }
                     }
                 }
 
-                // Special handling for kanji to ensure compatibility with the detail modal
                 if (key === 'kanji') {
                     if (!transformedRow.examples) transformedRow.examples = [];
                     if (!transformedRow.sentence) transformedRow.sentence = {};
@@ -438,7 +376,7 @@ function setupImportModal() {
                         const parsedData = parseCSV(content);
                         if (parsedData.length === 0) {
                             console.warn(`CSV file '${file.name}' is empty or invalid. Skipping.`);
-                            resolve(null); // Resolve with null to filter out later
+                            resolve(null);
                             return;
                         }
                         const jsonData = transformToJSON(key, parsedData);
@@ -454,7 +392,7 @@ function setupImportModal() {
         });
 
         try {
-            const results = (await Promise.all(filePromises)).filter(Boolean); // Filter out null results from empty files
+            const results = (await Promise.all(filePromises)).filter(Boolean);
             if (results.length === 0) {
                 els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoValidData')}</p>`;
                 updateImportButtonState();
@@ -484,23 +422,19 @@ function setupImportModal() {
             els.importBtn.querySelector('span').textContent = getUIText('importButtonProgress');
             const db = await dbPromise;
 
-            // Add UI data to the imported level data
             const uiData = {
                 "en": { "userCreated": "User Created" },
                 "vi": { "userCreated": "Người dùng tạo" }
             };
             importedData['ui'] = uiData;
 
-            // Save the structured data to IndexedDB.
             await db.put('levels', importedData, levelName);
 
-            // Refresh the level switcher with the new level list.
             const remoteResponse = await fetch(`${config.dataPath}/levels.json`);
             const remoteData = remoteResponse.ok ? await remoteResponse.json() : { levels: [] };
             const customLevels = await db.getAllKeys('levels');
             buildLevelSwitcher(remoteData.levels, customLevels);
 
-            // Switch to the newly imported level.
             await setLevel(levelName);
 
             alert(getUIText('importSuccess', { levelName: levelName.toUpperCase() }));
@@ -514,7 +448,6 @@ function setupImportModal() {
         }
     };
 
-    // Bind all event listeners for the modal
     document.getElementById('sidebar-import-btn')?.addEventListener('click', openModal);
     els.closeModalBtn?.addEventListener('click', closeModal);
     els.modalWrapper?.addEventListener('click', (e) => { if (e.target === els.modalWrapper) closeModal(); });
@@ -527,11 +460,7 @@ function setupImportModal() {
     els.fileImportArea?.addEventListener('drop', (e) => { e.preventDefault(); els.fileImportArea.classList.remove('drag-active'); handleFileSelect(e.dataTransfer.files); });
 }
 
-/**
- * Populates the control elements (theme/language switchers) and binds their events.
- */
 function populateAndBindControls() {
-    // This part remains the same
     if (els.sidebarControls) {
         els.sidebarControls.innerHTML = `
             <div class="sidebar-control-group"><label class="sidebar-control-label" data-lang-key="level">Level</label><div id="level-switcher-sidebar" class="level-switch"></div></div>
@@ -540,7 +469,6 @@ function populateAndBindControls() {
             <button id="sidebar-import-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg><span data-lang-key="importLevel" class="pointer-events-none">Import New Level</span></button>`;
     }
 
-    // Use the helper functions for the header controls as well
     const headerLangSwitcher = document.getElementById('header-lang-switcher');
     if (headerLangSwitcher) {
         headerLangSwitcher.innerHTML = getLangSwitcherHTML();
@@ -550,7 +478,6 @@ function populateAndBindControls() {
         headerThemeToggle.innerHTML = getThemeToggleHTML();
     }
 
-    // This part remains the same
     document.querySelectorAll('.theme-switch input').forEach(el => el.addEventListener('change', toggleTheme));
     document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
         e.preventDefault();
@@ -558,14 +485,12 @@ function populateAndBindControls() {
     }));
 }
 
-/**
- * Main application initialization function.
- */
 async function init() {
+    populateEls();
+    
     try {
         populateAndBindControls();
         let remoteLevels = [];
-        // Fetch the list of official levels, falling back to just 'n5' on failure.
         try {
             const response = await fetch(`${config.dataPath}/levels.json`);
             remoteLevels = response.ok ? (await response.json()).levels : [config.defaultLevel];
@@ -576,7 +501,7 @@ async function init() {
 
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
-        await loadState(); // Load user settings and progress from IndexedDB
+        await loadState();
 
         const params = new URLSearchParams(window.location.search);
         const urlLevel = params.get('level');
@@ -585,6 +510,9 @@ async function init() {
             state.currentLevel = urlLevel;
         }
 
+        // We are no longer using the old externalSearch.js
+        // The new logic is self-contained in jotoba.js and triggered by handleSearch
+        
         setupEventListeners();
         buildLevelSwitcher(remoteLevels, customLevels);
         setupImportModal();
@@ -592,27 +520,23 @@ async function init() {
         setupTheme();
         renderContent();
         updateProgressDashboard();
-        setLanguage(state.currentLang, true); // Set language without re-rendering
+        setLanguage(state.currentLang, true);
 
-        // Hide loading overlay once everything is ready
         if (els.loadingOverlay) {
             els.loadingOverlay.style.opacity = '0';
             els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
         }
 
-        // Set the active level and language switchers correctly
         document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
         scrollActiveLevelIntoView();
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
 
-        // Determine and set the initial tab to show
         const isMobileView = window.innerWidth <= 768;
         const defaultTab = isMobileView ? 'progress' : 'hiragana';
         const initialTab = urlTab || state.pinnedTab || defaultTab;
-        changeTab(initialTab, null, false, true); // Set tab without creating history entry
+        changeTab(initialTab, null, false, true);
         updateSidebarPinIcons();
 
-        // Set the initial state in the browser's history API for back/forward navigation
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;
         history.replaceState(initialState, '', initialUrl);
@@ -622,10 +546,8 @@ async function init() {
         if (els.loadingOverlay) {
             els.loadingOverlay.classList.add('hidden');
         }
-        // Optionally, display a user-friendly error message on the page
         document.body.innerHTML = `<div style="text-align: center; padding: 40px; font-family: sans-serif;"><h2>Application Error</h2><p>Something went wrong during startup. Please try refreshing the page.</p></div>`;
     }
 }
 
-// Start the application once the DOM is ready
 document.addEventListener('DOMContentLoaded', init);

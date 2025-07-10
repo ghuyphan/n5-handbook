@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-    <!-- Preconnect to critical third-party origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -13,14 +12,12 @@
     <title>JLPT Handbook</title>
     <link rel="icon" type="image/png" href="./assets/siteIcon.png">
 
-    <!-- Preload critical assets for faster rendering -->
     <link rel="preload"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
         as="style">
     <link rel="preload" href="./js/main.js" as="script">
     <link rel="preload" href="./assets/siteIcon.png" as="image">
 
-    <!-- SEO and Social Media Meta Tags (preserved from original) -->
     <meta name="description"
         content="An interactive, multi-level web application to help you study Japanese. Start with the built-in JLPT N5 material or import your own custom study levels.">
     <meta property="og:type" content="website">
@@ -35,18 +32,14 @@
         content="An interactive, multi-level web application to help you study Japanese, featuring progress tracking, fuzzy search, and a bilingual interface.">
     <meta name="twitter:image" content="https://ghuyphan.github.io/n5-handbook/assets/og.png">
 
-    <!-- Minified inline script to prevent Flash of Unstyled Content (FOUC) -->
     <script>try { const e = localStorage.getItem("theme"), t = window.matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.classList.toggle("dark-mode", e ? "dark" === e : t) } catch (e) { console.error("Theme error", e) }</script>
 
-    <!-- Self-hosted, minified Tailwind CSS for production -->
     <link rel="stylesheet" href="build/tailwind.min.css">
 
-    <!-- Optimized, non-render-blocking Google Fonts -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
         media="print" onload="this.media='all'">
 
-    <!-- Placeholder for inlined critical CSS -->
     <style>
         /* Critical CSS from your 'styles.css' file should be inlined here for best performance. */
     </style>
@@ -123,6 +116,18 @@
                                     d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                             </svg>
                             <span class="font-jp pointer-events-none" data-lang-key="progress">Progress</span>
+                        </button>
+                    </div>
+                    <div class="nav-item-wrapper relative">
+                        <button data-action="change-tab" data-tab-name="external-search"
+                            class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600">
+                            <svg class="h-6 w-6 text-teal-500 pointer-events-none" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <span class="font-jp pointer-events-none" data-lang-key="dictionarySearch">Dictionary
+                                Search</span>
                         </button>
                     </div>
 
@@ -262,6 +267,7 @@
                 <div id="key_points" class="tab-content"></div>
                 <div id="vocab" class="tab-content"></div>
                 <div id="grammar" class="tab-content"></div>
+                <div id="external-search" class="tab-content"></div>
             </main>
 
             <footer class="mt-auto text-center py-8">
@@ -380,14 +386,38 @@
         </div>
     </template>
 
+    <template id="external-vocab-result-template">
+        <div class="result-card grammar-card">
+            <h4 class="font-semibold text-primary noto-sans text-lg flex items-baseline gap-3">
+                <span class="vocab-term text-xl"></span>
+                <span class="vocab-reading text-base text-secondary"></span>
+            </h4>
+            <div class="vocab-definitions mt-2 text-secondary leading-relaxed text-sm"></div>
+        </div>
+    </template>
+
+    <template id="external-kanji-result-template">
+        <div class="result-card grammar-card">
+            <h4 class="font-semibold text-primary noto-sans text-lg flex items-baseline gap-3">
+                <span class="kanji-character text-2xl"></span>
+            </h4>
+            <div class="kanji-details mt-2 text-secondary leading-relaxed text-sm">
+                <p><strong class="text-primary" data-lang-key="onyomi">On'yomi:</strong> <span class="onyomi"></span>
+                </p>
+                <p><strong class="text-primary" data-lang-key="kunyomi">Kun'yomi:</strong> <span class="kunyomi"></span>
+                </p>
+                <div class="kanji-definitions mt-2"></div>
+            </div>
+        </div>
+    </template>
+
     <div id="kanji-detail-modal" class="fixed inset-0 z-[150] flex items-center justify-center p-4">
         <div id="modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
         <div id="modal-content-container" class="relative w-full max-w-md">
         </div>
     </div>
 
-    <!-- Defer non-critical JS to prevent render blocking -->
-    <script type="module" src="./js/main.js" defer></script>
+    <script type="module" src="./js/main.js"></script>
 </body>
 
 </html>

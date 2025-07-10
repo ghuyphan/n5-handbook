@@ -8,17 +8,8 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
-import {
-    // updateLevelUI,
-    renderContent,
-    updateProgressDashboard,
-    moveLangPill,
-    updatePinButtonState,
-    updateSidebarPinIcons,
-    closeSidebar,
-    buildLevelSwitcher
-} from './ui.js';
-
+import { renderContent, updateProgressDashboard, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderExternalSearchResults } from './ui.js';
+import { handleExternalSearch } from './jotoba.js'; // Import the new handler
 
 function removeHighlights(container) {
     const marks = Array.from(container.querySelectorAll('mark.search-highlight'));
@@ -101,39 +92,47 @@ export const handleSearch = debounce(() => {
     const lowerCaseQuery = query.toLowerCase();
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
-    removeHighlights(activeTab);
+
     const activeTabId = activeTab.id;
-    if (isMobileView && els.mobileSearchBar) {
-        els.mobileSearchBar.classList.toggle('visible', activeTabId !== 'progress');
-    }
-    const fuse = state.fuseInstances[activeTabId];
-    const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
-    const allWrappers = activeTab.querySelectorAll('.search-wrapper');
-    if (!lowerCaseQuery) {
-        allItems.forEach(item => { item.style.display = ''; });
-        allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
-        return;
-    }
-    if (!fuse) return;
-    allItems.forEach(item => { item.style.display = 'none'; });
-    allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
-    const results = fuse.search(lowerCaseQuery);
-    results.forEach(result => {
-        const itemElement = result.item.element;
-        itemElement.style.display = '';
-        highlightMatches(itemElement, query);
-        let parent = itemElement.parentElement;
-        while (parent) {
-            if (parent.hasAttribute('data-search') || parent.classList.contains('search-wrapper')) {
-                parent.style.display = '';
-            }
-            if (parent.classList.contains('accordion-wrapper')) {
-                const button = parent.querySelector('.accordion-button');
-                if (button && !button.classList.contains('open')) button.classList.add('open');
-            }
-            parent = parent.parentElement;
+    
+    // Route to the appropriate search handler
+    if (activeTabId === 'external-search') {
+        handleExternalSearch(query);
+    } else {
+        // Handle internal search for all other tabs
+        removeHighlights(activeTab);
+        if (isMobileView && els.mobileSearchBar) {
+            els.mobileSearchBar.classList.toggle('visible', activeTabId !== 'progress');
         }
-    });
+        const fuse = state.fuseInstances[activeTabId];
+        const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
+        const allWrappers = activeTab.querySelectorAll('.search-wrapper');
+        if (!lowerCaseQuery) {
+            allItems.forEach(item => { item.style.display = ''; });
+            allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
+            return;
+        }
+        if (!fuse) return;
+        allItems.forEach(item => { item.style.display = 'none'; });
+        allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
+        const results = fuse.search(lowerCaseQuery);
+        results.forEach(result => {
+            const itemElement = result.item.element;
+            itemElement.style.display = '';
+            highlightMatches(itemElement, query);
+            let parent = itemElement.parentElement;
+            while (parent) {
+                if (parent.hasAttribute('data-search') || parent.classList.contains('search-wrapper')) {
+                    parent.style.display = '';
+                }
+                if (parent.classList.contains('accordion-wrapper')) {
+                    const button = parent.querySelector('.accordion-button');
+                    if (button && !button.classList.contains('open')) button.classList.add('open');
+                }
+                parent = parent.parentElement;
+            }
+        });
+    }
 }, 300);
 
 export function setLanguage(lang, skipRender = false) {
@@ -172,11 +171,8 @@ export function toggleTheme(event) {
     });
 }
 
-// In handlers.js
-
 export async function setLevel(level, fromHistory = false) {
     if (level === state.currentLevel) {
-        // It's still good practice to close the sidebar here for the "same level" case
         closeSidebar();
         return;
     }
@@ -218,10 +214,8 @@ export async function setLevel(level, fromHistory = false) {
         console.error(`Failed to load level ${level}:`, error);
         alert(`Could not load data for level ${level.toUpperCase()}.`);
     } finally {
-        // This 'finally' block runs ALWAYS, after try or catch.
-        // It's the perfect place for cleanup actions.
         els.loadingOverlay?.classList.add('hidden');
-        closeSidebar(); // <-- ADD THIS LINE HERE
+        closeSidebar();
     }
 }
 
@@ -279,6 +273,10 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
     const activeTab = document.getElementById(tabName);
     if (activeTab) {
         activeTab.classList.add('active');
+        if (tabName === 'external-search' && activeTab.innerHTML.trim() === '') {
+            const promptText = state.appData.ui?.[state.currentLang]?.dictionaryPrompt || 'Enter a word to search.';
+            activeTab.innerHTML = `<p class="text-center text-secondary my-8" data-lang-key="dictionaryPrompt">${promptText}</p>`;
+        }
     }
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     const targetButton = buttonElement || document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
@@ -334,7 +332,7 @@ export function jumpToSection(tabName, sectionTitleKey) {
 
             window.scrollTo({
                 top: elementTopInDocument - headerOffset - buffer,
-                behavior: 'auto' // Changed from 'smooth' to 'auto' for an instant jump
+                behavior: 'auto'
             });
         };
 
