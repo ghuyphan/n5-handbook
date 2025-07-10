@@ -4,7 +4,7 @@
  */
 import { els } from './dom.js';
 import { state } from './config.js';
-import { renderExternalSearchResults } from './ui.js';
+import { renderExternalSearchResults, createSearchPlaceholder } from './ui.js';
 import { dbPromise } from './database.js';
 
 /**
@@ -12,10 +12,8 @@ import { dbPromise } from './database.js';
  * @param {string} query - The search term from the user.
  */
 export async function handleExternalSearch(query) {
-    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
-
     if (!query) {
-        els.externalSearchTab.innerHTML = `<p class="text-center text-secondary my-8" data-lang-key="dictionaryPrompt">${getUIText('dictionaryPrompt')}</p>`;
+        els.externalSearchTab.innerHTML = createSearchPlaceholder('prompt');
         return;
     }
 
@@ -27,7 +25,7 @@ export async function handleExternalSearch(query) {
         return;
     }
 
-    els.externalSearchTab.innerHTML = `<p class="text-center text-secondary my-8">${getUIText('searching')}</p>`;
+    els.externalSearchTab.innerHTML = createSearchPlaceholder('searching');
 
     try {
         const isJP = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(query);

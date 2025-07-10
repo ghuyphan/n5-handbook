@@ -8,6 +8,43 @@ import { state, config } from './config.js';
 import { generateSearchTerms } from './utils.js';
 import { setupFuseForTab } from './handlers.js';
 
+
+export function createSearchPlaceholder(type, query = '') {
+    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+    let icon, title, subtitle;
+
+    switch (type) {
+        case 'searching':
+            return `
+                <div class="search-placeholder-wrapper">
+                    <div class="loader"></div>
+                </div>`;
+        case 'no-results':
+            icon = `<svg class="w-16 h-16 text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>`;
+            title = `${getUIText('noResults')} "<b class="text-accent-blue">${query}</b>"`;
+            subtitle = 'Try checking your spelling or using a different term.';
+            break;
+        case 'prompt':
+        default:
+            icon = `<svg class="w-16 h-16 text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>`;
+            title = getUIText('dictionaryPrompt');
+            subtitle = 'Search for Japanese words, kanji, or English definitions.';
+            break;
+    }
+
+    return `
+        <div class="search-placeholder-wrapper">
+            ${icon}
+            <h3 class="text-lg font-medium text-primary">${title}</h3>
+            <p class="text-secondary text-sm mt-1">${subtitle}</p>
+        </div>`;
+}
+
+
 // --- Template-based Component Creators ---
 
 function createAccordion(title, contentNode, searchData, titleKey) {
@@ -333,7 +370,6 @@ function findKanjiData(kanjiCharacter) {
 export function renderExternalSearchResults(results, query) {
     if (!els.externalSearchTab) return;
 
-    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
     els.externalSearchTab.innerHTML = '';
     const fragment = document.createDocumentFragment();
 
@@ -343,7 +379,7 @@ export function renderExternalSearchResults(results, query) {
     if (hasWords) {
         const vocabHeader = document.createElement('h3');
         vocabHeader.className = 'text-xl font-bold mb-4 text-primary';
-        vocabHeader.textContent = getUIText('vocabResults');
+        vocabHeader.textContent = state.appData.ui?.[state.currentLang]?.vocabResults || 'Vocabulary Results';
         fragment.appendChild(vocabHeader);
 
         const vocabGrid = document.createElement('div');
@@ -392,15 +428,10 @@ export function renderExternalSearchResults(results, query) {
 
     if (hasKanji) {
         const kanjiHeader = document.createElement('h3');
-        // Apply classes for font and color, but set margins directly
         kanjiHeader.className = 'text-xl font-bold text-primary';
-        // --- FIX IS HERE ---
-        // Set margin directly on the style object to ensure it applies
-        kanjiHeader.style.marginTop = '2.5rem';    // 40px
-        kanjiHeader.style.marginBottom = '1rem'; // 16px
-        // --- END OF FIX ---
-
-        kanjiHeader.textContent = getUIText('kanjiResults');
+        kanjiHeader.style.marginTop = '2.5rem';
+        kanjiHeader.style.marginBottom = '1rem';
+        kanjiHeader.textContent = state.appData.ui?.[state.currentLang]?.kanjiResults || 'Kanji Results';
         fragment.appendChild(kanjiHeader);
 
         const kanjiGrid = document.createElement('div');
@@ -417,11 +448,7 @@ export function renderExternalSearchResults(results, query) {
     }
 
     if (!hasWords && !hasKanji) {
-        const noResults = document.createElement('p');
-        noResults.className = 'text-center text-secondary my-8';
-        noResults.innerHTML = `${getUIText('noResults')} "<b>${query}</b>".
-        <br><small>Try checking your spelling or using a different term.</small>`;
-        fragment.appendChild(noResults);
+        fragment.appendChild(document.createRange().createContextualFragment(createSearchPlaceholder('no-results', query)));
     }
 
     els.externalSearchTab.appendChild(fragment);
