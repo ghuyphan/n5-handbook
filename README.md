@@ -4,7 +4,7 @@
 \</p\>
 \<h1 align="center"\>Japanese Language Handbook\</h1\>
 
-> An interactive, multi-level web application to help you study Japanese. Start with the built-in **JLPT N5 & N4** material or **import your own custom study levels**. Features comprehensive study materials, progress tracking, a bilingual interface, and an integrated dictionary search.
+> An interactive, multi-level web application to help you study Japanese. Start with the built-in **JLPT N5 and N4** material or **import your own custom study levels**. Features comprehensive study materials, progress tracking, a bilingual interface, and an integrated dictionary search.
 
 -----
 
@@ -16,14 +16,14 @@
 
 | Light Mode                                   | Dark Mode                                   |
 | :------------------------------------------- | :------------------------------------------ |
-|  |  |
+| ![App Screenshot Light](./AppDemo-Light.png) | ![App Screenshot Dark](./AppDemo-Dark.png) |
 
 ## ✨ Features
 
 This application has been rebuilt to be a flexible and powerful study tool.
 
   - **🗂️ Multi-Level System:**
-      - Comes pre-loaded with a complete **JLPT N5 & N4** handbook.
+      - Comes pre-loaded with a complete **JLPT N5** handbook.
       - Instantly switch between the default level and any custom levels you've imported.
       - Easily delete custom levels you no longer need with a dedicated button that appears right in the level switcher.
   - **⬆️ Import Custom Levels:**
