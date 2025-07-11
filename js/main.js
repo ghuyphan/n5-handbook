@@ -112,7 +112,11 @@ function openKanjiDetailModal(kanjiId) {
             scrollContent.classList.toggle('scrolled-to-bottom', isAtBottom);
         };
         scrollContent.addEventListener('scroll', checkScroll);
-        checkScroll();
+        
+        // ---- CHANGE IS HERE ----
+        // We delay the initial check to ensure the browser has calculated the correct scrollHeight.
+        setTimeout(checkScroll, 50);
+        // ---- END OF CHANGE ----
     }
 
     els.kanjiDetailModal.classList.add('active');
