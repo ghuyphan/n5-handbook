@@ -739,7 +739,7 @@ input:checked+.slider:before {
 
 .delete-level-btn {
     position: absolute;
-    left: -5px;
+    right: -5px;
     top: -5px;
     z-index: 10;
     padding: 4px;
