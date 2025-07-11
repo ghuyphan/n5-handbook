@@ -4,7 +4,9 @@
   "description": "An interactive, multi-level web application to help you study Japanese.",
   "main": "index.js",
   "scripts": {
-    "build": "tailwindcss -i ./src/input.css -o ./styles.css --minify",
+    "build:css": "tailwindcss -i ./src/input.css -o ./build/tailwind.min.css --minify",
+    "build:js": "terser ./js/main.js -o ./build/main.min.js -c -m",
+    "build": "npm run build:css && npm run build:js",
     "watch": "tailwindcss -i ./src/input.css -o ./styles.css --watch"
   },
   "keywords": [
@@ -18,6 +20,7 @@
   "devDependencies": {
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "terser": "^5.43.1"
   }
 }
