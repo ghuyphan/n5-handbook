@@ -1,8 +1,8 @@
 
-\<p align="center"\>
-\<img src="./assets/siteIcon.png" alt="Japanese Language Handbook Logo" width="120"\>
-\</p\>
-\<h1 align="center"\>Japanese Language Handbook\</h1\>
+<p align="center">
+  <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo" width="120">
+</p>
+<h1 align="center">JLPT Handbook</h1>
 
 > An interactive, multi-level web application to help you study Japanese. Start with the built-in **JLPT N5 and N4** material or **import your own custom study levels**. Features comprehensive study materials, progress tracking, a bilingual interface, and an integrated dictionary search.
 
