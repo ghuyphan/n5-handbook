@@ -222,7 +222,10 @@ export async function handleExternalSearch(query) {
         return;
     }
 
-    els.externalSearchTab.innerHTML = createSearchPlaceholder('searching');
+    if (els.externalSearchTab.innerHTML.trim() === '' || !els.externalSearchTab.querySelector('.search-placeholder-wrapper')) {
+        els.externalSearchTab.innerHTML = createSearchPlaceholder('searching');
+    }
+
 
     try {
         const isJP = JAPANESE_REGEX.test(query);

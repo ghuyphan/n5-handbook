@@ -1717,7 +1717,7 @@ External Search Results Styling
     justify-content: center;
     text-align: center;
     width: 100%;
-    min-height: clamp(250px, 35vh, 300px);
+    min-height: clamp(200px, 35vh, 300px);
 }
 
 @keyframes search-prompt-pulse {

@@ -20,6 +20,7 @@ export const state = {
     fuseInstances: {},
     universalFuse: null,
     currentQuery: '',
+    lastDictionaryQuery: '',
     tabScrollPositions: new Map(),
     externalDB: {
         vocab: [],

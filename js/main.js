@@ -532,7 +532,7 @@ async function init() {
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
 
         const isMobileView = window.innerWidth <= 768;
-        const defaultTab = isMobileView ? 'progress' : 'hiragana';
+        const defaultTab = isMobileView ? 'external-search' : 'external-search';
         const initialTab = urlTab || state.pinnedTab || defaultTab;
         changeTab(initialTab, null, false, true);
         updateSidebarPinIcons();

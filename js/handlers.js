@@ -198,6 +198,7 @@ export async function setLevel(level, fromHistory = false) {
     }
 
     state.currentLevel = level;
+    state.lastDictionaryQuery = ''; // Clear dictionary search on level change
     await saveSetting('currentLevel', level);
     els.loadingOverlay?.classList.remove('hidden');
 
@@ -288,13 +289,23 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
     const oldActiveTab = document.querySelector('.tab-content.active');
     if (oldActiveTab) {
         state.tabScrollPositions.set(oldActiveTab.id, window.scrollY);
+        if (oldActiveTab.id === 'external-search') {
+            const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
+            state.lastDictionaryQuery = searchInput.value.trim();
+        }
     }
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const activeTab = document.getElementById(tabName);
     if (activeTab) {
         activeTab.classList.add('active');
-        if (tabName === 'external-search' && activeTab.innerHTML.trim() === '') {
-            activeTab.innerHTML = createSearchPlaceholder('prompt');
+        if (tabName === 'external-search') {
+            const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
+            searchInput.value = state.lastDictionaryQuery;
+            if (state.lastDictionaryQuery) {
+                handleExternalSearch(state.lastDictionaryQuery);
+            } else if (activeTab.innerHTML.trim() === '') {
+                activeTab.innerHTML = createSearchPlaceholder('prompt');
+            }
         }
     }
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -314,10 +325,14 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
         }
     }
 
-    if (els.searchInput) els.searchInput.value = '';
-    if (els.mobileSearchInput) els.mobileSearchInput.value = '';
+    // This block is now corrected
+    if (tabName !== 'external-search') {
+        if (els.searchInput) els.searchInput.value = '';
+        if (els.mobileSearchInput) els.mobileSearchInput.value = '';
+    }
     handleSearch.cancel();
     handleSearch();
+
     closeSidebar();
 
     if (!suppressScroll) {
@@ -395,7 +410,7 @@ export async function deleteLevel(level) {
             await setLevel(config.defaultLevel);
         } else {
             const remoteResponse = await fetch(`${config.dataPath}/levels.json`);
-            const remoteData = remoteResponse.ok ? await remoteResponse.json() : { levels: [] };
+            const remoteData = remoteResponse.ok ? await response.json() : { levels: [] };
             const customLevels = await db.getAllKeys('levels');
             buildLevelSwitcher(remoteData.levels || [config.defaultLevel], customLevels);
             document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === state.currentLevel));
