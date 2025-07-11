@@ -41,8 +41,8 @@ export function createSearchPlaceholder(type, query = '') {
                 <div class="search-placeholder-wrapper">
                      <div class="search-placeholder-box search-prompt-animate">
                         ${icon}
-                        <h3 class="text-xl font-semibold text-primary">${title}</h3>
-                        <p class="text-secondary text-base mt-1 max-w-md">${subtitle}</p>
+                        <h3 class="text-xl font-semibold text-primary">${subtitle}</h3>
+
                         ${notice}
                     </div>
                 </div>`;
@@ -53,7 +53,7 @@ export function createSearchPlaceholder(type, query = '') {
         <div class="search-placeholder-wrapper">
              <div class="search-placeholder-box">
                 ${icon}
-                <h3 class="text-xl font-semibold text-primary">${title}</h3>
+                <h3 class="text-xl font-semibold text-primary">${subtitle}</h3>
                 <p class="text-secondary text-base mt-1 max-w-md">${subtitle}</p>
                 ${notice}
             </div>
@@ -379,8 +379,8 @@ function findKanjiData(kanjiCharacter) {
 }
 
 /**
- * Renders the results from the external Jotoba search.
- * @param {{words: Array, kanji: Array}} results - The search results from the Jotoba API.
+ * Renders the results from the external dictionary search.
+ * @param {{words: Array, kanji: Array}} results - The search results from the API.
  * @param {string} query - The original search query.
  */
 export function renderExternalSearchResults(results, query) {
@@ -388,98 +388,125 @@ export function renderExternalSearchResults(results, query) {
 
     els.externalSearchTab.innerHTML = '';
     const fragment = document.createDocumentFragment();
+    const getUIText = (key, fallback) => state.appData.ui?.[state.currentLang]?.[key] || fallback;
 
-    const hasWords = results.words && results.words.length > 0;
-    const hasKanji = results.kanji && results.kanji.length > 0;
+    const hasWords = results?.words?.length > 0;
+    const hasKanji = results?.kanji?.length > 0;
 
     if (hasWords) {
+        const sectionContainer = document.createElement('div');
+        sectionContainer.className = 'search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6';
+
         const vocabHeader = document.createElement('h3');
-        vocabHeader.className = 'dict-section-header';
-        vocabHeader.textContent = state.appData.ui?.[state.currentLang]?.vocabResults || 'Vocabulary Results';
-        fragment.appendChild(vocabHeader);
+        vocabHeader.className = 'text-lg sm:text-lg font-bold mb-4 text-primary';
+        vocabHeader.textContent = getUIText('vocabResults', 'Vocabulary Results');
+        sectionContainer.appendChild(vocabHeader);
 
         const vocabGrid = document.createElement('div');
         vocabGrid.className = 'dict-grid';
 
         results.words.forEach(word => {
-            const card = document.createElement('div');
-            card.className = 'dict-card';
+            if (!word?.reading || !word?.senses) return; // Defensively skip malformed entries
 
-            const isJDictViJp = state.currentLang === 'vi' && !/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(word.reading.kanji);
-            const isJDictJpVi = state.currentLang === 'vi' && /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(word.reading.kanji);
-
-            let headerHTML, sensesHTML;
+            const JAPANESE_REGEX = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+            const isJDictViJp = state.currentLang === 'vi' && !JAPANESE_REGEX.test(word.reading.kanji);
 
             if (isJDictViJp) {
-                // --- RENDER: JDict VI -> JP ---
-                headerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${word.reading.kanji}</h4></div>`;
-                sensesHTML = word.senses.map(sense => {
-                    const japaneseTerm = sense.glosses[0];
+                // Renders VI -> JP results from JDict
+                word.senses.forEach(sense => {
+                    const japaneseTerm = sense.glosses?.[0] || '';
+                    if (!japaneseTerm) return;
+
+                    const card = document.createElement('div');
+                    card.className = 'dict-card';
                     const reading = sense.reading || '';
                     const termWithClickableKanji = japaneseTerm.split('').map(char =>
                         /[\u4e00-\u9faf]/.test(char) && findKanjiData(char)
-                            ? `<span class="hover:text-accent-blue cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>`
+                            ? `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>`
                             : `<span>${char}</span>`
                     ).join('');
-                    return `<p>${termWithClickableKanji} <span class="dict-vocab-reading">(${reading})</span></p>`;
-                }).join('');
-
+                    
+                    card.innerHTML = `
+                        <div class="dict-vocab-header">
+                            <h4 class="dict-vocab-term">${termWithClickableKanji}</h4>
+                            ${reading ? `<span class="dict-vocab-reading">(${reading})</span>` : ''}
+                        </div>
+                        <div class="dict-vocab-definitions">
+                            <p>${word.reading.kanji}</p>
+                        </div>
+                    `;
+                    vocabGrid.appendChild(card);
+                });
             } else {
-                // --- RENDER: Jotoba OR JDict JP -> VI ---
-                const term = word.reading.kanji;
-                const reading = word.reading.kana ? `(${word.reading.kana})` : '';
+                // Renders Jotoba results or JP -> VI JDict results
+                const card = document.createElement('div');
+                card.className = 'dict-card';
+                
+                // **FIX**: Safely access properties with fallbacks to prevent crashes
+                const term = word.reading.kanji || word.reading.kana || '';
+                const reading = word.reading.kana && word.reading.kana !== term ? `(${word.reading.kana})` : '';
+
+                if (!term) return; // Don't render a card if there's no term
+
                 const termWithClickableKanji = term.split('').map(char =>
                     /[\u4e00-\u9faf]/.test(char) && findKanjiData(char)
-                        ? `<span class="hover:text-accent-blue cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>`
+                        ? `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>`
                         : `<span>${char}</span>`
                 ).join('');
 
-                headerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${termWithClickableKanji}</h4><span class="dict-vocab-reading">${reading}</span></div>`;
+                const headerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${termWithClickableKanji}</h4><span class="dict-vocab-reading">${reading}</span></div>`;
 
-                sensesHTML = word.senses.map(sense => {
-                    const glosses = sense.glosses.join('; ');
-                    const posText = (sense.pos && sense.pos.length > 0) ? `<span class="dict-vocab-pos">[${[...new Set(sense.pos.map(p => typeof p === 'object' ? Object.keys(p)[0] : p))].join(', ')}]</span>` : '';
-                    return `<p>${glosses}${posText}</p>`;
+                const sensesHTML = (word.senses ?? []).map(sense => {
+                    const glosses = sense.glosses?.join('; ') ?? '';
+                    const pos = [...new Set((sense.pos ?? []).map(p => typeof p === 'object' ? Object.keys(p)[0] : p))];
+                    const posText = pos.length > 0 ? `<span class="dict-vocab-pos">[${pos.join(', ')}]</span>` : '';
+                    return `<p>${glosses} ${posText}</p>`;
                 }).join('');
-            }
 
-            card.innerHTML = `${headerHTML}<div class="dict-vocab-definitions">${sensesHTML}</div>`;
-            vocabGrid.appendChild(card);
+                card.innerHTML = `${headerHTML}<div class="dict-vocab-definitions">${sensesHTML}</div>`;
+                vocabGrid.appendChild(card);
+            }
         });
-        fragment.appendChild(vocabGrid);
+        sectionContainer.appendChild(vocabGrid);
+        fragment.appendChild(sectionContainer);
     }
 
     if (hasKanji) {
-        const kanjiHeader = document.createElement('h3');
-        kanjiHeader.className = 'dict-section-header mt-10'; // Added margin top
-        kanjiHeader.textContent = state.appData.ui?.[state.currentLang]?.kanjiResults || 'Kanji Results';
-        fragment.appendChild(kanjiHeader);
+        const sectionContainer = document.createElement('div');
+        sectionContainer.className = 'search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6';
 
+        const kanjiHeader = document.createElement('h3');
+        kanjiHeader.className = 'text-lg sm:text-lg font-bold mb-4 text-primary';
+        kanjiHeader.textContent = getUIText('kanjiResults', 'Kanji Results');
+        sectionContainer.appendChild(kanjiHeader);
+        
         const kanjiGrid = document.createElement('div');
         kanjiGrid.className = 'dict-grid';
         results.kanji.forEach(k => {
+            if (!k?.literal) return;
+            
             const card = document.createElement('div');
             card.className = 'dict-card';
 
-            const onyomi = k.onyomi ? k.onyomi.join(', ') : '–';
-            const kunyomi = k.kunyomi ? k.kunyomi.join(', ') : '–';
-            const meanings = k.meanings ? k.meanings.join('; ') : 'No definition found.';
+            const onyomi = k.onyomi?.join(', ') || '–';
+            const kunyomi = k.kunyomi?.join(', ') || '–';
+            const meanings = k.meanings?.join('; ') || getUIText('noDefinition', 'No definition found.');
 
             card.innerHTML = `
                 <div class="dict-kanji-header">
                     <h4 class="dict-kanji-char">${k.literal}</h4>
                     <div class="dict-kanji-readings">
-                        <p><span class="reading-label">${state.appData.ui?.[state.currentLang]?.onyomi || "On'yomi:"}</span>${onyomi}</p>
-                        <p><span class="reading-label">${state.appData.ui?.[state.currentLang]?.kunyomi || "Kun'yomi:"}</span>${kunyomi}</p>
+                        <p><span class="reading-label">${getUIText('onyomi', "On'yomi:")}</span> ${onyomi}</p>
+                        <p><span class="reading-label">${getUIText('kunyomi', "Kun'yomi:")}</span> ${kunyomi}</p>
                     </div>
                 </div>
                 <div class="dict-kanji-meanings">${meanings}</div>
             `;
             kanjiGrid.appendChild(card);
         });
-        fragment.appendChild(kanjiGrid);
+        sectionContainer.appendChild(kanjiGrid);
+        fragment.appendChild(sectionContainer);
     }
-
 
     if (!hasWords && !hasKanji) {
         fragment.appendChild(document.createRange().createContextualFragment(createSearchPlaceholder('no-results', query)));
@@ -643,5 +670,32 @@ export function scrollActiveLevelIntoView() {
                 inline: 'center'
             });
         }, 100);
+    }
+}
+
+/**
+ * Updates the search input placeholders based on the currently active tab.
+ * @param {string} activeTabId - The ID of the currently active tab.
+ */
+export function updateSearchPlaceholders(activeTabId) {
+    const getUIText = (key, fallback = '') => state.appData.ui?.[state.currentLang]?.[key] || fallback;
+
+    const isDictionaryTab = activeTabId === 'external-search';
+    
+    // Determine the correct placeholder text
+    const placeholderText = isDictionaryTab 
+        ? getUIText('dictionaryPrompt', 'Search for words...')
+        : getUIText('searchPlaceholder', 'Search anything...');
+        
+    const mobilePlaceholderText = isDictionaryTab
+        ? getUIText('dictionaryPrompt', 'Search for words...')
+        : getUIText('searchTabPlaceholder', 'Search in this tab...');
+
+    // Update both desktop and mobile search inputs
+    if (els.searchInput) {
+        els.searchInput.placeholder = placeholderText;
+    }
+    if (els.mobileSearchInput) {
+        els.mobileSearchInput.placeholder = mobilePlaceholderText;
     }
 }

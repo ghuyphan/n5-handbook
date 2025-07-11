@@ -1833,7 +1833,7 @@ External Search Results Styling
 .dict-kanji-char {
     font-size: 2.5rem;
     font-weight: 700;
-    color: var(--accent-blue);
+    color: var(--accent-teal);
     font-family: 'Noto Sans JP', sans-serif;
     line-height: 1;
 }

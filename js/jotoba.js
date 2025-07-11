@@ -20,7 +20,7 @@ const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
  * @returns {Promise} A promise that rejects after timeout
  */
 function createTimeout(ms) {
-    return new Promise((_, reject) => 
+    return new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Request timeout')), ms)
     );
 }
@@ -109,21 +109,13 @@ async function searchJDict(query, isJP) {
     try {
         const dictType = isJP ? 'jp_vi' : 'vi_jp';
         const url = `${JDICT_BASE_URL}?keyword=${encodeURIComponent(query)}&dict=${dictType}`;
-        
         const response = await fetchWithTimeout(url);
-        
         if (!response.ok) {
-            // Check for rate limiting or server errors
-            if (response.status === 429 || response.status >= 500) {
-                console.warn(`JDict API returned ${response.status}, will fallback to Jotoba`);
-                return null;
-            }
-            throw new Error(`JDict API Error: ${response.status}`);
+            console.warn(`JDict API returned ${response.status}, will fallback if possible.`);
+            return null;
         }
-
         const data = await response.json();
         return transformJDictData(data, isJP);
-
     } catch (error) {
         console.warn('JDict search failed:', error.message);
         return null;
@@ -150,7 +142,6 @@ async function searchJotoba(query, isJP) {
     if (!response.ok) {
         throw new Error(`Jotoba API Error: ${response.status}`);
     }
-
     const data = await response.json();
     return {
         words: data.words || [],
@@ -169,16 +160,16 @@ function isCacheValid(cachedResult) {
 }
 
 /**
- * Retrieves data from cache if valid
- * @param {IDBDatabase} db - The database instance
- * @param {string} query - The search query
- * @returns {Promise<Object|null>} Cached data or null
+ * Retrieves data from cache if valid.
+ * @param {IDBDatabase} db - The database instance.
+ * @param {string} query - The search query.
+ * @returns {Promise<Object|null>} Cached data object { data, lang, timestamp } or null.
  */
 async function getCachedResult(db, query) {
     try {
         const cachedResult = await db.get('dictionary_cache', query);
         if (isCacheValid(cachedResult)) {
-            return cachedResult.data;
+            return cachedResult;
         }
     } catch (error) {
         console.warn('Cache retrieval failed:', error);
@@ -187,15 +178,16 @@ async function getCachedResult(db, query) {
 }
 
 /**
- * Stores data in cache with timestamp
- * @param {IDBDatabase} db - The database instance
- * @param {string} query - The search query
- * @param {Object} data - The data to cache
+ * Stores data in cache with timestamp and language context.
+ * @param {IDBDatabase} db - The database instance.
+ * @param {string} query - The search query.
+ * @param {Object} data - The data to cache.
  */
 async function cacheResult(db, query, data) {
     try {
         await db.put('dictionary_cache', {
             data,
+            lang: state.currentLang, // Store language context
             timestamp: Date.now()
         }, query);
     } catch (error) {
@@ -204,68 +196,78 @@ async function cacheResult(db, query, data) {
 }
 
 /**
- * Main handler for searching external dictionaries (Jotoba/JDict).
+ * Main handler for searching external dictionaries.
+ * Manages caching, API fallback, and rendering of results.
  * @param {string} query - The search term from the user.
+ * @param {boolean} [forceRefresh=false] - If true, bypasses the cache.
  */
-export async function handleExternalSearch(query) {
+export async function handleExternalSearch(query, forceRefresh = false) {
     if (!query) {
         els.externalSearchTab.innerHTML = createSearchPlaceholder('prompt');
         return;
     }
 
     const db = await dbPromise;
-    
-    // Check cache first
-    const cachedResult = await getCachedResult(db, query);
-    if (cachedResult) {
-        renderExternalSearchResults(cachedResult, query);
-        return;
+
+    // 1. Check cache first, unless forcing a refresh
+    if (!forceRefresh) {
+        const cachedResult = await getCachedResult(db, query);
+        // Use cache only if it exists and was saved with the same language
+        if (cachedResult && cachedResult.lang === state.currentLang) {
+            renderExternalSearchResults(cachedResult.data, query);
+            return;
+        }
     }
 
-    if (els.externalSearchTab.innerHTML.trim() === '' || !els.externalSearchTab.querySelector('.search-placeholder-wrapper')) {
+    // 2. Show 'searching' state
+    if (!els.externalSearchTab.querySelector('.search-placeholder-wrapper')) {
         els.externalSearchTab.innerHTML = createSearchPlaceholder('searching');
     }
-
 
     try {
         const isJP = JAPANESE_REGEX.test(query);
         let resultsToRender = null;
 
-        // Try JDict first for Vietnamese, then fallback to Jotoba
+        // 3. Select API based on language
         if (state.currentLang === 'vi') {
             resultsToRender = await searchJDict(query, isJP);
-            
             if (!resultsToRender) {
-                console.log('Falling back to Jotoba due to JDict failure');
+                console.log('JDict failed or returned no results, falling back to Jotoba.');
                 resultsToRender = await searchJotoba(query, isJP);
             }
         } else {
-            // Use Jotoba directly for other languages
             resultsToRender = await searchJotoba(query, isJP);
         }
-
-        // Handle empty results
-        if (!resultsToRender || (
-            (!resultsToRender.words || resultsToRender.words.length === 0) && 
-            (!resultsToRender.kanji || resultsToRender.kanji.length === 0)
-        )) {
-            resultsToRender = { words: [], kanji: [] };
-        }
-
-        // Cache the results
+        
+        // 4. Cache the successful result
         await cacheResult(db, query, resultsToRender);
         
-        // Render the results
+        // 5. Render the results
         renderExternalSearchResults(resultsToRender, query);
 
     } catch (error) {
         console.error("External Search Error:", error);
         
-        // Show user-friendly error message
-        const errorMessage = error.message.includes('timeout') 
-            ? 'Search timed out. Please try again.'
-            : 'Could not fetch results. Please try again.';
+        // Use localized error messages
+        const getUIText = (key, fallback) => state.appData.ui?.[state.currentLang]?.[key] || fallback;
+        const errorTitle = getUIText('searchErrorTitle', 'Search Error');
+        let errorMessage;
+        
+        if (error.message.includes('timeout')) {
+            errorMessage = getUIText('searchTimeoutError', 'Search timed out. Please try again.');
+        } else {
+            errorMessage = getUIText('searchFetchError', 'Could not fetch results. Please try again.');
+        }
             
-        els.externalSearchTab.innerHTML = `<p class="text-center text-red-500 my-8">Error: ${errorMessage}</p>`;
+        // Render a proper error message placeholder
+        const errorIcon = `<svg class="w-16 h-16 text-red-400 opacity-80 mb-4 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>`;
+        els.externalSearchTab.innerHTML = `
+            <div class="search-placeholder-wrapper">
+                 <div class="search-placeholder-box text-center">
+                    ${errorIcon}
+                    <h3 class="text-xl font-semibold text-primary">${errorTitle}</h3>
+                    <p class="text-secondary text-base mt-1 max-w-md mx-auto">${errorMessage}</p>
+                </div>
+            </div>`;
     }
 }

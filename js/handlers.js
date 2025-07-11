@@ -8,7 +8,7 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
-import { renderContent, updateProgressDashboard, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, createSearchPlaceholder } from './ui.js';
+import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, createSearchPlaceholder } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
 function removeHighlights(container) {
@@ -176,6 +176,7 @@ export function setLanguage(lang, skipRender = false) {
     if (externalSearchTab && externalSearchTab.classList.contains('active') && isSearchEmpty) {
         externalSearchTab.innerHTML = createSearchPlaceholder('prompt');
     }
+    updateSearchPlaceholders(state.activeTab);
 }
 
 export function toggleTheme(event) {
@@ -332,6 +333,7 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
     }
     handleSearch.cancel();
     handleSearch();
+    updateSearchPlaceholders(tabName); 
 
     closeSidebar();
 
