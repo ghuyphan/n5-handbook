@@ -1480,8 +1480,7 @@ input:checked+.slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    max-width: 6rem;
+    width: 5rem; /* Changed from 100% to a fixed width */
 }
 
 .loader:before,
@@ -1718,6 +1717,22 @@ External Search Results Styling
     align-items: center;
     /* Center content inside the box */
     text-align: center;
+}
+
+/* NEW: Animation for the search prompt placeholder */
+@keyframes search-prompt-pulse {
+    0%, 100% {
+      box-shadow: 0 4px 20px 0 var(--shadow-color);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 6px 24px 0 var(--shadow-color);
+      transform: scale(1.01);
+    }
+}
+
+.search-prompt-animate {
+    animation: search-prompt-pulse 3s ease-in-out infinite;
 }
 
 /* Styling for the notice text at the bottom of the placeholder */

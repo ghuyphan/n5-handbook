@@ -18,6 +18,8 @@ export const state = {
     allAvailableLevels: [config.defaultLevel],
     pinnedTab: null,
     fuseInstances: {},
+    universalFuse: null,
+    currentQuery: '',
     tabScrollPositions: new Map(),
     externalDB: {
         vocab: [],

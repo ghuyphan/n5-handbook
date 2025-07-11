@@ -16,7 +16,7 @@ export function createSearchPlaceholder(type, query = '') {
     switch (type) {
         case 'searching':
             return `
-                <div class="search-placeholder">
+                <div class="search-placeholder-wrapper">
                     <div class="search-placeholder-box">
                         <div class="loader"></div>
                     </div>
@@ -25,7 +25,7 @@ export function createSearchPlaceholder(type, query = '') {
             icon = `<svg class="w-16 h-16 text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                     </svg>`;
-            title = `${getUIText('noResults')} "<b class="text-accent-blue">${query}</b>"`;
+            title = `${getUIText('noResults')} "<b class="text-accent-teal">${query}</b>"`;
             subtitle = 'Try checking your spelling or using a different term.';
             break;
         case 'prompt':
@@ -36,9 +36,19 @@ export function createSearchPlaceholder(type, query = '') {
             title = getUIText('dictionaryPrompt');
             subtitle = getUIText('dictionarySubtitle');
             notice = `<div class="search-placeholder-notice">${getUIText('dictionaryNotice')}</div>`;
-            break;
+            // Add a special class for the animation on the prompt
+            return `
+                <div class="search-placeholder-wrapper">
+                     <div class="search-placeholder-box search-prompt-animate">
+                        ${icon}
+                        <h3 class="text-xl font-semibold text-primary">${title}</h3>
+                        <p class="text-secondary text-base mt-1 max-w-md">${subtitle}</p>
+                        ${notice}
+                    </div>
+                </div>`;
     }
 
+    // Default return for non-animated placeholders
     return `
         <div class="search-placeholder-wrapper">
              <div class="search-placeholder-box">
@@ -390,40 +400,50 @@ export function renderExternalSearchResults(results, query) {
 
         const vocabGrid = document.createElement('div');
         vocabGrid.className = 'dict-grid';
+
         results.words.forEach(word => {
             const card = document.createElement('div');
             card.className = 'dict-card';
 
-            const term = word.reading.kanji || word.reading.kana;
-            const termWithClickableKanji = term.split('').map(char => {
-                if (/[\u4e00-\u9faf]/.test(char)) {
-                    const kanjiItem = findKanjiData(char);
-                    if (kanjiItem) {
-                        return `<span class="hover:text-accent-blue cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${kanjiItem.id}">${char}</span>`;
-                    }
-                }
-                return `<span>${char}</span>`;
-            }).join('');
+            const isJDictViJp = state.currentLang === 'vi' && !/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(word.reading.kanji);
+            const isJDictJpVi = state.currentLang === 'vi' && /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(word.reading.kanji);
 
-            const reading = term !== word.reading.kana ? `(${word.reading.kana})` : '';
+            let headerHTML, sensesHTML;
 
-            const sensesHTML = word.senses.map(sense => {
-                const glosses = sense.glosses.join('; ');
-                let posText = '';
-                if (sense.pos && sense.pos.length > 0) {
-                    const posArray = sense.pos.map(p => typeof p === 'object' ? Object.keys(p)[0] : p);
-                    posText = `<span class="dict-vocab-pos">[${[...new Set(posArray)].join(', ')}]</span>`;
-                }
-                return `<p>${glosses}${posText}</p>`;
-            }).join('');
+            if (isJDictViJp) {
+                // --- RENDER: JDict VI -> JP ---
+                headerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${word.reading.kanji}</h4></div>`;
+                sensesHTML = word.senses.map(sense => {
+                    const japaneseTerm = sense.glosses[0];
+                    const reading = sense.reading || '';
+                    const termWithClickableKanji = japaneseTerm.split('').map(char =>
+                        /[\u4e00-\u9faf]/.test(char) && findKanjiData(char)
+                            ? `<span class="hover:text-accent-blue cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>`
+                            : `<span>${char}</span>`
+                    ).join('');
+                    return `<p>${termWithClickableKanji} <span class="dict-vocab-reading">(${reading})</span></p>`;
+                }).join('');
 
-            card.innerHTML = `
-                <div class="dict-vocab-header">
-                    <h4 class="dict-vocab-term">${termWithClickableKanji}</h4>
-                    <span class="dict-vocab-reading">${reading}</span>
-                </div>
-                <div class="dict-vocab-definitions">${sensesHTML}</div>
-            `;
+            } else {
+                // --- RENDER: Jotoba OR JDict JP -> VI ---
+                const term = word.reading.kanji;
+                const reading = word.reading.kana ? `(${word.reading.kana})` : '';
+                const termWithClickableKanji = term.split('').map(char =>
+                    /[\u4e00-\u9faf]/.test(char) && findKanjiData(char)
+                        ? `<span class="hover:text-accent-blue cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>`
+                        : `<span>${char}</span>`
+                ).join('');
+
+                headerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${termWithClickableKanji}</h4><span class="dict-vocab-reading">${reading}</span></div>`;
+
+                sensesHTML = word.senses.map(sense => {
+                    const glosses = sense.glosses.join('; ');
+                    const posText = (sense.pos && sense.pos.length > 0) ? `<span class="dict-vocab-pos">[${[...new Set(sense.pos.map(p => typeof p === 'object' ? Object.keys(p)[0] : p))].join(', ')}]</span>` : '';
+                    return `<p>${glosses}${posText}</p>`;
+                }).join('');
+            }
+
+            card.innerHTML = `${headerHTML}<div class="dict-vocab-definitions">${sensesHTML}</div>`;
             vocabGrid.appendChild(card);
         });
         fragment.appendChild(vocabGrid);

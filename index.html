@@ -41,7 +41,22 @@
         media="print" onload="this.media='all'">
 
     <style>
-        /* Critical CSS from your 'styles.css' file should be inlined here for best performance. */
+        /* CSS to show dictionary results on top of tab content */
+        #universal-dictionary-container {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--background-primary); /* Match the page background */
+            z-index: 10; /* Sit on top of tab content */
+            overflow-y: auto;
+            padding: 1rem; /* Add some padding */
+        }
+        #main-content.dictionary-search-active #universal-dictionary-container {
+            display: block; /* Show when search is active */
+        }
     </style>
 
 </head>
@@ -260,6 +275,7 @@
                 <div id="loading-overlay">
                     <div class="loader"></div>
                 </div>
+                <div id="universal-dictionary-container"></div>
                 <div id="progress" class="tab-content"></div>
                 <div id="hiragana" class="tab-content"></div>
                 <div id="katakana" class="tab-content"></div>
