@@ -1480,7 +1480,7 @@ input:checked+.slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 5rem; /* Changed from 100% to a fixed width */
+    width: clamp(3.5rem, 15vw, 5rem);
 }
 
 .loader:before,
@@ -1694,17 +1694,16 @@ External Search Results Styling
 ==============================================
 */
 
-/* Wrapper for the placeholder messages (e.g., "Enter a word to search") */
 .search-placeholder-wrapper {
-    width: 100%;
-    /* Take full width */
-    /* padding: 2rem 0; */
-    /* Add some vertical padding */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
 }
 
-/* The styled box within the placeholder */
 .search-placeholder-box {
-    /* Use glass-effect styling but ensure it's full-width */
     background: var(--glass-bg);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
@@ -1715,19 +1714,23 @@ External Search Results Styling
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Center content inside the box */
+    justify-content: center;
     text-align: center;
+    width: 100%;
+    min-height: clamp(250px, 35vh, 300px);
 }
 
-/* NEW: Animation for the search prompt placeholder */
 @keyframes search-prompt-pulse {
-    0%, 100% {
-      box-shadow: 0 4px 20px 0 var(--shadow-color);
-      transform: scale(1);
+
+    0%,
+    100% {
+        box-shadow: 0 4px 20px 0 var(--shadow-color);
+        transform: scale(1);
     }
+
     50% {
-      box-shadow: 0 6px 24px 0 var(--shadow-color);
-      transform: scale(1.01);
+        box-shadow: 0 6px 24px 0 var(--shadow-color);
+        transform: scale(1.01);
     }
 }
 
@@ -1735,7 +1738,6 @@ External Search Results Styling
     animation: search-prompt-pulse 3s ease-in-out infinite;
 }
 
-/* Styling for the notice text at the bottom of the placeholder */
 .search-placeholder-notice {
     margin-top: 1rem;
     padding: 0.75rem 1rem;
@@ -1750,7 +1752,6 @@ External Search Results Styling
     line-height: 1.6;
 }
 
-/* Section headers for "Vocabulary Results", "Kanji Results" */
 .dict-section-header {
     font-size: 1.25rem;
     font-weight: 700;
@@ -1760,14 +1761,12 @@ External Search Results Styling
     border-bottom: 1px solid var(--glass-border);
 }
 
-/* Grid container for search results */
 .dict-grid {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-/* Individual result card */
 .dict-card {
     background-color: var(--card-front-bg);
     border: 1px solid var(--card-front-border);
@@ -1782,7 +1781,6 @@ External Search Results Styling
     box-shadow: 0 10px 20px -5px var(--shadow-color);
 }
 
-/* Vocabulary result specifics */
 .dict-vocab-header {
     display: flex;
     align-items: baseline;
@@ -1825,7 +1823,6 @@ External Search Results Styling
     margin-left: 0.5rem;
 }
 
-/* Kanji result specifics */
 .dict-kanji-header {
     display: flex;
     align-items: center;
