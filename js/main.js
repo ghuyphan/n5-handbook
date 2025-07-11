@@ -40,14 +40,12 @@ function openKanjiDetailModal(kanjiId) {
     }
 
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
-
     const meaning = kanjiItem.meaning?.[state.currentLang] || kanjiItem.meaning?.en || '';
     const mnemonicText = kanjiItem.mnemonic?.[state.currentLang] || kanjiItem.mnemonic?.en || '';
     const radicalText = kanjiItem.radical?.[state.currentLang] || kanjiItem.radical?.en || '';
     const sentenceTokens = kanjiItem.sentence?.jp_tokens;
     const sentenceJP = kanjiItem.sentence?.jp;
     const sentenceTranslation = kanjiItem.sentence?.[state.currentLang] || kanjiItem.sentence?.en || '';
-
     let sentenceHTML = '';
     if (sentenceTokens) {
         sentenceHTML = sentenceTokens.map(token => token.r ? `<ruby>${token.w}<rt>${token.r}</rt></ruby>` : token.w).join('');
@@ -56,69 +54,70 @@ function openKanjiDetailModal(kanjiId) {
     }
 
     els.kanjiModalContentContainer.innerHTML = `
-        <div class="glass-effect p-6 rounded-2xl">
-            <button id="close-kanji-modal-btn" class="modal-close-btn absolute top-4 right-4">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <div class="text-center mb-6">
-                <h1 class="text-6xl font-bold noto-sans text-primary mb-2">${kanjiItem.kanji}</h1>
-                <p class="text-xl text-secondary">${meaning}</p>
+        <div class="glass-effect rounded-2xl overflow-hidden">
+            <div class="p-6 pb-0">
+                <button id="close-kanji-modal-btn" class="modal-close-btn absolute top-4 right-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <div class="text-center mb-6">
+                    <h1 class="text-6xl font-bold noto-sans text-primary mb-2">${kanjiItem.kanji}</h1>
+                    <p class="text-xl text-secondary">${meaning}</p>
+                </div>
             </div>
-            <div class="space-y-6 text-sm max-h-[50vh] overflow-y-auto pr-2 kanji-modal-scroll-content">
-                
-                ${kanjiItem.examples && kanjiItem.examples.length > 0 ? `
-                <div>
-                    <h3 class="font-semibold text-secondary mb-3">${getUIText('modalExamples')}</h3>
-                    <ul class="space-y-2 text-primary">
-                        ${kanjiItem.examples.map(ex => `
-                            <li class="flex justify-between items-baseline">
-                                <span class="font-semibold noto-sans with-furigana"><ruby>${ex.word}<rt>${ex.reading}</rt></ruby></span>
-                                <span class="kanji-modal-translation">${ex.meaning[state.currentLang] || ex.meaning.en}</span>
-                            </li>
-                        `).join('')}
-                    </ul>
-                </div>` : ''}
-                
-                ${sentenceHTML ? `
-                <div>
-                    <p class="noto-sans text-primary with-furigana">${sentenceHTML}</p>
-                    <p class="kanji-modal-translation mt-1">${sentenceTranslation}</p>
-                </div>` : ''}
+            <div class="relative">
+                <div class="kanji-modal-scroll-content space-y-6 text-sm max-h-[50vh] overflow-y-auto px-6 pb-6">
+                    ${kanjiItem.examples && kanjiItem.examples.length > 0 ? `
+                    <div>
+                        <h3 class="font-semibold text-secondary mb-3">${getUIText('modalExamples')}</h3>
+                        <ul class="space-y-2 text-primary">
+                            ${kanjiItem.examples.map(ex => `
+                                <li class="flex justify-between items-baseline">
+                                    <span class="font-semibold noto-sans with-furigana"><ruby>${ex.word}<rt>${ex.reading}</rt></ruby></span>
+                                    <span class="kanji-modal-translation">${ex.meaning[state.currentLang] || ex.meaning.en}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>` : ''}
+                    
+                    ${sentenceHTML ? `
+                    <div>
+                        <p class="noto-sans text-primary with-furigana">${sentenceHTML}</p>
+                        <p class="kanji-modal-translation mt-1">${sentenceTranslation}</p>
+                    </div>` : ''}
 
-                ${mnemonicText || radicalText ? `
-                 <div class="pt-5 border-t border-glass-border">
-                    <h3 class="font-semibold text-secondary mb-3">${getUIText('modalInfo')}</h3>
-                    <div class="space-y-4 text-xs text-secondary">
-                        ${radicalText ? `
-                        <div>
-                            <p class="font-semibold text-primary mb-1">${getUIText('modalRadical')}</p>
-                            <p>${radicalText}</p>
-                        </div>` : ''}
-                        ${mnemonicText ? `
-                        <div>
-                            <p class="font-semibold text-primary mb-1">${getUIText('modalMnemonic')}</p>
-                            <p>${mnemonicText}</p>
-                        </div>` : ''}
-                    </div>
-                </div>` : ''}
+                    ${mnemonicText || radicalText ? `
+                     <div class="pt-5 border-t border-glass-border">
+                        <h3 class="font-semibold text-secondary mb-3">${getUIText('modalInfo')}</h3>
+                        <div class="space-y-4 text-xs text-secondary">
+                            ${radicalText ? `
+                            <div>
+                                <p class="font-semibold text-primary mb-1">${getUIText('modalRadical')}</p>
+                                <p>${radicalText}</p>
+                            </div>` : ''}
+                            ${mnemonicText ? `
+                            <div>
+                                <p class="font-semibold text-primary mb-1">${getUIText('modalMnemonic')}</p>
+                                <p>${mnemonicText}</p>
+                            </div>` : ''}
+                        </div>
+                    </div>` : ''}
+                </div>
+                <div class="fade-indicator"></div>
             </div>
         </div>
     `;
 
     const scrollContent = els.kanjiModalContentContainer.querySelector('.kanji-modal-scroll-content');
-    if (scrollContent) {
+    const fadeIndicator = els.kanjiModalContentContainer.querySelector('.fade-indicator');
+
+    if (scrollContent && fadeIndicator) {
         const checkScroll = () => {
-            const isAtBottom = scrollContent.scrollHeight - scrollContent.scrollTop <= scrollContent.clientHeight + 1;
-            scrollContent.classList.toggle('scrolled-to-bottom', isAtBottom);
+            const isAtBottom = scrollContent.scrollHeight - scrollContent.scrollTop <= scrollContent.clientHeight + 5; // Added a 5px buffer
+            fadeIndicator.style.opacity = isAtBottom ? '0' : '1';
         };
         scrollContent.addEventListener('scroll', checkScroll);
-        
-        // ---- CHANGE IS HERE ----
-        // We delay the initial check to ensure the browser has calculated the correct scrollHeight.
-        setTimeout(checkScroll, 50);
-        // ---- END OF CHANGE ----
+        setTimeout(checkScroll, 50); // Initial check after layout settles
     }
-
     els.kanjiDetailModal.classList.add('active');
     document.body.classList.add('body-no-scroll');
 }

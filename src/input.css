@@ -526,7 +526,7 @@ body.sidebar-open {
 .accordion-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.5s var(--ease-out-quint), padding 0.5s var(--ease-out-quint);
+    transition: max-height 0.7s var(--ease-out-quint), padding 0.7s var(--ease-out-quint);
 }
 
 .open+.accordion-content {
@@ -1671,27 +1671,18 @@ input:checked+.slider:before {
     scrollbar-width: none;
 }
 
-.kanji-modal-scroll-content::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 40px; /* The height of the fade effect */
-    pointer-events: none;
-    transition: opacity 0.3s ease-in-out;
-    opacity: 1;
-    background-color: var(--glass-bg);
-    background-image:
-        radial-gradient(at 5% 5%, hsla(215, 98%, 70%, 0.15) 0px, transparent 50%),
-        radial-gradient(at 95% 95%, hsla(280, 96%, 76%, 0.15) 0px, transparent 50%);
-
-    -webkit-mask-image: linear-gradient(to bottom, transparent, black 100%);
-    mask-image: linear-gradient(to bottom, transparent, black 100%);
-}
-
-.kanji-modal-scroll-content.scrolled-to-bottom::after {
-    opacity: 0;
+.fade-indicator {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 75px;
+  background: linear-gradient(to bottom, transparent, var(--bg-main));
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+  border-bottom-left-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
 }
 
 /*
