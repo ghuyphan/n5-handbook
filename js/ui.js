@@ -16,8 +16,8 @@ export function createSearchPlaceholder(type, query = '') {
     switch (type) {
         case 'searching':
             return `
-                <div class="search-placeholder-wrapper">
-                    <div class="glass-effect p-8 rounded-2xl flex flex-col items-center">
+                <div class="search-placeholder">
+                    <div class="search-placeholder-box">
                         <div class="loader"></div>
                     </div>
                 </div>`;
@@ -35,16 +35,16 @@ export function createSearchPlaceholder(type, query = '') {
                     </svg>`;
             title = getUIText('dictionaryPrompt');
             subtitle = getUIText('dictionarySubtitle');
-            notice = `<p class="text-xs text-secondary opacity-70 mt-4">${getUIText('dictionaryNotice')}</p>`;
+            notice = `<div class="search-placeholder-notice">${getUIText('dictionaryNotice')}</div>`;
             break;
     }
 
     return `
         <div class="search-placeholder-wrapper">
-             <div class="glass-effect p-8 rounded-2xl flex flex-col items-center">
+             <div class="search-placeholder-box">
                 ${icon}
-                <h3 class="text-lg font-medium text-primary">${title}</h3>
-                <p class="text-secondary text-sm mt-1">${subtitle}</p>
+                <h3 class="text-xl font-semibold text-primary">${title}</h3>
+                <p class="text-secondary text-base mt-1 max-w-md">${subtitle}</p>
                 ${notice}
             </div>
         </div>`;
@@ -384,74 +384,82 @@ export function renderExternalSearchResults(results, query) {
 
     if (hasWords) {
         const vocabHeader = document.createElement('h3');
-        vocabHeader.className = 'text-xl font-bold mb-4 text-primary';
+        vocabHeader.className = 'dict-section-header';
         vocabHeader.textContent = state.appData.ui?.[state.currentLang]?.vocabResults || 'Vocabulary Results';
         fragment.appendChild(vocabHeader);
 
         const vocabGrid = document.createElement('div');
-        vocabGrid.className = 'grammar-grid';
+        vocabGrid.className = 'dict-grid';
         results.words.forEach(word => {
-            const template = document.getElementById('external-vocab-result-template').content.cloneNode(true);
-            const term = word.reading.kanji || word.reading.kana;
+            const card = document.createElement('div');
+            card.className = 'dict-card';
 
+            const term = word.reading.kanji || word.reading.kana;
             const termWithClickableKanji = term.split('').map(char => {
                 if (/[\u4e00-\u9faf]/.test(char)) {
                     const kanjiItem = findKanjiData(char);
                     if (kanjiItem) {
-                        return `<span class="hover:text-accent-blue cursor-pointer" data-action="show-kanji-details" data-id="${kanjiItem.id}">${char}</span>`;
+                        return `<span class="hover:text-accent-blue cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${kanjiItem.id}">${char}</span>`;
                     }
                 }
-                return char;
+                return `<span>${char}</span>`;
             }).join('');
 
-            template.querySelector('.vocab-term').innerHTML = termWithClickableKanji;
             const reading = term !== word.reading.kana ? `(${word.reading.kana})` : '';
-            template.querySelector('.vocab-reading').textContent = reading;
 
             const sensesHTML = word.senses.map(sense => {
-                const glosses = sense.glosses.join(', ');
+                const glosses = sense.glosses.join('; ');
                 let posText = '';
-
                 if (sense.pos && sense.pos.length > 0) {
-                    const posArray = sense.pos.map(p => {
-                        if (typeof p === 'object' && p !== null) {
-                            return Object.keys(p)[0];
-                        }
-                        return p;
-                    });
-
-                    const uniquePosArray = [...new Set(posArray)];
-                    posText = `<span class="text-xs opacity-70 font-mono">[${uniquePosArray.join(', ')}]</span>`;
+                    const posArray = sense.pos.map(p => typeof p === 'object' ? Object.keys(p)[0] : p);
+                    posText = `<span class="dict-vocab-pos">[${[...new Set(posArray)].join(', ')}]</span>`;
                 }
-                return `<p>${glosses} ${posText}</p>`;
+                return `<p>${glosses}${posText}</p>`;
             }).join('');
-            template.querySelector('.vocab-definitions').innerHTML = sensesHTML;
 
-            vocabGrid.appendChild(template);
+            card.innerHTML = `
+                <div class="dict-vocab-header">
+                    <h4 class="dict-vocab-term">${termWithClickableKanji}</h4>
+                    <span class="dict-vocab-reading">${reading}</span>
+                </div>
+                <div class="dict-vocab-definitions">${sensesHTML}</div>
+            `;
+            vocabGrid.appendChild(card);
         });
         fragment.appendChild(vocabGrid);
     }
 
     if (hasKanji) {
         const kanjiHeader = document.createElement('h3');
-        kanjiHeader.className = 'text-xl font-bold text-primary';
-        kanjiHeader.style.marginTop = '2.5rem';
-        kanjiHeader.style.marginBottom = '1rem';
+        kanjiHeader.className = 'dict-section-header mt-10'; // Added margin top
         kanjiHeader.textContent = state.appData.ui?.[state.currentLang]?.kanjiResults || 'Kanji Results';
         fragment.appendChild(kanjiHeader);
 
         const kanjiGrid = document.createElement('div');
-        kanjiGrid.className = 'grammar-grid';
+        kanjiGrid.className = 'dict-grid';
         results.kanji.forEach(k => {
-            const template = document.getElementById('external-kanji-result-template').content.cloneNode(true);
-            template.querySelector('.kanji-character').textContent = k.literal;
-            template.querySelector('.onyomi').textContent = k.onyomi ? k.onyomi.join(', ') : 'N/A';
-            template.querySelector('.kunyomi').textContent = k.kunyomi ? k.kunyomi.join(', ') : 'N/A';
-            template.querySelector('.kanji-definitions').textContent = k.meanings ? k.meanings.join('; ') : 'N/A';
-            kanjiGrid.appendChild(template);
+            const card = document.createElement('div');
+            card.className = 'dict-card';
+
+            const onyomi = k.onyomi ? k.onyomi.join(', ') : '–';
+            const kunyomi = k.kunyomi ? k.kunyomi.join(', ') : '–';
+            const meanings = k.meanings ? k.meanings.join('; ') : 'No definition found.';
+
+            card.innerHTML = `
+                <div class="dict-kanji-header">
+                    <h4 class="dict-kanji-char">${k.literal}</h4>
+                    <div class="dict-kanji-readings">
+                        <p><span class="reading-label">${state.appData.ui?.[state.currentLang]?.onyomi || "On'yomi:"}</span>${onyomi}</p>
+                        <p><span class="reading-label">${state.appData.ui?.[state.currentLang]?.kunyomi || "Kun'yomi:"}</span>${kunyomi}</p>
+                    </div>
+                </div>
+                <div class="dict-kanji-meanings">${meanings}</div>
+            `;
+            kanjiGrid.appendChild(card);
         });
         fragment.appendChild(kanjiGrid);
     }
+
 
     if (!hasWords && !hasKanji) {
         fragment.appendChild(document.createRange().createContextualFragment(createSearchPlaceholder('no-results', query)));

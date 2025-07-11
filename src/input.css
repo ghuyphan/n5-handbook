@@ -36,6 +36,7 @@ mark.search-highlight {
     --accent-purple: #8B5CF6;
     --accent-orange: #F97316;
     --accent-yellow: #F59E0B;
+    --accent-teal: rgb(20, 184, 166);
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.25);
     --shadow-color: rgba(99, 102, 241, 0.08);
@@ -51,6 +52,7 @@ mark.search-highlight {
     --switch-bg: #e9eaf1;
     --backdrop-bg: rgba(0, 0, 0, 0.3);
     --bg-orange: rgba(249, 115, 22, 0.1);
+    --bg-teal: rgba(20, 184, 166, 0.1);
     --radius-sm: 0.5rem;
     --radius-md: 0.75rem;
     --radius-lg: 1rem;
@@ -1692,100 +1694,155 @@ input:checked+.slider:before {
 External Search Results Styling
 ==============================================
 */
+
+/* Wrapper for the placeholder messages (e.g., "Enter a word to search") */
 .search-placeholder-wrapper {
+    width: 100%;
+    /* Take full width */
+    /* padding: 2rem 0; */
+    /* Add some vertical padding */
+}
+
+/* The styled box within the placeholder */
+.search-placeholder-box {
+    /* Use glass-effect styling but ensure it's full-width */
+    background: var(--glass-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 20px 0 var(--shadow-color);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    /* Center content inside the box */
     text-align: center;
-    height: 100%;
 }
 
-/* Add spacing to search result section titles */
-#external-search h3 {
-    margin-top: 0.5rem; /* 40px */
-    margin-bottom: 1rem; /* 16px */
+/* Styling for the notice text at the bottom of the placeholder */
+.search-placeholder-notice {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    background-color: var(--bg-teal);
+    border-left: 4px solid var(--accent-teal);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    text-align: left;
+    max-width: 420px;
+    width: 100%;
+    line-height: 1.6;
 }
 
-/* Style container for dictionary results */
-.grammar-grid > div {
-    padding: 1.25rem;
+/* Section headers for "Vocabulary Results", "Kanji Results" */
+.dict-section-header {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* Grid container for search results */
+.dict-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Individual result card */
+.dict-card {
     background-color: var(--card-front-bg);
     border: 1px solid var(--card-front-border);
     border-radius: var(--radius-lg);
-    transition: transform 0.4s var(--ease-out-quint), box-shadow 0.4s var(--ease-out-quint);
+    padding: 1.25rem;
+    transition: transform 0.3s var(--ease-out-quint), box-shadow 0.3s var(--ease-out-quint);
     will-change: transform, box-shadow;
 }
 
-.grammar-grid > div:hover {
+.dict-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 22px -6px var(--shadow-color);
+    box-shadow: 0 10px 20px -5px var(--shadow-color);
 }
 
-/* Kanji Card Specifics */
-.kanji-character {
-    font-size: 2rem;
+/* Vocabulary result specifics */
+.dict-vocab-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.dict-vocab-term {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+.dict-vocab-reading {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.dict-vocab-definitions {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--glass-border);
+}
+
+.dict-vocab-definitions p {
+    margin-bottom: 0.5rem;
+}
+
+.dict-vocab-definitions p:last-child {
+    margin-bottom: 0;
+}
+
+.dict-vocab-pos {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    margin-left: 0.5rem;
+}
+
+/* Kanji result specifics */
+.dict-kanji-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.dict-kanji-char {
+    font-size: 2.5rem;
     font-weight: 700;
     color: var(--accent-blue);
-    margin-bottom: 0.75rem;
     font-family: 'Noto Sans JP', sans-serif;
+    line-height: 1;
 }
 
-.onyomi::before {
-    content: 'On:';
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-right: 0.5rem;
-}
-
-.kunyomi::before {
-    content: 'Kun:';
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-right: 0.5rem;
-}
-
-.onyomi, .kunyomi {
+.dict-kanji-readings {
     font-family: 'Noto Sans JP', sans-serif;
     color: var(--text-secondary);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
-.kunyomi {
-    margin-top: 0.25rem;
+.dict-kanji-readings .reading-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-right: 0.5rem;
 }
 
-.kanji-definitions {
+.dict-kanji-meanings {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--glass-border);
     font-size: 1rem;
     line-height: 1.6;
     color: var(--text-primary);
-}
-
-/* Vocabulary Card Specifics */
-.vocab-term {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.vocab-reading {
-    color: var(--text-secondary);
-    margin-left: 0.5rem;
-}
-
-.vocab-definitions {
-    margin-top: 0.75rem;
-    color: var(--text-secondary);
-    line-height: 1.7;
-}
-
-.vocab-definitions p {
-    margin-bottom: 0.5rem;
-}
-
-.vocab-definitions p:last-child {
-    margin-bottom: 0;
 }
