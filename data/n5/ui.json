@@ -48,7 +48,12 @@
     "searchError": "Could not fetch results. Please try again.",
     "fallbackNotice": "Using backup dictionary service",
     "onyomi": "On'yomi:",
-    "kunyomi": "Kun'yomi:"
+    "kunyomi": "Kun'yomi:",
+    "searchErrorTitle": "Search Error",
+    "searchRateLimitError": "Too many requests. Please wait a moment.",
+    "searchServerError": "Server is temporarily unavailable. Please try again later.",
+    "searchNetworkError": "Network connection failed. Please check your internet connection.",
+    "retryButton": "Retry"
   },
   "vi": {
     "dashboard": "Bảng điều khiển",
@@ -99,6 +104,11 @@
     "searchError": "Không thể tải kết quả. Vui lòng thử lại.",
     "fallbackNotice": "Đang sử dụng dịch vụ từ điển dự phòng",
     "onyomi": "Âm On (Hán-Nhật):",
-    "kunyomi": "Âm Kun (thuần Nhật):"
+    "kunyomi": "Âm Kun (thuần Nhật):",
+    "searchErrorTitle": "Lỗi tìm kiếm",
+    "searchRateLimitError": "Quá nhiều yêu cầu. Vui lòng chờ một lát.",
+    "searchServerError": "Máy chủ tạm thời không khả dụng. Vui lòng thử lại sau.",
+    "searchNetworkError": "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.",
+    "retryButton": "Thử lại"
   }
 }

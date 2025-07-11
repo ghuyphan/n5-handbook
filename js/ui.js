@@ -26,7 +26,7 @@ export function createSearchPlaceholder(type, query = '') {
                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                     </svg>`;
             title = `${getUIText('noResults')} "<b class="text-accent-teal">${query}</b>"`;
-            subtitle = 'Try checking your spelling or using a different term.';
+            subtitle = getUIText('noResultsSubtitle');
             break;
         case 'prompt':
         default:
@@ -425,7 +425,7 @@ export function renderExternalSearchResults(results, query) {
                             ? `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>`
                             : `<span>${char}</span>`
                     ).join('');
-                    
+
                     card.innerHTML = `
                         <div class="dict-vocab-header">
                             <h4 class="dict-vocab-term">${termWithClickableKanji}</h4>
@@ -441,7 +441,7 @@ export function renderExternalSearchResults(results, query) {
                 // Renders Jotoba results or JP -> VI JDict results
                 const card = document.createElement('div');
                 card.className = 'dict-card';
-                
+
                 // **FIX**: Safely access properties with fallbacks to prevent crashes
                 const term = word.reading.kanji || word.reading.kana || '';
                 const reading = word.reading.kana && word.reading.kana !== term ? `(${word.reading.kana})` : '';
@@ -479,12 +479,12 @@ export function renderExternalSearchResults(results, query) {
         kanjiHeader.className = 'text-lg sm:text-lg font-bold mb-4 text-primary';
         kanjiHeader.textContent = getUIText('kanjiResults', 'Kanji Results');
         sectionContainer.appendChild(kanjiHeader);
-        
+
         const kanjiGrid = document.createElement('div');
         kanjiGrid.className = 'dict-grid';
         results.kanji.forEach(k => {
             if (!k?.literal) return;
-            
+
             const card = document.createElement('div');
             card.className = 'dict-card';
 
@@ -681,12 +681,12 @@ export function updateSearchPlaceholders(activeTabId) {
     const getUIText = (key, fallback = '') => state.appData.ui?.[state.currentLang]?.[key] || fallback;
 
     const isDictionaryTab = activeTabId === 'external-search';
-    
+
     // Determine the correct placeholder text
-    const placeholderText = isDictionaryTab 
+    const placeholderText = isDictionaryTab
         ? getUIText('dictionaryPrompt', 'Search for words...')
         : getUIText('searchPlaceholder', 'Search anything...');
-        
+
     const mobilePlaceholderText = isDictionaryTab
         ? getUIText('dictionaryPrompt', 'Search for words...')
         : getUIText('searchTabPlaceholder', 'Search in this tab...');
