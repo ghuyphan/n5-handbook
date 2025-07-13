@@ -4,7 +4,9 @@
  */
 import { els } from './dom.js';
 import { state } from './config.js';
-import { renderExternalSearchResults, createSearchPlaceholder } from './ui.js';
+// UPDATED: Import the new centralized UI function
+import { updateExternalSearchTab } from './ui.js';
+
 import { dbPromise } from './database.js';
 import { debounce } from './utils.js';
 
@@ -177,6 +179,7 @@ function getUIText(key, fallback) {
     return state.appData?.ui?.[state.currentLang]?.[key] || fallback;
 }
 
+// REFACTORED: This function now works with the persistent placeholder from ui.js
 function renderErrorState(error, query) {
     let errorMessage;
     const errorMessages = {
@@ -189,26 +192,35 @@ function renderErrorState(error, query) {
     const errorKey = Object.keys(errorMessages).find(key => error.message.includes(key)) || 'default';
 
     if (errorKey === 'noResults') {
-        errorMessage = getUIText('noResults', 'No results found for') + ` "${query}". ` + getUIText('noResultsSubtitle', 'Try checking your spelling or using a different term.');
-    } else {
-        errorMessage = getUIText(errorMessages[errorKey], 'Could not fetch results. Please try again.');
+        // If the error is "No results", we should use the dedicated state in the UI module
+        updateExternalSearchTab('no-results', { query });
+        return;
     }
-    
+
+    errorMessage = getUIText(errorMessages[errorKey], 'Could not fetch results. Please try again.');
+
     const errorIcon = `<svg class="w-16 h-16 text-red-400 opacity-80 mb-4 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>`;
-    
-    const errorHTML = `
-        <div class="search-placeholder-wrapper anim-fade-in">
-             <div class="search-placeholder-box text-center">
-                ${errorIcon}
-                <h3 class="text-xl font-semibold text-primary">${getUIText('searchErrorTitle', 'Search Error')}</h3>
-                <p class="text-secondary text-base mt-1 max-w-md mx-auto">${errorMessage}</p>
-                <button class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors" onclick="window.handleExternalSearch('${query.replace(/'/g, "\\'")}', true)">
-                    ${getUIText('retryButton', 'Retry')}
-                </button>
-            </div>
+
+    const errorContentHTML = `
+        <div class="search-placeholder-box text-center content-anim-fade-in">
+            ${errorIcon}
+            <h3 class="text-xl font-semibold text-primary">${getUIText('searchErrorTitle', 'Search Error')}</h3>
+            <p class="text-secondary text-base mt-1 max-w-md mx-auto">${errorMessage}</p>
+            <button class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors" onclick="window.handleExternalSearch('${query.replace(/'/g, "\\'")}', true)">
+                ${getUIText('retryButton', 'Retry')}
+            </button>
         </div>`;
+
+    // Find the containers managed by ui.js and display the error
+    const placeholderContainer = els.externalSearchTab.querySelector('.placeholder-container');
+    const resultsContainer = els.externalSearchTab.querySelector('.results-container');
     
-    transitionContent(els.externalSearchTab, errorHTML);
+    if(resultsContainer) resultsContainer.style.display = 'none';
+
+    if (placeholderContainer) {
+        placeholderContainer.style.display = 'flex';
+        placeholderContainer.innerHTML = errorContentHTML;
+    }
 }
 
 // --- Main Search Logic ---
@@ -227,36 +239,7 @@ async function performSearch(query, isJP, signal) {
     return await searchJotoba(query, isJP, signal);
 }
 
-/**
- * Handles smooth content transitions in the search tab.
- * @param {HTMLElement} container - The parent element to modify.
- * @param {string | Function} newContent - The new HTML content or a function that renders it.
- * @param {string} [query=''] - The search query, passed to the render function if needed.
- */
-function transitionContent(container, newContent, query = '') {
-    const oldContent = container.firstChild;
-
-    const showNewContent = () => {
-        if (typeof newContent === 'function') {
-            newContent(query); // Assumes the function handles its own rendering (like renderExternalSearchResults)
-        } else {
-            container.innerHTML = newContent;
-            const newElement = container.firstChild;
-            if (newElement && newElement.classList) {
-                newElement.classList.add('anim-fade-in');
-            }
-        }
-    };
-
-    if (oldContent && oldContent.classList && !oldContent.classList.contains('anim-fade-out')) {
-        oldContent.classList.remove('anim-fade-in');
-        oldContent.classList.add('anim-fade-out');
-        oldContent.addEventListener('animationend', showNewContent, { once: true });
-    } else {
-        showNewContent();
-    }
-}
-
+// UPDATED: This is the core logic change. It now uses the centralized UI function.
 async function handleExternalSearchInternal(query, forceRefresh = false) {
     const searchId = ++currentSearchId;
     const controller = new AbortController();
@@ -269,29 +252,34 @@ async function handleExternalSearchInternal(query, forceRefresh = false) {
     const normalizedQuery = query.trim();
 
     if (normalizedQuery.length === 0) {
-        transitionContent(els.externalSearchTab, createSearchPlaceholder('prompt'));
+        updateExternalSearchTab('prompt');
         return;
     }
-
-    transitionContent(els.externalSearchTab, createSearchPlaceholder('searching'));
     
+    // Show the loading spinner state
+    updateExternalSearchTab('searching');
+
     const db = await dbPromise;
 
     try {
         if (!forceRefresh) {
             const cachedResult = await getCachedResult(db, normalizedQuery);
-            if (cachedResult && cachedResult.lang === state.currentLang && searchId === currentSearchId) {
-                transitionContent(els.externalSearchTab, () => renderExternalSearchResults(cachedResult.data, normalizedQuery));
+            if (cachedResult && cachedResult.lang === state.currentLang) {
+                if (searchId === currentSearchId) {
+                    updateExternalSearchTab('results', { results: cachedResult.data, query: normalizedQuery });
+                }
                 return;
             }
         }
 
-        const results = await performSearch(normalizedQuery, JAPANESE_REGEX.test(normalizedQuery), signal);
-        
+        const isJP = JAPANESE_REGEX.test(normalizedQuery);
+        const results = await performSearch(normalizedQuery, isJP, signal);
+
         if (searchId === currentSearchId) {
             await cacheResult(db, normalizedQuery, results);
-            transitionContent(els.externalSearchTab, () => renderExternalSearchResults(results, normalizedQuery));
+            updateExternalSearchTab('results', { results: results, query: normalizedQuery });
         }
+
     } catch (error) {
         if (error.name !== 'AbortError' && searchId === currentSearchId) {
             console.error("External Search Error:", error);

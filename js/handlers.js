@@ -8,7 +8,8 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
-import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, createSearchPlaceholder } from './ui.js';
+// UPDATED: Removed createSearchPlaceholder, added updateExternalSearchTab (implicitly used via jotoba.js)
+import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, updateExternalSearchTab } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
 function removeHighlights(container) {
@@ -95,7 +96,6 @@ export const handleSearch = debounce(() => {
     const activeTabId = activeTab.id;
 
     if (activeTabId === 'external-search') {
-        // This now correctly handles the transition from results back to the prompt
         handleExternalSearch(query);
     } else {
         removeHighlights(activeTab);
@@ -157,10 +157,9 @@ export function setLanguage(lang, skipRender = false) {
         state.fuseInstances = {};
         renderContent();
         updateProgressDashboard();
-        // Re-render search results if the search tab is active
         const activeTab = document.querySelector('.tab-content.active');
         if (activeTab && activeTab.id === 'external-search') {
-            handleExternalSearch(state.lastDictionaryQuery, true); // Force refresh with new language
+            handleExternalSearch(state.lastDictionaryQuery, true);
         }
     }
     updateSearchPlaceholders(state.activeTab);
@@ -273,22 +272,19 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
     const activeTab = document.getElementById(tabName);
     if (activeTab) {
         activeTab.classList.add('active');
-        // **REFINED LOGIC START**
+        // UPDATED: This block now uses the new UI rendering function
         if (tabName === 'external-search') {
             const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
             searchInput.value = state.lastDictionaryQuery;
-            // Only populate the initial prompt if the tab is completely empty.
-            // This preserves the state if the user is just switching back and forth.
-            if (activeTab.innerHTML.trim() === '') {
-                activeTab.innerHTML = createSearchPlaceholder('prompt');
+            // Only set the initial 'prompt' state if the tab has never been initialized
+            if (!activeTab.querySelector('.results-container') && !activeTab.querySelector('.placeholder-container')) {
+                updateExternalSearchTab('prompt');
             }
         } else {
-             // Clear non-search tab inputs when switching to them
              if (els.searchInput) els.searchInput.value = '';
              if (els.mobileSearchInput) els.mobileSearchInput.value = '';
-             handleSearch(); // Run search to clear filters
+             handleSearch();
         }
-        // **REFINED LOGIC END**
     }
 
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -297,6 +293,11 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
         targetButton.classList.add('active');
         const isMobileView = window.innerWidth <= 768;
         if (isMobileView) {
+            if (els.mobileSearchBar) {
+                const isSearchableTab = tabName !== 'progress';
+                els.mobileSearchBar.classList.toggle('visible', isSearchableTab);
+            }
+
             const titleSpan = targetButton.querySelector('span');
             const titleKey = titleSpan?.dataset.langKey;
             const titleText = (state.appData.ui?.[state.currentLang]?.[titleKey]) || titleSpan?.textContent || '';
@@ -351,14 +352,14 @@ export function jumpToSection(tabName, sectionTitleKey) {
                     itemToHighlight.classList.remove('is-highlighted');
                 }, { once: true });
             }
-        }, 100); // Small delay to allow accordion to open
+        }, 100);
     };
 
     if (isAlreadyOnTab) {
         scrollToAction();
     } else {
         changeTab(tabName, null, true);
-        setTimeout(scrollToAction, 50); // Delay to allow tab to become visible
+        setTimeout(scrollToAction, 50);
     }
 }
 

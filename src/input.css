@@ -1697,6 +1697,54 @@ External Search Results Styling
 ==============================================
 */
 
+#search-input::-webkit-search-cancel-button,
+#mobile-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Style the container of the search input */
+.header-controls-wrapper .relative,
+.mobile-search-bar .relative {
+  position: relative;
+}
+
+/* Style the new custom clear button for both desktop and mobile */
+#search-input,
+#mobile-search-input {
+  /* Add some padding on the right to make space for the button */
+  padding-right: 2.5rem; 
+}
+
+/* Show the button only when the input is not empty */
+#search-input:not(:placeholder-shown) + .clear-btn,
+#mobile-search-input:not(:placeholder-shown) + .clear-btn {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+/* The actual button styling */
+.clear-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%) scale(0.8);
+  opacity: 0;
+  pointer-events: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  background-color: var(--text-secondary);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clip-rule='evenodd' /%3E%3C/svg%3E") no-repeat center;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clip-rule='evenodd' /%3E%3C/svg%3E") no-repeat center;
+}
+
+.clear-btn:hover {
+  background-color: var(--text-primary);
+}
+
 .search-placeholder-wrapper {
     display: flex;
     flex-direction: column;
@@ -1758,6 +1806,27 @@ External Search Results Styling
     animation: anim-fade-out 0.4s var(--ease-out-quint) forwards;
 }
 
+.content-anim-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Your existing animation class for the main wrapper */
+.anim-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 
 .search-placeholder-notice {
     margin-top: 1rem;
@@ -1771,6 +1840,33 @@ External Search Results Styling
     max-width: 420px;
     width: 100%;
     line-height: 1.6;
+}
+
+.search-placeholder-box button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.875rem 1.5rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: none;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    background-color: var(--accent-blue);
+    color: white;
+    box-shadow: 0 4px 14px -3px rgba(59, 130, 246, 0.4);
+    margin-top: 1.5rem;
+}
+
+.search-placeholder-box button:hover {
+    background-color: #2563eb;
+    /* Darker blue for hover, from modal button style */
+    box-shadow: 0 6px 16px -3px rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+}
+
+.search-placeholder-box button:active {
+    transform: translateY(0);
 }
 
 .dict-section-header {

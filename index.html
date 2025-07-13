@@ -266,6 +266,9 @@
                             class="w-full pl-11 pr-4 py-2.5 rounded-full border-none transition focus:ring-2 text-primary bg-transparent focus:ring-offset-0"
                             style="--tw-ring-color: var(--search-focus-ring);"
                             data-lang-placeholder-key="searchPlaceholder">
+                        <button class="clear-btn"
+                            onclick="document.getElementById('search-input').value = ''; document.getElementById('search-input').dispatchEvent(new Event('input'));"
+                            aria-label="Clear search"></button>
                     </div>
                     <div id="header-lang-switcher" class="lang-switch"></div>
                     <div id="header-theme-toggle" class="theme-switch-wrapper"></div>
@@ -284,6 +287,9 @@
                     <input type="search" id="mobile-search-input"
                         class="w-full pl-12 pr-4 py-3 rounded-full transition border-none text-primary bg-transparent"
                         data-lang-placeholder-key="searchPlaceholder">
+                    <button class="clear-btn"
+                        onclick="document.getElementById('mobile-search-input').value = ''; document.getElementById('mobile-search-input').dispatchEvent(new Event('input'));"
+                        aria-label="Clear search"></button>
                 </div>
             </div>
 

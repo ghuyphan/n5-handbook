@@ -8,60 +8,46 @@ import { state, config } from './config.js';
 import { generateSearchTerms } from './utils.js';
 import { setupFuseForTab } from './handlers.js';
 
-
-export function createSearchPlaceholder(type, query = '') {
-    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
-    let icon, title, subtitle, notice = '';
+/**
+ * Generates the inner HTML for the search placeholder based on its state.
+ * This function does NOT create the main wrapper, only its content.
+ * @param {string} type - The state of the placeholder ('searching', 'no-results', 'prompt').
+ * @param {string} [query=''] - The search query for the 'no-results' state.
+ * @returns {string} The inner HTML for the placeholder box.
+ */
+function getSearchPlaceholderInnerContent(type, query = '') {
+    const getUIText = (key, fallback) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+    let innerContent = '';
 
     switch (type) {
         case 'searching':
-            return `
-                <div class="search-placeholder-wrapper">
-                    <div class="search-placeholder-box">
-                        <div class="loader"></div>
-                    </div>
-                </div>`;
+            innerContent = `<div class="loader"></div>`;
+            break;
         case 'no-results':
-            icon = `<svg class="w-16 h-16 text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                    </svg>`;
-            title = `${getUIText('noResults')} "<b class="text-accent-teal">${query}</b>"`;
-            subtitle = getUIText('noResultsSubtitle');
+            const noResultsIcon = `<svg class="w-16 h-16 text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>`;
+            const noResultsTitle = `${getUIText('noResults')} "<b class="text-accent-teal">${query}</b>"`;
+            const noResultsSubtitle = getUIText('noResultsSubtitle');
+            innerContent = `
+                ${noResultsIcon}
+                <h3 class="text-xl font-semibold text-primary">${noResultsTitle}</h3>
+                <p class="text-secondary text-base mt-1 max-w-md">${noResultsSubtitle}</p>
+            `;
             break;
         case 'prompt':
         default:
-            icon = `<svg class="w-16 h-16 text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                    </svg>`;
-            title = getUIText('dictionaryPrompt');
-            subtitle = getUIText('dictionarySubtitle');
-            notice = `<div class="search-placeholder-notice">${getUIText('dictionaryNotice')}</div>`;
-            // Add a special class for the animation on the prompt
-            return `
-                <div class="search-placeholder-wrapper">
-                     <div class="search-placeholder-box search-prompt-animate">
-                        ${icon}
-                        <h3 class="text-xl font-semibold text-primary">${subtitle}</h3>
-
-                        ${notice}
-                    </div>
-                </div>`;
-    }
-
-    // Default return for non-animated placeholders
-    return `
-        <div class="search-placeholder-wrapper">
-             <div class="search-placeholder-box">
-                ${icon}
-                <h3 class="text-xl font-semibold text-primary">${subtitle}</h3>
-                <p class="text-secondary text-base mt-1 max-w-md">${subtitle}</p>
+            const promptIcon = `<svg class="w-16 h-16 text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>`;
+            const promptSubtitle = getUIText('dictionarySubtitle');
+            const notice = `<div class="search-placeholder-notice">${getUIText('dictionaryNotice')}</div>`;
+            innerContent = `
+                ${promptIcon}
+                <h3 class="text-xl font-semibold text-primary">${promptSubtitle}</h3>
                 ${notice}
-            </div>
-        </div>`;
+            `;
+            break;
+    }
+    return innerContent;
 }
 
-
-// --- Template-based Component Creators ---
 
 function createAccordion(title, contentNode, searchData, titleKey) {
     const template = document.getElementById('accordion-template');
@@ -379,156 +365,148 @@ function findKanjiData(kanjiCharacter) {
 }
 
 /**
- * Renders the results from the external dictionary search.
- * @param {{words: Array, kanji: Array}} results - The search results from the API.
- * @param {string} query - The original search query.
+ * Manages the content of the external search tab, showing either results or a placeholder.
+ * @param {string} type - The state to render: 'prompt', 'searching', 'no-results', or 'results'.
+ * @param {object} data - An object containing data for the view.
+ * @param {{words: Array, kanji: Array}} [data.results] - The search results from the API.
+ * @param {string} [data.query] - The original search query.
  */
-/**
- * Renders the results from the external dictionary search.
- * @param {{words: Array, kanji: Array}} results - The search results from the API.
- * @param {string} query - The original search query.
- */
-export function renderExternalSearchResults(results, query) {
+export function updateExternalSearchTab(type, data = {}) {
     if (!els.externalSearchTab) return;
 
-    // 1. Clear the container just ONCE to prevent flickering.
-    els.externalSearchTab.innerHTML = '';
-
-    // 2. Prepare helper functions and fragments.
-    const contentFragment = document.createDocumentFragment();
+    const { results, query } = data;
     const getUIText = (key, fallback) => state.appData.ui?.[state.currentLang]?.[key] || fallback;
 
-    const hasWords = results?.words?.length > 0;
-    const hasKanji = results?.kanji?.length > 0;
+    // --- Find or create persistent containers ---
+    let resultsContainer = els.externalSearchTab.querySelector('.results-container');
+    if (!resultsContainer) {
+        resultsContainer = document.createElement('div');
+        resultsContainer.className = 'results-container';
+        els.externalSearchTab.appendChild(resultsContainer);
+    }
 
-    // 3. Build the content based on search results.
-    if (hasWords) {
-        const sectionContainer = document.createElement('div');
-        sectionContainer.className = 'search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6';
+    let placeholderContainer = els.externalSearchTab.querySelector('.placeholder-container');
+    if (!placeholderContainer) {
+        placeholderContainer = document.createElement('div');
+        placeholderContainer.className = 'placeholder-container search-placeholder-wrapper anim-fade-in';
+        placeholderContainer.innerHTML = `<div class="search-placeholder-box"></div>`;
+        els.externalSearchTab.appendChild(placeholderContainer);
+    }
+    // --- End container setup ---
 
-        const vocabHeader = document.createElement('h3');
-        vocabHeader.className = 'text-lg sm:text-lg font-bold mb-4 text-primary';
-        vocabHeader.textContent = getUIText('vocabResults', 'Vocabulary Results');
-        sectionContainer.appendChild(vocabHeader);
+    if (type === 'results') {
+        // --- RENDER RESULTS ---
+        placeholderContainer.style.display = 'none';
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = ''; // Clear old results
 
-        const vocabGrid = document.createElement('div');
-        vocabGrid.className = 'dict-grid';
+        const contentFragment = document.createDocumentFragment();
+        const hasWords = results?.words?.length > 0;
+        const hasKanji = results?.kanji?.length > 0;
 
-        results.words.forEach(word => {
-            if (!word?.reading || !word?.senses) return;
+        if (hasWords) {
+            const sectionContainer = document.createElement('div');
+            sectionContainer.className = 'search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6';
 
-            const JAPANESE_REGEX = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
-            const isJDictViJp = state.currentLang === 'vi' && !JAPANESE_REGEX.test(word.reading.kanji);
+            const vocabHeader = document.createElement('h3');
+            vocabHeader.className = 'text-lg sm:text-lg font-bold mb-4 text-primary';
+            vocabHeader.textContent = getUIText('vocabResults', 'Vocabulary Results');
+            sectionContainer.appendChild(vocabHeader);
 
-            if (isJDictViJp) {
-                // Renders VI -> JP results from JDict
-                word.senses.forEach(sense => {
-                    const japaneseTerm = sense.glosses?.[0] || '';
-                    if (!japaneseTerm) return;
+            const vocabGrid = document.createElement('div');
+            vocabGrid.className = 'dict-grid';
 
+            results.words.forEach(word => {
+                if (!word?.reading || !word?.senses) return;
+                const JAPANESE_REGEX = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+                const isJDictViJp = state.currentLang === 'vi' && !JAPANESE_REGEX.test(word.reading.kanji);
+
+                if (isJDictViJp) {
+                    word.senses.forEach(sense => {
+                        const japaneseTerm = sense.glosses?.[0] || '';
+                        if (!japaneseTerm) return;
+                        const card = document.createElement('div');
+                        card.className = 'dict-card';
+                        const reading = sense.reading || '';
+                        const termWithClickableKanji = japaneseTerm.split('').map(char =>
+                            /[\u4e00-\u9faf]/.test(char) && findKanjiData(char) ?
+                            `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>` :
+                            `<span>${char}</span>`
+                        ).join('');
+                        card.innerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${termWithClickableKanji}</h4>${reading ? `<span class="dict-vocab-reading">(${reading})</span>` : ''}</div><div class="dict-vocab-definitions"><p>${word.reading.kanji}</p></div>`;
+                        vocabGrid.appendChild(card);
+                    });
+                } else {
                     const card = document.createElement('div');
                     card.className = 'dict-card';
-                    const reading = sense.reading || '';
-                    const termWithClickableKanji = japaneseTerm.split('').map(char =>
-                        /[\u4e00-\u9faf]/.test(char) && findKanjiData(char)
-                            ? `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>`
-                            : `<span>${char}</span>`
+                    const term = word.reading.kanji || word.reading.kana || '';
+                    const reading = word.reading.kana && word.reading.kana !== term ? `(${word.reading.kana})` : '';
+                    if (!term) return;
+                    const termWithClickableKanji = term.split('').map(char =>
+                        /[\u4e00-\u9faf]/.test(char) && findKanjiData(char) ?
+                        `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>` :
+                        `<span>${char}</span>`
                     ).join('');
-
-                    card.innerHTML = `
-                        <div class="dict-vocab-header">
-                            <h4 class="dict-vocab-term">${termWithClickableKanji}</h4>
-                            ${reading ? `<span class="dict-vocab-reading">(${reading})</span>` : ''}
-                        </div>
-                        <div class="dict-vocab-definitions">
-                            <p>${word.reading.kanji}</p>
-                        </div>
-                    `;
+                    const headerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${termWithClickableKanji}</h4><span class="dict-vocab-reading">${reading}</span></div>`;
+                    const sensesHTML = (word.senses ?? []).map(sense => {
+                        const glosses = sense.glosses?.join('; ') ?? '';
+                        const pos = [...new Set((sense.pos ?? []).map(p => typeof p === 'object' ? Object.keys(p)[0] : p))];
+                        const posText = pos.length > 0 ? `<span class="dict-vocab-pos">[${pos.join(', ')}]</span>` : '';
+                        return `<p>${glosses} ${posText}</p>`;
+                    }).join('');
+                    card.innerHTML = `${headerHTML}<div class="dict-vocab-definitions">${sensesHTML}</div>`;
                     vocabGrid.appendChild(card);
-                });
-            } else {
-                // Renders Jotoba results or JP -> VI JDict results
+                }
+            });
+            sectionContainer.appendChild(vocabGrid);
+            contentFragment.appendChild(sectionContainer);
+        }
+
+        if (hasKanji) {
+            const sectionContainer = document.createElement('div');
+            sectionContainer.className = 'search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6';
+
+            const kanjiHeader = document.createElement('h3');
+            kanjiHeader.className = 'text-lg sm:text-lg font-bold mb-4 text-primary';
+            kanjiHeader.textContent = getUIText('kanjiResults', 'Kanji Results');
+            sectionContainer.appendChild(kanjiHeader);
+
+            const kanjiGrid = document.createElement('div');
+            kanjiGrid.className = 'dict-grid';
+            results.kanji.forEach(k => {
+                if (!k?.literal) return;
                 const card = document.createElement('div');
                 card.className = 'dict-card';
+                const onyomi = k.onyomi?.join(', ') || '–';
+                const kunyomi = k.kunyomi?.join(', ') || '–';
+                const meanings = k.meanings?.join('; ') || getUIText('noDefinition', 'No definition found.');
+                card.innerHTML = `<div class="dict-kanji-header"><h4 class="dict-kanji-char">${k.literal}</h4><div class="dict-kanji-readings"><p><span class="reading-label">${getUIText('onyomi', "On'yomi:")}</span> ${onyomi}</p><p><span class="reading-label">${getUIText('kunyomi', "Kun'yomi:")}</span> ${kunyomi}</p></div></div><div class="dict-kanji-meanings">${meanings}</div>`;
+                kanjiGrid.appendChild(card);
+            });
+            sectionContainer.appendChild(kanjiGrid);
+            contentFragment.appendChild(sectionContainer);
+        }
 
-                const term = word.reading.kanji || word.reading.kana || '';
-                const reading = word.reading.kana && word.reading.kana !== term ? `(${word.reading.kana})` : '';
+        const animatedWrapper = document.createElement('div');
+        animatedWrapper.className = 'anim-fade-in';
+        animatedWrapper.appendChild(contentFragment);
+        resultsContainer.appendChild(animatedWrapper);
 
-                if (!term) return;
+    } else {
+        // --- RENDER PLACEHOLDER (prompt, searching, or no-results) ---
+        resultsContainer.style.display = 'none';
+        placeholderContainer.style.display = 'flex';
 
-                const termWithClickableKanji = term.split('').map(char =>
-                    /[\u4e00-\u9faf]/.test(char) && findKanjiData(char)
-                        ? `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>`
-                        : `<span>${char}</span>`
-                ).join('');
+        const placeholderBox = placeholderContainer.querySelector('.search-placeholder-box');
+        if (placeholderBox) {
+            placeholderBox.innerHTML = getSearchPlaceholderInnerContent(type, query);
 
-                const headerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${termWithClickableKanji}</h4><span class="dict-vocab-reading">${reading}</span></div>`;
-
-                const sensesHTML = (word.senses ?? []).map(sense => {
-                    const glosses = sense.glosses?.join('; ') ?? '';
-                    const pos = [...new Set((sense.pos ?? []).map(p => typeof p === 'object' ? Object.keys(p)[0] : p))];
-                    const posText = pos.length > 0 ? `<span class="dict-vocab-pos">[${pos.join(', ')}]</span>` : '';
-                    return `<p>${glosses} ${posText}</p>`;
-                }).join('');
-
-                card.innerHTML = `${headerHTML}<div class="dict-vocab-definitions">${sensesHTML}</div>`;
-                vocabGrid.appendChild(card);
-            }
-        });
-        sectionContainer.appendChild(vocabGrid);
-        contentFragment.appendChild(sectionContainer);
+            // Add a subtle animation for the content change
+            placeholderBox.classList.remove('content-anim-fade-in');
+            void placeholderBox.offsetWidth; // Force browser reflow to restart animation
+            placeholderBox.classList.add('content-anim-fade-in');
+        }
     }
-
-    if (hasKanji) {
-        const sectionContainer = document.createElement('div');
-        sectionContainer.className = 'search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6';
-
-        const kanjiHeader = document.createElement('h3');
-        kanjiHeader.className = 'text-lg sm:text-lg font-bold mb-4 text-primary';
-        kanjiHeader.textContent = getUIText('kanjiResults', 'Kanji Results');
-        sectionContainer.appendChild(kanjiHeader);
-
-        const kanjiGrid = document.createElement('div');
-        kanjiGrid.className = 'dict-grid';
-        results.kanji.forEach(k => {
-            if (!k?.literal) return;
-
-            const card = document.createElement('div');
-            card.className = 'dict-card';
-
-            const onyomi = k.onyomi?.join(', ') || '–';
-            const kunyomi = k.kunyomi?.join(', ') || '–';
-            const meanings = k.meanings?.join('; ') || getUIText('noDefinition', 'No definition found.');
-
-            card.innerHTML = `
-                <div class="dict-kanji-header">
-                    <h4 class="dict-kanji-char">${k.literal}</h4>
-                    <div class="dict-kanji-readings">
-                        <p><span class="reading-label">${getUIText('onyomi', "On'yomi:")}</span> ${onyomi}</p>
-                        <p><span class="reading-label">${getUIText('kunyomi', "Kun'yomi:")}</span> ${kunyomi}</p>
-                    </div>
-                </div>
-                <div class="dict-kanji-meanings">${meanings}</div>
-            `;
-            kanjiGrid.appendChild(card);
-        });
-        sectionContainer.appendChild(kanjiGrid);
-        contentFragment.appendChild(sectionContainer);
-    }
-
-    if (!hasWords && !hasKanji) {
-        // If there are no results, create the "no-results" placeholder.
-        const noResultsNode = document.createRange().createContextualFragment(createSearchPlaceholder('no-results', query));
-        contentFragment.appendChild(noResultsNode);
-    }
-
-    // 4. Wrap the entire generated content in a single animated container.
-    const animatedWrapper = document.createElement('div');
-    animatedWrapper.className = 'anim-fade-in';
-    animatedWrapper.appendChild(contentFragment);
-
-    // 5. Append the final, animated container to the DOM.
-    els.externalSearchTab.appendChild(animatedWrapper);
 }
 
 export function renderContent() {
