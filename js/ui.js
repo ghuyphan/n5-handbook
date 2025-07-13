@@ -12,11 +12,14 @@ import { setupFuseForTab } from './handlers.js';
 export function createSearchPlaceholder(type, query = '') {
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
     let icon, title, subtitle, notice = '';
+    
+    // ✨ ADDED anim-fade-in class for smooth appearance to the main wrapper
+    const baseWrapperClass = "search-placeholder-wrapper anim-fade-in";
 
     switch (type) {
         case 'searching':
             return `
-                <div class="search-placeholder-wrapper">
+                <div class="${baseWrapperClass}">
                     <div class="search-placeholder-box">
                         <div class="loader"></div>
                     </div>
@@ -38,7 +41,7 @@ export function createSearchPlaceholder(type, query = '') {
             notice = `<div class="search-placeholder-notice">${getUIText('dictionaryNotice')}</div>`;
             // Add a special class for the animation on the prompt
             return `
-                <div class="search-placeholder-wrapper">
+                <div class="${baseWrapperClass}">
                      <div class="search-placeholder-box search-prompt-animate">
                         ${icon}
                         <h3 class="text-xl font-semibold text-primary">${subtitle}</h3>
@@ -50,10 +53,10 @@ export function createSearchPlaceholder(type, query = '') {
 
     // Default return for non-animated placeholders
     return `
-        <div class="search-placeholder-wrapper">
+        <div class="${baseWrapperClass}">
              <div class="search-placeholder-box">
                 ${icon}
-                <h3 class="text-xl font-semibold text-primary">${subtitle}</h3>
+                <h3 class="text-xl font-semibold text-primary">${title}</h3>
                 <p class="text-secondary text-base mt-1 max-w-md">${subtitle}</p>
                 ${notice}
             </div>
@@ -511,8 +514,13 @@ export function renderExternalSearchResults(results, query) {
     if (!hasWords && !hasKanji) {
         fragment.appendChild(document.createRange().createContextualFragment(createSearchPlaceholder('no-results', query)));
     }
+    
+    // ✨ WRAP all results in an animated container
+    const animatedWrapper = document.createElement('div');
+    animatedWrapper.className = 'anim-fade-in';
+    animatedWrapper.appendChild(fragment);
 
-    els.externalSearchTab.appendChild(fragment);
+    els.externalSearchTab.appendChild(animatedWrapper);
 }
 
 export function renderContent() {
