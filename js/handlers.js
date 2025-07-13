@@ -89,47 +89,37 @@ export function setupFuseForTab(tabId) {
 export const handleSearch = debounce(() => {
     const isMobileView = window.innerWidth <= 768;
     const query = (isMobileView ? els.mobileSearchInput.value : els.searchInput.value).trim();
-    const lowerCaseQuery = query.toLowerCase();
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
 
     const activeTabId = activeTab.id;
 
-    if (isMobileView && els.mobileSearchBar) {
-        const isSearchTab = activeTabId === 'external-search';
-        els.mobileSearchBar.classList.toggle('visible', isSearchTab || activeTabId !== 'progress');
-    }
-
     if (activeTabId === 'external-search') {
+        // This now correctly handles the transition from results back to the prompt
         handleExternalSearch(query);
     } else {
         removeHighlights(activeTab);
         const fuse = state.fuseInstances[activeTabId];
         const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
-        const allWrappers = activeTab.querySelectorAll('.search-wrapper');
-        if (!lowerCaseQuery) {
+        if (!query) {
             allItems.forEach(item => { item.style.display = ''; });
-            allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
+            activeTab.querySelectorAll('.search-wrapper').forEach(wrapper => { wrapper.style.display = ''; });
             return;
         }
         if (!fuse) return;
         allItems.forEach(item => { item.style.display = 'none'; });
-        allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
-        const results = fuse.search(lowerCaseQuery);
+        activeTab.querySelectorAll('.search-wrapper').forEach(wrapper => { wrapper.style.display = 'none'; });
+        const results = fuse.search(query);
         results.forEach(result => {
             const itemElement = result.item.element;
             itemElement.style.display = '';
             highlightMatches(itemElement, query);
-            let parent = itemElement.parentElement;
-            while (parent) {
-                if (parent.hasAttribute('data-search') || parent.classList.contains('search-wrapper')) {
-                    parent.style.display = '';
-                }
-                if (parent.classList.contains('accordion-wrapper')) {
-                    const button = parent.querySelector('.accordion-button');
-                    if (button && !button.classList.contains('open')) button.classList.add('open');
-                }
-                parent = parent.parentElement;
+            let parent = itemElement.closest('.search-wrapper');
+            if (parent) parent.style.display = '';
+            let accordion = itemElement.closest('.accordion-wrapper');
+            if (accordion) {
+                const button = accordion.querySelector('.accordion-button');
+                if (button && !button.classList.contains('open')) button.classList.add('open');
             }
         });
     }
@@ -167,14 +157,11 @@ export function setLanguage(lang, skipRender = false) {
         state.fuseInstances = {};
         renderContent();
         updateProgressDashboard();
-    }
-    
-    const externalSearchTab = els.externalSearchTab;
-    const searchInputs = [els.searchInput, els.mobileSearchInput];
-    const isSearchEmpty = searchInputs.every(input => !input || input.value.trim() === '');
-    
-    if (externalSearchTab && externalSearchTab.classList.contains('active') && isSearchEmpty) {
-        externalSearchTab.innerHTML = createSearchPlaceholder('prompt');
+        // Re-render search results if the search tab is active
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.id === 'external-search') {
+            handleExternalSearch(state.lastDictionaryQuery, true); // Force refresh with new language
+        }
     }
     updateSearchPlaceholders(state.activeTab);
 }
@@ -197,9 +184,8 @@ export async function setLevel(level, fromHistory = false) {
         closeSidebar();
         return;
     }
-
     state.currentLevel = level;
-    state.lastDictionaryQuery = ''; // Clear dictionary search on level change
+    state.lastDictionaryQuery = '';
     await saveSetting('currentLevel', level);
     els.loadingOverlay?.classList.remove('hidden');
 
@@ -220,17 +206,6 @@ export async function setLevel(level, fromHistory = false) {
         const isMobileView = window.innerWidth <= 768;
         const defaultTab = isMobileView ? 'progress' : 'hiragana';
         const targetTab = state.pinnedTab || defaultTab;
-
-        if (fromHistory) {
-            const params = new URLSearchParams(window.location.search);
-            const urlTab = params.get('tab');
-            if (urlTab !== targetTab) {
-                const newUrl = `?level=${state.currentLevel}&tab=${targetTab}`;
-                const newState = { type: 'tab', tabName: targetTab, level: state.currentLevel };
-                history.replaceState(newState, '', newUrl);
-            }
-        }
-        
         changeTab(targetTab, null, false, fromHistory);
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
@@ -245,9 +220,7 @@ async function savePinnedTab(tabId) {
     try {
         const db = await dbPromise;
         let levelSettings = (await db.get('settings', 'levelSettings')) || {};
-        if (!levelSettings[state.currentLevel]) {
-            levelSettings[state.currentLevel] = {};
-        }
+        if (!levelSettings[state.currentLevel]) levelSettings[state.currentLevel] = {};
         levelSettings[state.currentLevel].pinnedTab = tabId || null;
         await saveSetting('levelSettings', levelSettings);
         updatePinButtonState(tabId);
@@ -278,13 +251,13 @@ export function toggleSidebarPin(event, tabId) {
 export function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false) {
     const activeTabEl = document.querySelector('.tab-content.active');
     if (activeTabEl && activeTabEl.id === tabName && !fromHistory) {
-        return; 
+        closeSidebar();
+        return;
     }
 
     if (!fromHistory) {
         const url = `?level=${state.currentLevel}&tab=${tabName}`;
-        const historyState = { type: 'tab', tabName: tabName, level: state.currentLevel };
-        history.pushState(historyState, '', url);
+        history.pushState({ type: 'tab', tabName: tabName, level: state.currentLevel }, '', url);
     }
 
     const oldActiveTab = document.querySelector('.tab-content.active');
@@ -295,20 +268,29 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
             state.lastDictionaryQuery = searchInput.value.trim();
         }
     }
+
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const activeTab = document.getElementById(tabName);
     if (activeTab) {
         activeTab.classList.add('active');
+        // **REFINED LOGIC START**
         if (tabName === 'external-search') {
             const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
             searchInput.value = state.lastDictionaryQuery;
-            if (state.lastDictionaryQuery) {
-                handleExternalSearch(state.lastDictionaryQuery);
-            } else if (activeTab.innerHTML.trim() === '') {
+            // Only populate the initial prompt if the tab is completely empty.
+            // This preserves the state if the user is just switching back and forth.
+            if (activeTab.innerHTML.trim() === '') {
                 activeTab.innerHTML = createSearchPlaceholder('prompt');
             }
+        } else {
+             // Clear non-search tab inputs when switching to them
+             if (els.searchInput) els.searchInput.value = '';
+             if (els.mobileSearchInput) els.mobileSearchInput.value = '';
+             handleSearch(); // Run search to clear filters
         }
+        // **REFINED LOGIC END**
     }
+
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     const targetButton = buttonElement || document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
     if (targetButton) {
@@ -325,16 +307,8 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
             if (els.pinToggle) els.pinToggle.style.display = 'none';
         }
     }
-
-    // This block is now corrected
-    if (tabName !== 'external-search') {
-        if (els.searchInput) els.searchInput.value = '';
-        if (els.mobileSearchInput) els.mobileSearchInput.value = '';
-    }
-    handleSearch.cancel();
-    handleSearch();
-    updateSearchPlaceholders(tabName); 
-
+    
+    updateSearchPlaceholders(tabName);
     closeSidebar();
 
     if (!suppressScroll) {
@@ -352,46 +326,39 @@ export function jumpToSection(tabName, sectionTitleKey) {
     const scrollToAction = () => {
         const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
         if (!sectionHeader) return;
-        const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
         
-        const executeScroll = () => {
-            const elementRect = sectionHeader.getBoundingClientRect();
-            const elementTopInDocument = window.scrollY + elementRect.top;
-
-            let headerOffset = 0;
-            const mobileHeader = document.querySelector('.mobile-header.sticky');
-            if (mobileHeader && getComputedStyle(mobileHeader).position === 'sticky') {
-                headerOffset = mobileHeader.offsetHeight;
-            }
-            const buffer = 20;
-
-            window.scrollTo({
-                top: elementTopInDocument - headerOffset - buffer,
-                behavior: 'auto'
-            });
-        };
-
+        const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
         if (accordionWrapper && sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
             sectionHeader.click();
-            const accordionContent = accordionWrapper.querySelector('.accordion-content');
-            accordionContent.addEventListener('transitionend', executeScroll, { once: true });
-        } else {
-            executeScroll();
         }
+
+        setTimeout(() => {
+            const elementRect = sectionHeader.getBoundingClientRect();
+            const absoluteElementTop = elementRect.top + window.scrollY;
+            const mobileHeader = document.querySelector('.mobile-header.sticky');
+            const headerOffset = (mobileHeader && getComputedStyle(mobileHeader).position === 'sticky') ? mobileHeader.offsetHeight : 0;
+            const buffer = 20;
+            
+            window.scrollTo({
+                top: absoluteElementTop - headerOffset - buffer,
+                behavior: 'smooth'
+            });
+            
+            const itemToHighlight = sectionHeader.closest('.progress-item-wrapper, .search-wrapper, .accordion-wrapper');
+            if (itemToHighlight) {
+                itemToHighlight.classList.add('is-highlighted');
+                itemToHighlight.addEventListener('animationend', () => {
+                    itemToHighlight.classList.remove('is-highlighted');
+                }, { once: true });
+            }
+        }, 100); // Small delay to allow accordion to open
     };
 
     if (isAlreadyOnTab) {
         scrollToAction();
     } else {
-        const previousTabId = activeTab ? activeTab.id : null;
         changeTab(tabName, null, true);
-        const isMobileView = window.innerWidth <= 768;
-        const searchBarWillAnimate = isMobileView && previousTabId === 'progress' && tabName !== 'progress';
-        if (searchBarWillAnimate && els.mobileSearchBar) {
-            els.mobileSearchBar.addEventListener('transitionend', scrollToAction, { once: true });
-        } else {
-            setTimeout(scrollToAction, 50);
-        }
+        setTimeout(scrollToAction, 50); // Delay to allow tab to become visible
     }
 }
 
@@ -412,7 +379,7 @@ export async function deleteLevel(level) {
             await setLevel(config.defaultLevel);
         } else {
             const remoteResponse = await fetch(`${config.dataPath}/levels.json`);
-            const remoteData = remoteResponse.ok ? await response.json() : { levels: [] };
+            const remoteData = remoteResponse.ok ? await remoteResponse.json() : { levels: [] };
             const customLevels = await db.getAllKeys('levels');
             buildLevelSwitcher(remoteData.levels || [config.defaultLevel], customLevels);
             document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === state.currentLevel));
