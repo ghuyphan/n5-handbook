@@ -12,14 +12,11 @@ import { setupFuseForTab } from './handlers.js';
 export function createSearchPlaceholder(type, query = '') {
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
     let icon, title, subtitle, notice = '';
-    
-    // ✨ ADDED anim-fade-in class for smooth appearance to the main wrapper
-    const baseWrapperClass = "search-placeholder-wrapper anim-fade-in";
 
     switch (type) {
         case 'searching':
             return `
-                <div class="${baseWrapperClass}">
+                <div class="search-placeholder-wrapper">
                     <div class="search-placeholder-box">
                         <div class="loader"></div>
                     </div>
@@ -41,7 +38,7 @@ export function createSearchPlaceholder(type, query = '') {
             notice = `<div class="search-placeholder-notice">${getUIText('dictionaryNotice')}</div>`;
             // Add a special class for the animation on the prompt
             return `
-                <div class="${baseWrapperClass}">
+                <div class="search-placeholder-wrapper">
                      <div class="search-placeholder-box search-prompt-animate">
                         ${icon}
                         <h3 class="text-xl font-semibold text-primary">${subtitle}</h3>
@@ -53,10 +50,10 @@ export function createSearchPlaceholder(type, query = '') {
 
     // Default return for non-animated placeholders
     return `
-        <div class="${baseWrapperClass}">
+        <div class="search-placeholder-wrapper">
              <div class="search-placeholder-box">
                 ${icon}
-                <h3 class="text-xl font-semibold text-primary">${title}</h3>
+                <h3 class="text-xl font-semibold text-primary">${subtitle}</h3>
                 <p class="text-secondary text-base mt-1 max-w-md">${subtitle}</p>
                 ${notice}
             </div>
@@ -386,16 +383,25 @@ function findKanjiData(kanjiCharacter) {
  * @param {{words: Array, kanji: Array}} results - The search results from the API.
  * @param {string} query - The original search query.
  */
+/**
+ * Renders the results from the external dictionary search.
+ * @param {{words: Array, kanji: Array}} results - The search results from the API.
+ * @param {string} query - The original search query.
+ */
 export function renderExternalSearchResults(results, query) {
     if (!els.externalSearchTab) return;
 
+    // 1. Clear the container just ONCE to prevent flickering.
     els.externalSearchTab.innerHTML = '';
-    const fragment = document.createDocumentFragment();
+
+    // 2. Prepare helper functions and fragments.
+    const contentFragment = document.createDocumentFragment();
     const getUIText = (key, fallback) => state.appData.ui?.[state.currentLang]?.[key] || fallback;
 
     const hasWords = results?.words?.length > 0;
     const hasKanji = results?.kanji?.length > 0;
 
+    // 3. Build the content based on search results.
     if (hasWords) {
         const sectionContainer = document.createElement('div');
         sectionContainer.className = 'search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6';
@@ -409,7 +415,7 @@ export function renderExternalSearchResults(results, query) {
         vocabGrid.className = 'dict-grid';
 
         results.words.forEach(word => {
-            if (!word?.reading || !word?.senses) return; // Defensively skip malformed entries
+            if (!word?.reading || !word?.senses) return;
 
             const JAPANESE_REGEX = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
             const isJDictViJp = state.currentLang === 'vi' && !JAPANESE_REGEX.test(word.reading.kanji);
@@ -445,11 +451,10 @@ export function renderExternalSearchResults(results, query) {
                 const card = document.createElement('div');
                 card.className = 'dict-card';
 
-                // **FIX**: Safely access properties with fallbacks to prevent crashes
                 const term = word.reading.kanji || word.reading.kana || '';
                 const reading = word.reading.kana && word.reading.kana !== term ? `(${word.reading.kana})` : '';
 
-                if (!term) return; // Don't render a card if there's no term
+                if (!term) return;
 
                 const termWithClickableKanji = term.split('').map(char =>
                     /[\u4e00-\u9faf]/.test(char) && findKanjiData(char)
@@ -471,7 +476,7 @@ export function renderExternalSearchResults(results, query) {
             }
         });
         sectionContainer.appendChild(vocabGrid);
-        fragment.appendChild(sectionContainer);
+        contentFragment.appendChild(sectionContainer);
     }
 
     if (hasKanji) {
@@ -508,18 +513,21 @@ export function renderExternalSearchResults(results, query) {
             kanjiGrid.appendChild(card);
         });
         sectionContainer.appendChild(kanjiGrid);
-        fragment.appendChild(sectionContainer);
+        contentFragment.appendChild(sectionContainer);
     }
 
     if (!hasWords && !hasKanji) {
-        fragment.appendChild(document.createRange().createContextualFragment(createSearchPlaceholder('no-results', query)));
+        // If there are no results, create the "no-results" placeholder.
+        const noResultsNode = document.createRange().createContextualFragment(createSearchPlaceholder('no-results', query));
+        contentFragment.appendChild(noResultsNode);
     }
-    
-    // ✨ WRAP all results in an animated container
+
+    // 4. Wrap the entire generated content in a single animated container.
     const animatedWrapper = document.createElement('div');
     animatedWrapper.className = 'anim-fade-in';
-    animatedWrapper.appendChild(fragment);
+    animatedWrapper.appendChild(contentFragment);
 
+    // 5. Append the final, animated container to the DOM.
     els.externalSearchTab.appendChild(animatedWrapper);
 }
 
