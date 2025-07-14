@@ -519,6 +519,65 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
     }
 }
 
+/**
+ * Prepares kana data by organizing items into standard grid layouts.
+ * This function handles gojuon, dakuten, handakuten, and youon charts,
+ * ensuring they are displayed in a consistent and orderly fashion.
+ * @param {object} originalData - The original kana data object for hiragana or katakana.
+ * @returns {object} A new data object with items sorted and padded for grid layout.
+ */
+function prepareKanaData(originalData) {
+    if (!originalData) return {};
+    const data = JSON.parse(JSON.stringify(originalData)); // Deep clone to avoid side effects
+
+    // Define canonical layouts for different kana charts.
+    // These ensure consistent order and can introduce placeholders (null).
+    const LAYOUTS = {
+        gojuon: ['a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so', 'ta', 'chi', 'tsu', 'te', 'to', 'na', 'ni', 'nu', 'ne', 'no', 'ha', 'hi', 'fu', 'he', 'ho', 'ma', 'mi', 'mu', 'me', 'mo', 'ya', null, 'yu', null, 'yo', 'ra', 'ri', 'ru', 're', 'ro', 'wa', null, null, null, 'wo', 'n', null, null, null, null],
+        dakuten: ['ga', 'gi', 'gu', 'ge', 'go', 'za', 'ji', 'zu', 'ze', 'zo', 'da', 'di', 'dzu', 'de', 'do', 'ba', 'bi', 'bu', 'be', 'bo'],
+        handakuten: ['pa', 'pi', 'pu', 'pe', 'po'],
+        // THIS IS THE CORRECTED LAYOUT TO MATCH THE IMAGE
+        youon: [
+            'kya', 'kyu', 'kyo', 'sha', 'shu',
+            'sho', 'cha', 'chu', 'cho', 'nya',
+            'nyu', 'nyo', 'hya', 'hyu', 'hyo',
+            'mya', 'myu', 'myo', 'rya', 'ryu',
+            'ryo', 'gya', 'gyu', 'gyo', 'ja',
+            'ju', 'jo', 'bya', 'byu', 'byo',
+            'pya', 'pyu', 'pyo', null,  null
+        ]
+    };
+
+    for (const sectionKey in data) {
+        const section = data[sectionKey];
+        if (!section?.items?.length) continue;
+
+        const originalItems = section.items;
+        const romajiSet = new Set(originalItems.map(item => item.romaji));
+
+        const findChar = (romaji) => originalItems.find(i => i.romaji === romaji) || { isPlaceholder: true };
+
+        let layoutToApply = null;
+
+        // Detect section type based on its most unique content.
+        if (romajiSet.has('kya') || romajiSet.has('gya')) { // Youon (digraphs)
+            layoutToApply = LAYOUTS.youon;
+        } else if (romajiSet.has('ga') || romajiSet.has('za')) { // Dakuten
+            layoutToApply = LAYOUTS.dakuten;
+        } else if (romajiSet.has('pa')) { // Handakuten
+            layoutToApply = LAYOUTS.handakuten;
+        } else if (romajiSet.has('a')) { // Gojuon (checked last as it's the most basic)
+            layoutToApply = LAYOUTS.gojuon;
+        }
+
+        if (layoutToApply) {
+            // Replace the section's items with the ordered/padded grid.
+            section.items = layoutToApply.map(r => r ? findChar(r) : { isPlaceholder: true });
+        }
+    }
+    return data;
+}
+
 export function renderContent(tabId = null) {
     const renderSafely = (renderFn) => {
         try { renderFn(); } catch (e) { console.error("Render error:", e); }
@@ -526,31 +585,18 @@ export function renderContent(tabId = null) {
 
     const tabsToRender = tabId ? [tabId] : Object.keys(state.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
 
-    const prepareGojuonData = (originalData) => {
-        if (!originalData) return {};
-        const data = JSON.parse(JSON.stringify(originalData));
-        const gojuonSectionKey = Object.keys(data).find(key => data[key]?.items?.some(item => item.romaji === 'a'));
-        if (gojuonSectionKey) {
-            const originalItems = data[gojuonSectionKey].items;
-            const findChar = (romaji) => originalItems.find(i => i.romaji === romaji) || { isPlaceholder: true };
-            const gridItems = ['a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so', 'ta', 'chi', 'tsu', 'te', 'to', 'na', 'ni', 'nu', 'ne', 'no', 'ha', 'hi', 'fu', 'he', 'ho', 'ma', 'mi', 'mu', 'me', 'mo', 'ya', null, 'yu', null, 'yo', 'ra', 'ri', 'ru', 're', 'ro', 'wa', null, null, null, 'wo', 'n', null, null, null, null].map(r => r ? findChar(r) : { isPlaceholder: true });
-            data[gojuonSectionKey].items = gridItems;
-        }
-        return data;
-    };
-
     const renderMap = {
         hiragana: () => renderSafely(() => {
             if (els.hiraganaTab && state.appData.hiragana) {
                 els.hiraganaTab.innerHTML = '';
-                els.hiraganaTab.appendChild(createStaticSection(prepareGojuonData(state.appData.hiragana), '🌸', 'var(--accent-pink)'));
+                els.hiraganaTab.appendChild(createStaticSection(prepareKanaData(state.appData.hiragana), '🌸', 'var(--accent-pink)'));
                 setupFuseForTab('hiragana');
             }
         }),
         katakana: () => renderSafely(() => {
             if (els.katakanaTab && state.appData.katakana) {
                 els.katakanaTab.innerHTML = '';
-                els.katakanaTab.appendChild(createStaticSection(prepareGojuonData(state.appData.katakana), '🤖', 'var(--accent-blue)'));
+                els.katakanaTab.appendChild(createStaticSection(prepareKanaData(state.appData.katakana), '🤖', 'var(--accent-blue)'));
                 setupFuseForTab('katakana');
             }
         }),

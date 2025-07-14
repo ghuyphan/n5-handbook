@@ -367,6 +367,7 @@ mark.search-highlight {
 .cell-bg,
 .grammar-card,
 .dict-card {
+    padding: 1.25rem;
     transition: transform var(--transition-duration) var(--ease-out-quint), background-color var(--transition-duration) var(--ease-out-quint), box-shadow var(--transition-duration) var(--ease-out-quint);
     will-change: transform, box-shadow;
 }
@@ -884,7 +885,7 @@ mark.search-highlight {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     color: #3d3d3d;
-    border-radius: 8px;
+    border-radius: var(--radius-xl);
     border: 1px solid #e7d18c;
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.15);
 }
