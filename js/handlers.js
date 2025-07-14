@@ -182,73 +182,172 @@ export function toggleTheme(event) {
     });
 }
 
-export async function setLevel(level, fromHistory = false) {
-    // Check if a level switch is already in progress. If so, do nothing.
-    if (state.isSwitchingLevel) {
-        console.warn("Level switch already in progress. Ignoring request.");
-        return;
-    }
-    if (level === state.currentLevel) {
-        closeSidebar();
-        return;
-    }
+/**
+ * Shows the loading overlay with a fade-in effect.
+ * Clones the overlay element to clear any lingering event listeners from previous,
+ * potentially interrupted, level switches. This is a key step to prevent race conditions.
+ */
+function showLoader() {
+    if (!els.loadingOverlay) return;
 
-    // Set the lock
-    state.isSwitchingLevel = true;
+    // Clone the node to remove all old event listeners.
+    const newOverlay = els.loadingOverlay.cloneNode(true);
+    els.loadingOverlay.parentNode.replaceChild(newOverlay, els.loadingOverlay);
+    els.loadingOverlay = newOverlay; // Update the reference in our DOM cache.
+    els.loadingOverlay.innerHTML = `<div class="loader"></div>`; // Ensure default content
+
+    els.loadingOverlay.classList.remove('hidden');
     
-    els.loadingOverlay?.classList.remove('hidden');
-    els.loadingOverlay.style.opacity = '1';
+    // Using requestAnimationFrame ensures the browser has processed the class removal 
+    // before we trigger the opacity transition, guaranteeing a smooth animation.
+    requestAnimationFrame(() => {
+        els.loadingOverlay.style.opacity = '1';
+    });
+}
 
-    try {
-        state.currentLevel = level;
-        state.lastDictionaryQuery = '';
-        await saveSetting('currentLevel', level);
-
-        const db = await dbPromise;
-        const customLevelData = await db.get('levels', level);
-        const isCustomLevel = !!customLevelData;
-
-        await loadAllData(level);
-
-        if (!isCustomLevel) {
-            const dataFilesToLoad = ['hiragana', 'katakana', 'kanji', 'vocab', 'grammar', 'keyPoints'];
-            await Promise.all(
-                dataFilesToLoad.map(tabId =>
-                    loadTabData(level, tabId).catch(err => {
-                        console.warn(`Could not pre-load tab '${tabId}' for level '${level}'. It may not exist remotely.`);
-                    })
-                )
-            );
+/**
+ * Hides the loading overlay and returns a promise that resolves when the
+ * fade-out transition is complete.
+ * @returns {Promise<void>} A promise that resolves when the loader is fully hidden.
+ */
+function hideLoader() {
+    return new Promise(resolve => {
+        if (!els.loadingOverlay || els.loadingOverlay.style.opacity === '0') {
+            resolve();
+            return;
         }
 
-        state.progress = (await db.get('progress', state.currentLevel)) || { kanji: [], vocab: [] };
-        const levelSettings = (await db.get('settings', 'levelSettings')) || {};
-        state.pinnedTab = levelSettings[state.currentLevel]?.pinnedTab || null;
-        updateSidebarPinIcons();
-        state.fuseInstances = {};
+        const onTransitionEnd = () => {
+            els.loadingOverlay.classList.add('hidden');
+            els.loadingOverlay.removeEventListener('transitionend', onTransitionEnd);
+            resolve();
+        };
 
-        document.querySelectorAll('.tab-content').forEach(c => { c.innerHTML = ''; });
+        els.loadingOverlay.addEventListener('transitionend', onTransitionEnd);
+        els.loadingOverlay.style.opacity = '0';
 
-        updateProgressDashboard();
-        setLanguage(state.currentLang, true);
-        document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
+        // Safety fallback: If the transitionend event doesn't fire for any reason,
+        // resolve the promise after a timeout to prevent the app from getting stuck.
+        setTimeout(() => {
+            // This will only run if onTransitionEnd hasn't already resolved the promise.
+            console.warn("Loader transitionend fallback triggered.");
+            onTransitionEnd();
+        }, 500); // Should be slightly longer than your CSS transition duration (400ms).
+    });
+}
 
-        const isMobileView = window.innerWidth <= 768;
-        const defaultTab = isMobileView ? 'progress' : 'hiragana';
-        const targetTab = state.pinnedTab || defaultTab;
-        
-        // **THE FIX**: Await changeTab to ensure it completes before the 'finally' block runs.
-        await changeTab(targetTab, null, false, fromHistory, true);
+/**
+ * Fetches all necessary data for the given level and updates the application state.
+ * This includes level-specific content, user progress, and settings.
+ * @param {string} level - The level identifier to load data for.
+ */
+async function loadLevelData(level) {
+    state.currentLevel = level;
+    await saveSetting('currentLevel', level);
+
+    // Fetch core data concurrently for performance.
+    const dataPromises = [
+        loadAllData(level), // Loads UI and custom level data. Modifies state.appData directly.
+        dbPromise.then(db => db.get('progress', state.currentLevel)),
+        dbPromise.then(db => db.get('settings', 'levelSettings'))
+    ];
+
+    // The result of loadAllData is not used here because it operates via side effects on `state.appData`.
+    const [_, progressData, levelSettings] = await Promise.all(dataPromises);
+
+    // Preload tabs for default levels (non-critical, can fail gracefully).
+    const db = await dbPromise;
+    const isCustomLevel = !!(await db.get('levels', level));
+    if (!isCustomLevel) {
+        const tabsToPreload = ['kanji', 'vocab', 'hiragana', 'katakana', 'grammar', 'keyPoints'];
+        await Promise.all(
+            tabsToPreload.map(tabId => loadTabData(level, tabId).catch(err => {
+                console.warn(`Could not pre-load tab '${tabId}' for level '${level}'.`, err);
+            }))
+        );
+    }
+    
+    // Update the rest of the state after all data is successfully fetched.
+    state.progress = progressData || { kanji: [], vocab: [] };
+    state.pinnedTab = levelSettings?.[state.currentLevel]?.pinnedTab || null;
+    state.fuseInstances = {};
+    state.lastDictionaryQuery = '';
+}
+
+/**
+ * Renders the UI components after new level data has been loaded.
+ * @param {string} level - The newly set level.
+ * @param {boolean} fromHistory - If the change was triggered by a history (back/forward) event.
+ */
+async function renderLevelUI(level, fromHistory) {
+    document.querySelectorAll('.tab-content').forEach(c => { c.innerHTML = ''; });
+    updateProgressDashboard();
+    setLanguage(state.currentLang, true); // Re-apply language without re-rendering content yet.
+    document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
+    updateSidebarPinIcons();
+
+    const isMobileView = window.innerWidth <= 768;
+    const defaultTab = isMobileView ? 'progress' : 'hiragana';
+    const targetTab = state.pinnedTab || defaultTab;
+    
+    await changeTab(targetTab, null, false, fromHistory, true);
+}
+
+
+/**
+ * Orchestrates the entire process of switching to a new level.
+ * Ensures a smooth user experience with a loading overlay and robust error handling.
+ * @param {string} level The level to switch to.
+ * @param {boolean} [fromHistory=false] - True if triggered by browser history navigation.
+ */
+export async function setLevel(level, fromHistory = false) {
+    if (state.isSwitchingLevel || level === state.currentLevel) {
+        if (level === state.currentLevel) closeSidebar();
+        return;
+    }
+
+    state.isSwitchingLevel = true; // Engage the master lock.
+    state.loadingStatus = 'loading';
+    
+    // Create a promise that enforces a minimum display time for the loader.
+    // This prevents a jarring "flash" if the data loads very quickly.
+    const minimumDisplayTimePromise = new Promise(resolve => setTimeout(resolve, 500));
+
+    showLoader();
+
+    try {
+        // Run data loading and the minimum display timer concurrently.
+        // The code will only proceed once BOTH are complete.
+        await Promise.all([
+            loadLevelData(level),
+            minimumDisplayTimePromise
+        ]);
+
+        // Once data is ready, render the UI.
+        await renderLevelUI(level, fromHistory);
+        state.loadingStatus = 'idle';
 
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
-        alert(`Could not load data for level ${level.toUpperCase()}. Please check your connection or if the level exists.`);
+        state.loadingStatus = 'error';
+        if (els.loadingOverlay) {
+            els.loadingOverlay.innerHTML = `
+                <div class="text-center p-4">
+                    <h3 class="text-xl font-semibold text-white mb-2">Failed to Load Level</h3>
+                    <p class="text-red-300">${error.message}</p>
+                    <p class="text-gray-300 mt-4">Please try refreshing or select another level.</p>
+                </div>`;
+        }
+        // IMPORTANT: We do not proceed to the 'finally' block's hiding logic on error.
+        // The lock remains engaged to prevent interaction with a broken app state.
+        return; 
     } finally {
-        // This now runs only after everything, including rendering, is complete.
-        els.loadingOverlay.style.opacity = '0';
-        els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
+        // This block runs only if the `try` block completed without a critical, unhandled error.
+        if (state.loadingStatus !== 'error') {
+            await hideLoader(); // Wait for the fade-out to complete.
+            state.isSwitchingLevel = false; // NOW it's safe to release the lock.
+        }
         closeSidebar();
-        state.isSwitchingLevel = false;
     }
 }
 

@@ -7,9 +7,8 @@ import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData, loadTabData } from './database.js';
 import { debounce } from './utils.js';
-import { renderContent, updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView } from './ui.js';
+import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView } from './ui.js';
 import { setLanguage, toggleTheme, handleSearch, changeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
-import { handleExternalSearch } from './jotoba.js'; // Use the Jotoba handler
 
 function getThemeToggleHTML() {
     return `<label class="theme-switch"><input type="checkbox" aria-label="Theme toggle"><span class="slider"></span></label>`;
