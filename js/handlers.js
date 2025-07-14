@@ -232,7 +232,7 @@ function hideLoader() {
             // This will only run if onTransitionEnd hasn't already resolved the promise.
             console.warn("Loader transitionend fallback triggered.");
             onTransitionEnd();
-        }, 500); // Should be slightly longer than your CSS transition duration (400ms).
+        }, 450); // Should be slightly longer than your CSS transition duration (400ms).
     });
 }
 
