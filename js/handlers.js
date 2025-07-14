@@ -8,8 +8,7 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
-// UPDATED: Removed createSearchPlaceholder, added updateExternalSearchTab (implicitly used via jotoba.js)
-import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, updateExternalSearchTab } from './ui.js';
+import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, createSearchPlaceholder } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
 function removeHighlights(container) {
@@ -96,6 +95,7 @@ export const handleSearch = debounce(() => {
     const activeTabId = activeTab.id;
 
     if (activeTabId === 'external-search') {
+        // This now correctly handles the transition from results back to the prompt
         handleExternalSearch(query);
     } else {
         removeHighlights(activeTab);
@@ -157,9 +157,10 @@ export function setLanguage(lang, skipRender = false) {
         state.fuseInstances = {};
         renderContent();
         updateProgressDashboard();
+        // Re-render search results if the search tab is active
         const activeTab = document.querySelector('.tab-content.active');
         if (activeTab && activeTab.id === 'external-search') {
-            handleExternalSearch(state.lastDictionaryQuery, true);
+            handleExternalSearch(state.lastDictionaryQuery, true); // Force refresh with new language
         }
     }
     updateSearchPlaceholders(state.activeTab);
@@ -272,13 +273,11 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
     const activeTab = document.getElementById(tabName);
     if (activeTab) {
         activeTab.classList.add('active');
-        // UPDATED: This block now uses the new UI rendering function
         if (tabName === 'external-search') {
             const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
             searchInput.value = state.lastDictionaryQuery;
-            // Only set the initial 'prompt' state if the tab has never been initialized
-            if (!activeTab.querySelector('.results-container') && !activeTab.querySelector('.placeholder-container')) {
-                updateExternalSearchTab('prompt');
+            if (activeTab.innerHTML.trim() === '') {
+                activeTab.innerHTML = createSearchPlaceholder('prompt');
             }
         } else {
              if (els.searchInput) els.searchInput.value = '';
@@ -293,9 +292,9 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
         targetButton.classList.add('active');
         const isMobileView = window.innerWidth <= 768;
         if (isMobileView) {
+            // FIX: Add this logic to control the mobile search bar's visibility
             if (els.mobileSearchBar) {
-                const isSearchableTab = tabName !== 'progress';
-                els.mobileSearchBar.classList.toggle('visible', isSearchableTab);
+                els.mobileSearchBar.classList.toggle('visible', tabName === 'external-search' || tabName !== 'progress');
             }
 
             const titleSpan = targetButton.querySelector('span');
@@ -352,14 +351,14 @@ export function jumpToSection(tabName, sectionTitleKey) {
                     itemToHighlight.classList.remove('is-highlighted');
                 }, { once: true });
             }
-        }, 100);
+        }, 100); // Small delay to allow accordion to open
     };
 
     if (isAlreadyOnTab) {
         scrollToAction();
     } else {
         changeTab(tabName, null, true);
-        setTimeout(scrollToAction, 50);
+        setTimeout(scrollToAction, 50); // Delay to allow tab to become visible
     }
 }
 

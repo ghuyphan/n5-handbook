@@ -39,7 +39,7 @@ export function populateEls() {
     els.hiraganaTab = document.getElementById('hiragana');
     els.katakanaTab = document.getElementById('katakana');
     els.kanjiTab = document.getElementById('kanji');
-    els.keyPointsTab = document.getElementById('key_points');
+    els.keyPointsTab = document.getElementById('keyPoints');
     els.vocabTab = document.getElementById('vocab');
     els.grammarContainer = document.getElementById('grammar-container');
     els.grammarTab = document.getElementById('grammar');

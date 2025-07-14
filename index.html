@@ -33,7 +33,7 @@
 
     <script>try { const e = localStorage.getItem("theme"), t = window.matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.classList.toggle("dark-mode", e ? "dark" === e : t) } catch (e) { console.error("Theme error", e) }</script>
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&display=swap"

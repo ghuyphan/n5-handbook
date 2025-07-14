@@ -11,7 +11,9 @@ import { renderContent, updateProgressDashboard, setupTheme, moveLangPill, updat
 import { setLanguage, toggleTheme, handleSearch, changeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
 import { handleExternalSearch } from './jotoba.js'; // Use the Jotoba handler
 
-function getThemeToggleHTML() { return `<label class="theme-switch"><input type="checkbox"><span class="slider"></span></label>`; }
+function getThemeToggleHTML() {
+    return `<label class="theme-switch"><input type="checkbox" aria-label="Theme toggle"><span class="slider"></span></label>`;
+}
 function getLangSwitcherHTML() { return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`; }
 
 function handleStateChange(stateObj) {
@@ -490,7 +492,7 @@ function populateAndBindControls() {
 
 async function init() {
     populateEls();
-    
+
     try {
         populateAndBindControls();
         let remoteLevels = [];
@@ -515,7 +517,7 @@ async function init() {
 
         // We are no longer using the old externalSearch.js
         // The new logic is self-contained in jotoba.js and triggered by handleSearch
-        
+
         setupEventListeners();
         buildLevelSwitcher(remoteLevels, customLevels);
         setupImportModal();
