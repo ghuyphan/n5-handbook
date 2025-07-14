@@ -252,11 +252,12 @@ async function handleExternalSearchInternal(query, forceRefresh = false) {
     const normalizedQuery = query.trim();
 
     if (normalizedQuery.length === 0) {
-        updateExternalSearchTab('prompt');
+        // This is the initial "prompt" state. Set the isInitialLoad flag to true.
+        updateExternalSearchTab('prompt', {}, true);
         return;
     }
     
-    // Show the loading spinner state
+    // Show the loading spinner state (we want this to animate)
     updateExternalSearchTab('searching');
 
     const db = await dbPromise;

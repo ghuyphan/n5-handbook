@@ -84,13 +84,18 @@ export async function loadTabData(level, tabId) {
 
     const tabElement = document.getElementById(tabId);
     if (tabElement) {
-        // Display loader immediately but without the redundant animation class.
-        tabElement.innerHTML = `
-            <div class="search-placeholder-wrapper" style="height: 50vh;">
-                <div class="search-placeholder-box" style="background: transparent; box-shadow: none; border: none;">
-                    <div class="loader"></div>
-                </div>
-            </div>`;
+        // **THE FIX**: Only show this inner loader if the main overlay is NOT visible.
+        const mainOverlay = document.getElementById('loading-overlay');
+        const isOverlayVisible = mainOverlay && !mainOverlay.classList.contains('hidden');
+
+        if (!isOverlayVisible) {
+            tabElement.innerHTML = `
+                <div class="search-placeholder-wrapper" style="height: 50vh;">
+                    <div class="search-placeholder-box" style="background: transparent; box-shadow: none; border: none;">
+                        <div class="loader"></div>
+                    </div>
+                </div>`;
+        }
     }
 
     try {
@@ -109,10 +114,9 @@ export async function loadTabData(level, tabId) {
     }
 }
 
-
 /**
- * **MODIFIED**: This function now only loads essential UI data and all data for custom levels.
- * Data for default levels is loaded on-demand by `loadTabData`.
+ * **MODIFIED**: This function now only loads essential UI data and data for custom levels.
+ * Data for remote/default levels is now handled by the setLevel function.
  * @param {string} level The level to load.
  */
 export async function loadAllData(level) {
@@ -124,17 +128,15 @@ export async function loadAllData(level) {
         });
 
     // If it's a custom level, load its data completely from IndexedDB.
-    if (level !== config.defaultLevel) {
-        const db = await dbPromise;
-        const savedData = await db.get('levels', level);
-        if (savedData) {
-            state.appData = savedData;
-            state.appData.ui = await uiPromise; // Still merge the latest UI
-            return;
-        }
+    const db = await dbPromise;
+    const savedData = await db.get('levels', level);
+    if (savedData) {
+        state.appData = savedData;
+        state.appData.ui = await uiPromise;
+        return;
     }
 
-    // For default levels, just initialize with the UI data.
-    // Tabs will be loaded lazily via loadTabData.
+    // For default or remote levels, just initialize with the UI data.
+    // The new logic in setLevel will handle fetching the individual tab data files.
     state.appData = { ui: await uiPromise };
 }

@@ -183,31 +183,47 @@ export function toggleTheme(event) {
 }
 
 export async function setLevel(level, fromHistory = false) {
+    // Check if a level switch is already in progress. If so, do nothing.
+    if (state.isSwitchingLevel) {
+        console.warn("Level switch already in progress. Ignoring request.");
+        return;
+    }
     if (level === state.currentLevel) {
         closeSidebar();
         return;
     }
-    state.currentLevel = level;
-    state.lastDictionaryQuery = '';
-    await saveSetting('currentLevel', level);
+
+    // Set the lock
+    state.isSwitchingLevel = true;
+    
     els.loadingOverlay?.classList.remove('hidden');
     els.loadingOverlay.style.opacity = '1';
 
     try {
-        // Pre-load essential data for progress bar
-        await loadAllData(level);
-        if (state.currentLevel === config.defaultLevel) {
-             await Promise.all([
-                loadTabData(state.currentLevel, 'kanji'),
-                loadTabData(state.currentLevel, 'vocab')
-            ]);
-        }
+        state.currentLevel = level;
+        state.lastDictionaryQuery = '';
+        await saveSetting('currentLevel', level);
 
         const db = await dbPromise;
+        const customLevelData = await db.get('levels', level);
+        const isCustomLevel = !!customLevelData;
+
+        await loadAllData(level);
+
+        if (!isCustomLevel) {
+            const dataFilesToLoad = ['hiragana', 'katakana', 'kanji', 'vocab', 'grammar', 'keyPoints'];
+            await Promise.all(
+                dataFilesToLoad.map(tabId =>
+                    loadTabData(level, tabId).catch(err => {
+                        console.warn(`Could not pre-load tab '${tabId}' for level '${level}'. It may not exist remotely.`);
+                    })
+                )
+            );
+        }
+
         state.progress = (await db.get('progress', state.currentLevel)) || { kanji: [], vocab: [] };
-        const levelSettings = await db.get('settings', 'levelSettings') || {};
-        const currentLevelSettings = levelSettings[state.currentLevel];
-        state.pinnedTab = currentLevelSettings?.pinnedTab || null;
+        const levelSettings = (await db.get('settings', 'levelSettings')) || {};
+        state.pinnedTab = levelSettings[state.currentLevel]?.pinnedTab || null;
         updateSidebarPinIcons();
         state.fuseInstances = {};
 
@@ -220,17 +236,21 @@ export async function setLevel(level, fromHistory = false) {
         const isMobileView = window.innerWidth <= 768;
         const defaultTab = isMobileView ? 'progress' : 'hiragana';
         const targetTab = state.pinnedTab || defaultTab;
-        changeTab(targetTab, null, false, fromHistory);
+        
+        // **THE FIX**: Await changeTab to ensure it completes before the 'finally' block runs.
+        await changeTab(targetTab, null, false, fromHistory, true);
+
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
-        alert(`Could not load data for level ${level.toUpperCase()}.`);
+        alert(`Could not load data for level ${level.toUpperCase()}. Please check your connection or if the level exists.`);
     } finally {
+        // This now runs only after everything, including rendering, is complete.
         els.loadingOverlay.style.opacity = '0';
         els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
         closeSidebar();
+        state.isSwitchingLevel = false;
     }
 }
-
 
 async function savePinnedTab(tabId) {
     try {
@@ -266,9 +286,10 @@ export function toggleSidebarPin(event, tabId) {
     savePinnedTab(state.pinnedTab);
 }
 
-export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false) {
+export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false, forceRender = false) {
     const activeTabEl = document.querySelector('.tab-content.active');
-    if (activeTabEl && activeTabEl.id === tabName && !fromHistory) {
+
+    if (activeTabEl && activeTabEl.id === tabName && !fromHistory && !forceRender) {
         closeSidebar();
         return;
     }
@@ -293,35 +314,29 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         const isDataTab = !['external-search', 'progress'].includes(tabName);
         let isDataMissing = isDataTab && !state.appData[tabName];
 
-        activeTab.classList.add('active'); // Activate tab so loader is visible
+        activeTab.classList.add('active');
 
         if (isDataMissing) {
             try {
                 await loadTabData(state.currentLevel, tabName);
-                isDataMissing = false; // Data is no longer missing
+                isDataMissing = false;
             } catch (error) {
-                // Error is already handled and displayed by loadTabData
                 closeSidebar();
                 return;
             }
         }
-        
-        // **MODIFIED**: Render content if it's a data tab and the data is now available
+
         if (isDataTab && !isDataMissing) {
             renderContent(tabName);
         }
-        
+
         if (tabName === 'external-search') {
             const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
             searchInput.value = state.lastDictionaryQuery;
             handleExternalSearch(state.lastDictionaryQuery);
         } else {
-            if (els.searchInput) {
-                els.searchInput.value = '';
-            }
-            if (els.mobileSearchInput) {
-                els.mobileSearchInput.value = '';
-            }
+            if (els.searchInput) els.searchInput.value = '';
+            if (els.mobileSearchInput) els.mobileSearchInput.value = '';
             handleSearch();
         }
     }

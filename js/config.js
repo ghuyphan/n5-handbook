@@ -17,6 +17,7 @@ export const state = {
     currentLevel: config.defaultLevel,
     allAvailableLevels: [config.defaultLevel],
     pinnedTab: null,
+    isSwitchingLevel: false,
     fuseInstances: {},
     universalFuse: null,
     currentQuery: '',

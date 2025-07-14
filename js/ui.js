@@ -370,8 +370,9 @@ function findKanjiData(kanjiCharacter) {
  * @param {object} data - An object containing data for the view.
  * @param {{words: Array, kanji: Array}} [data.results] - The search results from the API.
  * @param {string} [data.query] - The original search query.
+ * @param {boolean} [isInitialLoad=false] - A new flag to prevent animation on the first load.
  */
-export function updateExternalSearchTab(type, data = {}) {
+export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) {
     if (!els.externalSearchTab) return;
 
     const { results, query } = data;
@@ -444,7 +445,7 @@ export function updateExternalSearchTab(type, data = {}) {
                     if (!term) return;
                     const termWithClickableKanji = term.split('').map(char =>
                         /[\u4e00-\u9faf]/.test(char) && findKanjiData(char) ?
-                        `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>` :
+                        `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kan-details" data-id="${findKanjiData(char).id}">${char}</span>` :
                         `<span>${char}</span>`
                     ).join('');
                     const headerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${termWithClickableKanji}</h4><span class="dict-vocab-reading">${reading}</span></div>`;
@@ -501,10 +502,12 @@ export function updateExternalSearchTab(type, data = {}) {
         if (placeholderBox) {
             placeholderBox.innerHTML = getSearchPlaceholderInnerContent(type, query);
 
-            // Add a subtle animation for the content change
-            placeholderBox.classList.remove('content-anim-fade-in');
-            void placeholderBox.offsetWidth; // Force browser reflow to restart animation
-            placeholderBox.classList.add('content-anim-fade-in');
+            // Only animate if it's NOT the initial load of the tab
+            if (!isInitialLoad) {
+                placeholderBox.classList.remove('content-anim-fade-in');
+                void placeholderBox.offsetWidth; // Force browser reflow to restart animation
+                placeholderBox.classList.add('content-anim-fade-in');
+            }
         }
     }
 }
