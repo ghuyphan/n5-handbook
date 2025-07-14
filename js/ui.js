@@ -9,14 +9,14 @@ import { generateSearchTerms } from './utils.js';
 import { setupFuseForTab } from './handlers.js';
 
 /**
+ * REFINED: Now includes a new 'error' state for better user feedback.
  * Generates the inner HTML for the search placeholder based on its state.
- * This function does NOT create the main wrapper, only its content.
- * @param {string} type - The state of the placeholder ('searching', 'no-results', 'prompt').
- * @param {string} [query=''] - The search query for the 'no-results' state.
+ * @param {string} type - The state of the placeholder ('searching', 'no-results', 'prompt', 'error').
+ * @param {string} [query=''] - The search query for 'no-results' or error states.
  * @returns {string} The inner HTML for the placeholder box.
  */
 function getSearchPlaceholderInnerContent(type, query = '') {
-    const getUIText = (key, fallback) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
     let innerContent = '';
 
     switch (type) {
@@ -31,6 +31,17 @@ function getSearchPlaceholderInnerContent(type, query = '') {
                 ${noResultsIcon}
                 <h3 class="text-xl font-semibold text-primary">${noResultsTitle}</h3>
                 <p class="text-secondary text-base mt-1 max-w-md">${noResultsSubtitle}</p>
+            `;
+            break;
+        case 'error': // NEW: Error state for failed API calls
+            const errorIcon = `<svg class="w-16 h-16 text-accent-red opacity-60 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>`;
+            const errorTitle = getUIText('searchErrorTitle');
+            const errorSubtitle = getUIText('searchError');
+            innerContent = `
+                ${errorIcon}
+                <h3 class="text-xl font-semibold text-primary">${errorTitle}</h3>
+                <p class="text-secondary text-base mt-1 max-w-md">${errorSubtitle}</p>
+                <button data-action="retry-search" data-query="${query}">${getUIText('retryButton')}</button>
             `;
             break;
         case 'prompt':
@@ -302,7 +313,7 @@ export function updatePinButtonState(activeTabId) {
 
     const isPinned = activeTabId && activeTabId === state.pinnedTab;
     pinButton.classList.toggle('pinned', isPinned);
-    svg.style.fill = isPinned ? 'var(--pin-pinned-icon)' : 'var(--pin-unpinned)';
+    svg.style.fill = isPinned ? 'var(--pin-color)' : 'var(--pin-unpinned)';
 
     svg.style.width = '1.25em';
     svg.style.height = '1.25em';
@@ -365,12 +376,10 @@ function findKanjiData(kanjiCharacter) {
 }
 
 /**
- * Manages the content of the external search tab, showing either results or a placeholder.
- * @param {string} type - The state to render: 'prompt', 'searching', 'no-results', or 'results'.
+ * REFINED: Manages dictionary search tab content with consistent animations.
+ * @param {string} type - The state to render: 'prompt', 'searching', 'no-results', 'results', or 'error'.
  * @param {object} data - An object containing data for the view.
- * @param {{words: Array, kanji: Array}} [data.results] - The search results from the API.
- * @param {string} [data.query] - The original search query.
- * @param {boolean} [isInitialLoad=false] - A new flag to prevent animation on the first load.
+ * @param {boolean} [isInitialLoad=false] - Flag to prevent animation on the first load.
  */
 export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) {
     if (!els.externalSearchTab) return;
@@ -378,7 +387,6 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
     const { results, query } = data;
     const getUIText = (key, fallback) => state.appData.ui?.[state.currentLang]?.[key] || fallback;
 
-    // --- Find or create persistent containers ---
     let resultsContainer = els.externalSearchTab.querySelector('.results-container');
     if (!resultsContainer) {
         resultsContainer = document.createElement('div');
@@ -389,19 +397,18 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
     let placeholderContainer = els.externalSearchTab.querySelector('.placeholder-container');
     if (!placeholderContainer) {
         placeholderContainer = document.createElement('div');
-        placeholderContainer.className = 'placeholder-container search-placeholder-wrapper anim-fade-in';
+        placeholderContainer.className = 'placeholder-container search-placeholder-wrapper';
         placeholderContainer.innerHTML = `<div class="search-placeholder-box"></div>`;
         els.externalSearchTab.appendChild(placeholderContainer);
     }
-    // --- End container setup ---
-
+    
     if (type === 'results') {
-        // --- RENDER RESULTS ---
         placeholderContainer.style.display = 'none';
         resultsContainer.style.display = 'block';
         resultsContainer.innerHTML = ''; // Clear old results
 
         const contentFragment = document.createDocumentFragment();
+        // ... (The result rendering logic remains the same) ...
         const hasWords = results?.words?.length > 0;
         const hasKanji = results?.kanji?.length > 0;
 
@@ -431,8 +438,8 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
                         const reading = sense.reading || '';
                         const termWithClickableKanji = japaneseTerm.split('').map(char =>
                             /[\u4e00-\u9faf]/.test(char) && findKanjiData(char) ?
-                            `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>` :
-                            `<span>${char}</span>`
+                                `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>` :
+                                `<span>${char}</span>`
                         ).join('');
                         card.innerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${termWithClickableKanji}</h4>${reading ? `<span class="dict-vocab-reading">(${reading})</span>` : ''}</div><div class="dict-vocab-definitions"><p>${word.reading.kanji}</p></div>`;
                         vocabGrid.appendChild(card);
@@ -445,8 +452,8 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
                     if (!term) return;
                     const termWithClickableKanji = term.split('').map(char =>
                         /[\u4e00-\u9faf]/.test(char) && findKanjiData(char) ?
-                        `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kan-details" data-id="${findKanjiData(char).id}">${char}</span>` :
-                        `<span>${char}</span>`
+                            `<span class="hover:text-accent-teal cursor-pointer transition-colors" data-action="show-kanji-details" data-id="${findKanjiData(char).id}">${char}</span>` :
+                            `<span>${char}</span>`
                     ).join('');
                     const headerHTML = `<div class="dict-vocab-header"><h4 class="dict-vocab-term">${termWithClickableKanji}</h4><span class="dict-vocab-reading">${reading}</span></div>`;
                     const sensesHTML = (word.senses ?? []).map(sense => {
@@ -487,35 +494,31 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
             sectionContainer.appendChild(kanjiGrid);
             contentFragment.appendChild(sectionContainer);
         }
-
+        
+        // Use a consistent fade-in animation for the results
         const animatedWrapper = document.createElement('div');
         animatedWrapper.className = 'anim-fade-in';
         animatedWrapper.appendChild(contentFragment);
         resultsContainer.appendChild(animatedWrapper);
 
     } else {
-        // --- RENDER PLACEHOLDER (prompt, searching, or no-results) ---
         resultsContainer.style.display = 'none';
         placeholderContainer.style.display = 'flex';
 
         const placeholderBox = placeholderContainer.querySelector('.search-placeholder-box');
         if (placeholderBox) {
             placeholderBox.innerHTML = getSearchPlaceholderInnerContent(type, query);
-
-            // Only animate if it's NOT the initial load of the tab
+            
+            // Apply animation for content changes, but not on the very first load.
             if (!isInitialLoad) {
-                placeholderBox.classList.remove('content-anim-fade-in');
+                placeholderBox.classList.remove('anim-fade-in');
                 void placeholderBox.offsetWidth; // Force browser reflow to restart animation
-                placeholderBox.classList.add('content-anim-fade-in');
+                placeholderBox.classList.add('anim-fade-in');
             }
         }
     }
 }
 
-/**
- * **MODIFIED**: Renders content for a specific tab ID, or all loaded tabs if no ID is provided.
- * @param {string|null} tabId - The ID of the single tab to render.
- */
 export function renderContent(tabId = null) {
     const renderSafely = (renderFn) => {
         try { renderFn(); } catch (e) { console.error("Render error:", e); }
@@ -535,7 +538,7 @@ export function renderContent(tabId = null) {
         }
         return data;
     };
-    
+
     const renderMap = {
         hiragana: () => renderSafely(() => {
             if (els.hiraganaTab && state.appData.hiragana) {
@@ -583,7 +586,7 @@ export function renderContent(tabId = null) {
             wrapper.className = 'space-y-4';
             wrapper.appendChild(fragment);
             els.keyPointsTab.appendChild(wrapper);
-            setupFuseForTab('key_points');
+            setupFuseForTab('keyPoints'); // Corrected key
         }),
         grammar: () => renderSafely(() => {
             if (!els.grammarTab || !state.appData.grammar) return;
@@ -670,16 +673,11 @@ export function scrollActiveLevelIntoView() {
     }
 }
 
-/**
- * Updates the search input placeholders based on the currently active tab.
- * @param {string} activeTabId - The ID of the currently active tab.
- */
 export function updateSearchPlaceholders(activeTabId) {
     const getUIText = (key, fallback = '') => state.appData.ui?.[state.currentLang]?.[key] || fallback;
 
     const isDictionaryTab = activeTabId === 'external-search';
 
-    // Determine the correct placeholder text
     const placeholderText = isDictionaryTab
         ? getUIText('dictionaryPrompt', 'Search for words...')
         : getUIText('searchPlaceholder', 'Search anything...');
@@ -688,7 +686,6 @@ export function updateSearchPlaceholders(activeTabId) {
         ? getUIText('dictionaryPrompt', 'Search for words...')
         : getUIText('searchTabPlaceholder', 'Search in this tab...');
 
-    // Update both desktop and mobile search inputs
     if (els.searchInput) {
         els.searchInput.placeholder = placeholderText;
     }

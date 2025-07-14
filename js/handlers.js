@@ -11,6 +11,8 @@ import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteN
 import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
+// --- HELPER FUNCTIONS ---
+
 function getUIText(key, replacements = {}) {
     let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
     for (const [placeholder, value] of Object.entries(replacements)) {
@@ -19,13 +21,21 @@ function getUIText(key, replacements = {}) {
     return text;
 }
 
+// REFINED: Added a helper to get the currently relevant search input element.
+// This avoids repeating the same ternary logic (DRY principle).
+function getActiveSearchInput() {
+    return window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
+}
+
+// --- DOM MANIPULATION ---
+
 function removeHighlights(container) {
     const marks = Array.from(container.querySelectorAll('mark.search-highlight'));
     marks.forEach(mark => {
         const parent = mark.parentNode;
         if (parent) {
             parent.replaceChild(document.createTextNode(mark.textContent), mark);
-            parent.normalize();
+            parent.normalize(); // Merges adjacent text nodes for a clean DOM.
         }
     });
 }
@@ -33,6 +43,8 @@ function removeHighlights(container) {
 function highlightMatches(element, query) {
     if (!query) return;
     const regex = new RegExp(`(${query.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1")})`, 'gi');
+    
+    // Using TreeWalker is more performant than recursing through childNodes for deep trees.
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
     const nodesToModify = [];
     let currentNode;
@@ -41,6 +53,8 @@ function highlightMatches(element, query) {
             nodesToModify.push(currentNode);
         }
     }
+    
+    // Batching modifications reduces layout thrashing.
     nodesToModify.forEach(node => {
         const fragment = document.createDocumentFragment();
         const parts = node.nodeValue.split(regex);
@@ -59,6 +73,8 @@ function highlightMatches(element, query) {
         }
     });
 }
+
+// --- CORE HANDLERS ---
 
 export function toggleLearned(category, id, element) {
     if (!state.progress[category]) state.progress[category] = [];
@@ -95,8 +111,7 @@ export function setupFuseForTab(tabId) {
 }
 
 export const handleSearch = debounce(() => {
-    const isMobileView = window.innerWidth <= 768;
-    const query = (isMobileView ? els.mobileSearchInput.value : els.searchInput.value).trim();
+    const query = getActiveSearchInput().value.trim(); // REFINED: Use helper function
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
 
@@ -138,8 +153,11 @@ export const handleSearch = debounce(() => {
 export function setLanguage(lang, skipRender = false) {
     state.currentLang = lang;
     saveSetting('language', lang);
-    const uiStrings = state.appData.ui;
+    
+    // OPTIMIZED: Invalidate the rendered tab cache as all text content is now stale.
+    if (state.renderedTabs) state.renderedTabs.clear();
 
+    const uiStrings = state.appData.ui;
     const processText = (textKey) => {
         let text = uiStrings?.[lang]?.[textKey] || uiStrings?.['en']?.[textKey] || `[${textKey}]`;
         return text.replace('{level}', state.currentLevel.toUpperCase());
@@ -155,40 +173,37 @@ export function setLanguage(lang, skipRender = false) {
     document.querySelectorAll('.lang-switch').forEach(moveLangPill);
 
     const activeNavButton = document.querySelector('.nav-item.active');
-    if (activeNavButton) {
+    if (activeNavButton && els.mobileHeaderTitle) {
         const titleSpan = activeNavButton.querySelector('span');
         const titleKey = titleSpan?.dataset.langKey;
-        if (titleKey && els.mobileHeaderTitle) {
-            els.mobileHeaderTitle.textContent = processText(titleKey);
-        } else if (titleSpan && els.mobileHeaderTitle) {
-            els.mobileHeaderTitle.textContent = titleSpan.textContent;
-        }
+        els.mobileHeaderTitle.textContent = titleKey ? processText(titleKey) : (titleSpan?.textContent || '');
     }
 
     if (!skipRender) {
-        state.fuseInstances = {};
-        Object.keys(state.appData).forEach(tabId => {
-            if (tabId !== 'ui' && document.getElementById(tabId)?.innerHTML) {
-                renderContent(tabId);
-            }
-        });
-        updateProgressDashboard();
+        // OPTIMIZED: Instead of re-rendering all tabs, just force re-render the active one.
+        // Others will be re-rendered on-demand when switched to, using the now-empty cache.
         const activeTab = document.querySelector('.tab-content.active');
-        if (activeTab && activeTab.id === 'external-search') {
-            handleExternalSearch(state.lastDictionaryQuery, true);
+        if (activeTab) {
+            changeTab(activeTab.id, null, true, true, true);
         }
+        updateProgressDashboard();
     }
     updateSearchPlaceholders(state.activeTab);
 }
 
+// In handlers.js
+
 export function toggleTheme(event) {
     const isChecked = event.target.checked;
+    const theme = isChecked ? 'dark' : 'light';
     document.documentElement.classList.toggle('dark-mode', isChecked);
+
     try {
-        localStorage.setItem('theme', isChecked ? 'dark' : 'light');
+        localStorage.setItem('theme', theme);
     } catch (e) {
         console.warn("Could not save theme to localStorage.", e);
     }
+    saveSetting('theme', theme);
     document.querySelectorAll('.theme-switch input').forEach(input => {
         if (input !== event.target) input.checked = isChecked;
     });
@@ -212,16 +227,16 @@ function hideLoader() {
             resolve();
             return;
         }
-        const onTransitionEnd = () => {
+        const onTransitionEnd = (e) => {
+            if (e.target !== els.loadingOverlay) return;
             els.loadingOverlay.classList.add('hidden');
             els.loadingOverlay.removeEventListener('transitionend', onTransitionEnd);
             resolve();
         };
         els.loadingOverlay.addEventListener('transitionend', onTransitionEnd);
         els.loadingOverlay.style.opacity = '0';
-        setTimeout(() => {
-            console.warn("Loader transitionend fallback triggered.");
-            onTransitionEnd();
+        setTimeout(() => { // Fallback in case the event doesn't fire.
+            onTransitionEnd({ target: els.loadingOverlay });
         }, 500);
     });
 }
@@ -237,36 +252,31 @@ async function loadLevelData(level) {
     ];
     const [_, progressData, levelSettings] = await Promise.all(dataPromises);
 
+    state.progress = progressData || { kanji: [], vocab: [] };
+    state.pinnedTab = levelSettings?.[state.currentLevel]?.pinnedTab || null;
+    
+    // OPTIMIZED: Clear all caches for the new level in one place.
+    state.fuseInstances = {};
+    state.lastDictionaryQuery = '';
+    state.notes.clear();
+    if (state.renderedTabs) state.renderedTabs.clear();
+
     const db = await dbPromise;
     const isCustomLevel = !!(await db.get('levels', level));
     if (!isCustomLevel) {
-        await Promise.all([
-            loadTabData(level, 'kanji'),
-            loadTabData(level, 'vocab')
-        ]).catch(err => {
-            console.error("CRITICAL PRELOAD FAILED: Could not load kanji/vocab data.", err);
-        });
-    }
-    
-    state.progress = progressData || { kanji: [], vocab: [] };
-    state.pinnedTab = levelSettings?.[state.currentLevel]?.pinnedTab || null;
-    state.fuseInstances = {};
-    state.lastDictionaryQuery = '';
-    
-    if (!isCustomLevel) {
-        const otherTabs = ['hiragana', 'katakana', 'grammar', 'keyPoints'];
-        Promise.all(
-            otherTabs.map(tabId => loadTabData(level, tabId).catch(err => {
-                console.warn(`Non-critical preload of tab '${tabId}' failed.`, err);
-            }))
-        );
+        // OPTIMIZED: Pre-load data for all tabs in parallel (fire-and-forget).
+        // This makes subsequent tab switches feel instant as data is already in memory.
+        const allTabs = ['kanji', 'vocab', 'hiragana', 'katakana', 'grammar', 'keyPoints'];
+        Promise.all(allTabs.map(tabId => loadTabData(level, tabId).catch(err => {
+            console.warn(`Non-critical preload of tab '${tabId}' failed.`, err);
+        }))).then(() => console.log(`Pre-loading for level ${level} complete.`));
     }
 }
 
 async function renderLevelUI(level, fromHistory) {
     document.querySelectorAll('.tab-content').forEach(c => { c.innerHTML = ''; });
     updateProgressDashboard();
-    setLanguage(state.currentLang, true);
+    setLanguage(state.currentLang, true); // Update UI text without re-rendering content yet
     document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
     updateSidebarPinIcons();
     const isMobileView = window.innerWidth <= 768;
@@ -286,9 +296,6 @@ export async function setLevel(level, fromHistory = false) {
     const minimumDisplayTimePromise = new Promise(resolve => setTimeout(resolve, 500));
     showLoader();
 
-    // Clear notes cache on level switch
-    state.notes.clear();
-
     try {
         await Promise.all([
             loadLevelData(level),
@@ -298,22 +305,17 @@ export async function setLevel(level, fromHistory = false) {
         state.loadingStatus = 'idle';
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
-        state.loadingStatus = 'error';
+        state.loadingSßßtatus = 'error';
         if (els.loadingOverlay) {
             const title = getUIText('errorLoadLevelTitle');
             const body = getUIText('errorLoadLevelBody');
-            els.loadingOverlay.innerHTML = `
-                <div class="text-center p-4">
-                    <h3 class="text-xl font-semibold text-white mb-2">${title}</h3>
-                    <p class="text-red-300">${error.message}</p>
-                    <p class="text-gray-300 mt-4">${body}</p>
-                </div>`;
+            els.loadingOverlay.innerHTML = `<div class="text-center p-4"><h3 class="text-xl font-semibold text-white mb-2">${title}</h3><p class="text-red-300">${error.message}</p><p class="text-gray-300 mt-4">${body}</p></div>`;
         }
         return; 
     } finally {
+        state.isSwitchingLevel = false;
         if (state.loadingStatus !== 'error') {
             await hideLoader();
-            state.isSwitchingLevel = false;
         }
         closeSidebar();
     }
@@ -323,10 +325,7 @@ async function savePinnedTab(tabId) {
     try {
         const db = await dbPromise;
         let levelSettings = (await db.get('settings', 'levelSettings')) || {};
-        if (!levelSettings[state.currentLevel]) {
-            levelSettings[state.currentLevel] = {};
-        }
-        levelSettings[state.currentLevel].pinnedTab = tabId || null;
+        levelSettings[state.currentLevel] = { ...levelSettings[state.currentLevel], pinnedTab: tabId || null };
         await saveSetting('levelSettings', levelSettings);
         updatePinButtonState(tabId);
         updateSidebarPinIcons();
@@ -353,146 +352,154 @@ export function toggleSidebarPin(event, tabId) {
     savePinnedTab(state.pinnedTab);
 }
 
-export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false, forceRender = false) {
-    const activeTabEl = document.querySelector('.tab-content.active');
-    if (activeTabEl && activeTabEl.id === tabName && !fromHistory && !forceRender) {
-        closeSidebar();
-        return;
-    }
-
-    state.activeTab = tabName;
-
-    if (!fromHistory) {
-        const url = `?level=${state.currentLevel}&tab=${tabName}`;
-        history.pushState({ type: 'tab', tabName: tabName, level: state.currentLevel }, '', url);
-    }
-
-    const oldActiveTab = document.querySelector('.tab-content.active');
-    if (oldActiveTab) {
-        state.tabScrollPositions.set(oldActiveTab.id, window.scrollY);
-        if (oldActiveTab.id === 'external-search') {
-            const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
-            state.lastDictionaryQuery = searchInput.value.trim();
-        }
-    }
-
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    const activeTab = document.getElementById(tabName);
+/**
+ * REFINED: Updates the UI elements (buttons, headers, etc.) related to a tab switch.
+ * @param {string} tabName The name of the tab being activated.
+ */
+function updateTabUI(tabName) {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tabName === tabName));
+    const targetButton = document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
     
-    if (activeTab) {
-        const isDataTab = !['external-search', 'progress'].includes(tabName);
-        const isDataMissing = isDataTab && !state.appData[tabName];
-        activeTab.classList.add('active');
-
-        if (isDataMissing) {
-            const db = await dbPromise;
-            const isCustomLevel = !!(await db.get('levels', state.currentLevel));
-
-            if (isCustomLevel) {
-                const title = getUIText('errorContentNotAvailableTitle');
-                const body = getUIText('errorContentNotAvailableBody', { 
-                    tabName: tabName, 
-                    levelName: state.currentLevel.toUpperCase() 
-                });
-                activeTab.innerHTML = `<div class="p-6 text-center text-secondary">
-                    <h3 class="font-semibold text-lg text-primary mb-2">${title}</h3>
-                    <p>${body}</p>
-                </div>`;
-            } else {
-                try {
-                    await loadTabData(state.currentLevel, tabName);
-                    renderContent(tabName);
-                } catch (error) {
-                    closeSidebar();
-                    return;
-                }
-            }
-        } else if (isDataTab) {
-            renderContent(tabName);
-        }
-
-        if (tabName === 'external-search') {
-            const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
-            searchInput.value = state.lastDictionaryQuery;
-            handleExternalSearch(state.lastDictionaryQuery);
-        } else {
-            if (els.searchInput) els.searchInput.value = '';
-            if (els.mobileSearchInput) els.mobileSearchInput.value = '';
-            handleSearch();
-        }
-    }
-
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    const targetButton = buttonElement || document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
-    if (targetButton) {
-        targetButton.classList.add('active');
-        const isMobileView = window.innerWidth <= 768;
-        if (isMobileView) {
-            if (els.mobileSearchBar) {
-                els.mobileSearchBar.classList.toggle('visible', tabName !== 'progress');
-            }
+    const isMobileView = window.innerWidth <= 768;
+    if (isMobileView) {
+        if (els.mobileSearchBar) els.mobileSearchBar.classList.toggle('visible', tabName !== 'progress');
+        if (targetButton && els.mobileHeaderTitle) {
             const titleSpan = targetButton.querySelector('span');
             const titleKey = titleSpan?.dataset.langKey;
-            const titleText = (state.appData.ui?.[state.currentLang]?.[titleKey]) || titleSpan?.textContent || '';
-            if (els.mobileHeaderTitle) els.mobileHeaderTitle.textContent = titleText;
-            if (els.pinToggle) els.pinToggle.style.display = 'block';
-            updatePinButtonState(tabName);
-        } else if (els.pinToggle) {
-            els.pinToggle.style.display = 'none';
+            els.mobileHeaderTitle.textContent = titleKey ? getUIText(titleKey) : (titleSpan?.textContent || '');
         }
     }
+    
+    if (els.pinToggle) {
+        els.pinToggle.style.display = isMobileView ? 'block' : 'none';
+        updatePinButtonState(tabName);
+    }
 
-    updateSearchPlaceholders(tabName);
-
-    // Show/hide notes buttons
     const isNotesEligible = !['progress', 'external-search'].includes(tabName);
     const displayStyle = isNotesEligible ? 'flex' : 'none';
     if (els.desktopNotesBtn) els.desktopNotesBtn.style.display = displayStyle;
     if (els.mobileNotesBtn) els.mobileNotesBtn.style.display = displayStyle;
     
+    updateSearchPlaceholders(tabName);
+}
+
+export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false, forceRender = false) {
+    const activeTabEl = document.querySelector('.tab-content.active');
+    if (activeTabEl?.id === tabName && !forceRender) {
+        closeSidebar();
+        return;
+    }
+
+    state.activeTab = tabName;
+    if (!fromHistory) {
+        const url = `?level=${state.currentLevel}&tab=${tabName}`;
+        history.pushState({ type: 'tab', tabName, level: state.currentLevel }, '', url);
+    }
+
+    // Immediately update the main UI components for a responsive feel.
+    // This happens *before* any data is awaited.
+    updateTabUI(tabName);
+
+    if (activeTabEl) {
+        state.tabScrollPositions.set(activeTabEl.id, window.scrollY);
+        if (activeTabEl.id === 'external-search') {
+            state.lastDictionaryQuery = getActiveSearchInput().value.trim();
+        }
+    }
+
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    const activeTab = document.getElementById(tabName);
+    if (!activeTab) {
+        console.error(`Tab container not found for tab: ${tabName}`);
+        return;
+    }
+    activeTab.classList.add('active');
+
+    const isDataTab = !['external-search', 'progress'].includes(tabName);
+
+    // OPTIMIZED: Caching logic for data-heavy tabs
+    if (isDataTab) {
+        if (state.renderedTabs.has(tabName) && !forceRender) {
+            activeTab.innerHTML = state.renderedTabs.get(tabName);
+        } else {
+            const isDataMissing = !state.appData[tabName];
+            if (isDataMissing) {
+                const loaderTemplate = document.getElementById('content-loader-template');
+                activeTab.innerHTML = '';
+                if (loaderTemplate) activeTab.appendChild(loaderTemplate.content.cloneNode(true));
+
+                try {
+                    await loadTabData(state.currentLevel, tabName);
+                    renderContent(tabName);
+                    state.renderedTabs.set(tabName, activeTab.innerHTML); // Cache the result
+                } catch (error) {
+                    console.error(`Error loading data for tab ${tabName}:`, error);
+                    const title = getUIText('errorLoadContentTitle');
+                    const body = getUIText('errorLoadContentBody');
+                    activeTab.innerHTML = `<div class="p-6 text-center text-secondary"><h3 class="font-semibold text-lg text-primary mb-2">${title}</h3><p class="text-red-400">${error.message}</p><p class="mt-2">${body}</p></div>`;
+                }
+            } else {
+                renderContent(tabName);
+                state.renderedTabs.set(tabName, activeTab.innerHTML); // Cache the result
+            }
+        }
+    }
+
+    if (tabName === 'external-search') {
+        getActiveSearchInput().value = state.lastDictionaryQuery;
+        handleExternalSearch(state.lastDictionaryQuery);
+    } else if (tabName === 'progress') {
+        updateProgressDashboard(); // Always update progress dashboard on view
+    } else {
+        const searchInput = getActiveSearchInput();
+        if(searchInput.value) {
+            searchInput.value = '';
+            handleSearch();
+        }
+    }
+    
     closeSidebar();
 
     if (!suppressScroll) {
-        window.scrollTo({
-            top: state.tabScrollPositions.get(tabName) || 0,
-            behavior: 'instant'
-        });
+        window.scrollTo({ top: state.tabScrollPositions.get(tabName) || 0, behavior: 'instant' });
     }
 }
 
 export function jumpToSection(tabName, sectionTitleKey) {
     const activeTab = document.querySelector('.tab-content.active');
-    const isAlreadyOnTab = activeTab && activeTab.id === tabName;
+    const isAlreadyOnTab = activeTab?.id === tabName;
     
     const scrollToAction = () => {
-        const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
-        if (!sectionHeader) return;
+        // REFINED: Use requestAnimationFrame to ensure the element exists before we try to scroll.
+        requestAnimationFrame(() => {
+            const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
+            if (!sectionHeader) return;
 
-        const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
-        if (accordionWrapper && sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
-            sectionHeader.click();
-        }
-
-        setTimeout(() => {
-            const elementRect = sectionHeader.getBoundingClientRect();
-            const absoluteElementTop = elementRect.top + window.scrollY;
-            const mobileHeader = document.querySelector('.mobile-header.sticky');
-            const headerOffset = (mobileHeader && getComputedStyle(mobileHeader).position === 'sticky') ? mobileHeader.offsetHeight : 0;
-            const buffer = 20;
-
-            window.scrollTo({
-                top: absoluteElementTop - headerOffset - buffer,
-                behavior: 'smooth'
-            });
-
-            const itemToHighlight = sectionHeader.closest('.progress-item-wrapper, .search-wrapper, .accordion-wrapper');
-            if (itemToHighlight) {
-                itemToHighlight.classList.add('is-highlighted');
-                itemToHighlight.addEventListener('animationend', () => {
-                    itemToHighlight.classList.remove('is-highlighted');
-                }, { once: true });
+            const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
+            if (accordionWrapper && sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
+                sectionHeader.click();
             }
-        }, 100);
+
+            setTimeout(() => { // Timeout allows accordion to animate open.
+                const elementRect = sectionHeader.getBoundingClientRect();
+                const absoluteElementTop = elementRect.top + window.scrollY;
+                const mobileHeader = document.querySelector('.mobile-header.sticky');
+                const headerOffset = (mobileHeader?.isConnected && getComputedStyle(mobileHeader).position === 'sticky') ? mobileHeader.offsetHeight : 0;
+                
+                window.scrollTo({
+                    top: absoluteElementTop - headerOffset - 20, // 20px buffer
+                    behavior: 'smooth'
+                });
+
+                const itemToHighlight = sectionHeader.closest('.progress-item-wrapper, .search-wrapper, .accordion-wrapper');
+                if (itemToHighlight) {
+                    itemToHighlight.classList.add('is-highlighted');
+                    itemToHighlight.addEventListener('animationend', () => {
+                        itemToHighlight.classList.remove('is-highlighted');
+                    }, { once: true });
+                }
+            }, 100);
+        });
     };
 
     if (isAlreadyOnTab) {
@@ -503,16 +510,16 @@ export function jumpToSection(tabName, sectionTitleKey) {
 }
 
 export async function deleteLevel(level) {
+    // REFINED: Use getUIText for translatable user-facing messages.
     if (level === config.defaultLevel) {
-        alert("The default level cannot be deleted.");
+        alert(getUIText('errorDeleteDefaultLevel'));
         return;
     }
-    if (!confirm(`Are you sure you want to permanently delete the '${level.toUpperCase()}' level and all its progress? This action cannot be undone.`)) {
+    if (!confirm(getUIText('confirmDeleteLevel', { level: level.toUpperCase() }))) {
         return;
     }
     try {
         const db = await dbPromise;
-        // Delete notes along with level data
         await Promise.all([
             db.delete('levels', level),
             db.delete('progress', level),
@@ -529,9 +536,9 @@ export async function deleteLevel(level) {
             buildLevelSwitcher(remoteData.levels || [config.defaultLevel], customLevels);
             document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === state.currentLevel));
         }
-        alert(`Level '${level.toUpperCase()}' has been deleted.`);
+        alert(getUIText('successDeleteLevel', { level: level.toUpperCase() }));
     } catch (error) {
         console.error("Failed to delete level:", error);
-        alert("An error occurred while trying to delete the level.");
+        alert(getUIText('errorDeleteLevel'));
     }
 }

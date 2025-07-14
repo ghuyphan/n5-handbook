@@ -26,6 +26,7 @@ export const state = {
     currentQuery: '',
     lastDictionaryQuery: '',
     tabScrollPositions: new Map(),
+     renderedTabs: new Map(),
     externalDB: {
         vocab: [],
         kanji: [],
