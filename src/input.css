@@ -1707,6 +1707,25 @@ input:checked+.slider:before {
     box-shadow: none;
 }
 
+@media (max-width: 480px) {
+    .modal-footer {
+        /* flex-direction: column-reverse; */
+        gap: 0.75rem;
+    }
+
+    .modal-button {
+        padding: 0.875rem 1rem;
+    }
+    
+    .modal-body {
+        padding: 0 1rem 1rem;
+    }
+    
+    .modal-header, .modal-footer {
+        padding: 1rem;
+    }
+}
+
 .upload-icon {
     width: 2.5rem;
     height: 2.5rem;
