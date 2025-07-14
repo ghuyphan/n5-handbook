@@ -739,6 +739,10 @@ mark.search-highlight {
     gap: 0.5rem;
 }
 
+.kana-grid .cell-bg {
+    padding: 0.5rem; /* Or adjust to a value that looks good, e.g., 0.75rem */
+}
+
 .kana-grid>div>p {
     white-space: nowrap;
 }
