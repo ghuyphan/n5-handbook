@@ -5,10 +5,36 @@
 
 import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
-import { dbPromise, loadState, loadAllData, loadTabData } from './database.js';
+import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote } from './database.js';
 import { debounce } from './utils.js';
 import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView } from './ui.js';
-import { setLanguage, toggleTheme, handleSearch, changeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
+import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
+
+// --- ADDED: Wrapper function to handle notes logic on tab change ---
+async function changeTab(tabName, ...args) {
+    // Call the original function from handlers.js
+    await originalChangeTab(tabName, ...args);
+
+    // Now, handle the notes button visibility and state
+    const isNoteableTab = !['progress', 'external-search'].includes(tabName);
+    const notesButtons = document.querySelectorAll('.notes-header-btn');
+
+    notesButtons.forEach(btn => {
+        btn.style.display = isNoteableTab ? 'flex' : 'none';
+        btn.classList.remove('has-note'); // Reset state first
+    });
+
+    if (isNoteableTab) {
+        const note = await loadNote(state.currentLevel, tabName);
+        // Check for both old (string) and new (object) formats
+        const hasContent = (note && typeof note === 'object') ? !!note.content?.trim() : !!note?.trim();
+        
+        // Add 'has-note' class if a note with content exists
+        notesButtons.forEach(btn => {
+            btn.classList.toggle('has-note', hasContent);
+        });
+    }
+}
 
 function getThemeToggleHTML() {
     return `<label class="theme-switch"><input type="checkbox" aria-label="Theme toggle"><span class="slider"></span></label>`;
@@ -21,6 +47,7 @@ function handleStateChange(stateObj) {
     if (stateObj.level !== state.currentLevel) {
         setLevel(stateObj.level, true);
     } else {
+        // MODIFIED: Use our new wrapper function
         changeTab(stateObj.tabName, null, false, true);
     }
 }
@@ -128,6 +155,87 @@ function closeKanjiDetailModal() {
     document.body.classList.remove('body-no-scroll');
 }
 
+async function openNotesModal() {
+    const tabId = state.activeTab;
+    if (!tabId || ['progress', 'external-search'].includes(tabId)) return;
+
+    const getUIText = (key, replacements = {}) => {
+        let text = state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+        if (key === 'lastSavedOn' && !state.appData.ui?.[state.currentLang]?.[key]) {
+             text = `Last saved: {date}`;
+        }
+        for (const [placeholder, value] of Object.entries(replacements)) {
+            text = text.replace(`{${placeholder}}`, value);
+        }
+        return text;
+    };
+    
+    const navButton = document.querySelector(`.nav-item[data-tab-name="${tabId}"] span`);
+    const tabDisplayName = navButton ? navButton.textContent.trim() : tabId;
+    
+    els.notesModalTitle.textContent = getUIText('notesFor', { tabName: tabDisplayName });
+    els.notesSaveBtn.textContent = getUIText('saveNotes');
+    els.notesTextarea.placeholder = getUIText('notesPlaceholder');
+    
+    const note = await loadNote(state.currentLevel, tabId);
+    const noteInfoDisplay = document.getElementById('note-info-display');
+
+    // Handle both old (string) and new (object) note formats
+    if (note && typeof note === 'object' && note.lastModified) {
+        // New format: { content: "...", lastModified: "..." }
+        els.notesTextarea.value = note.content || '';
+        const d = new Date(note.lastModified);
+        // Check if the date is valid before trying to format it
+        if (!isNaN(d.getTime())) {
+            const formattedDate = d.toISOString().split('T')[0];
+            noteInfoDisplay.textContent = getUIText('lastSavedOn', { date: formattedDate });
+        } else {
+            noteInfoDisplay.textContent = ''; // Don't show anything for an invalid date
+        }
+    } else if (typeof note === 'string') {
+        // Old format: The note is just the content string
+        els.notesTextarea.value = note;
+        noteInfoDisplay.textContent = ''; // No date info is available
+    } else {
+        // No note exists or it's null/malformed
+        els.notesTextarea.value = '';
+        noteInfoDisplay.textContent = '';
+    }
+    
+    state.notes.set(tabId, els.notesTextarea.value);
+    
+    document.body.classList.add('body-no-scroll');
+    els.notesModal.classList.remove('modal-hidden');
+    els.notesModalBackdrop.classList.add('active');
+    els.notesModalWrapper.classList.add('active');
+    els.notesTextarea.focus();
+}
+
+function closeNotesModal() {
+    document.body.classList.remove('body-no-scroll');
+    els.notesModalBackdrop.classList.remove('active');
+    els.notesModalWrapper.classList.remove('active');
+    setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
+}
+
+async function saveAndCloseNotesModal() {
+    const content = els.notesTextarea.value;
+    await saveNote(state.currentLevel, state.activeTab, content);
+    state.notes.set(state.activeTab, content);
+
+    // Also update the header icon state after saving
+    const notesButtons = document.querySelectorAll('.notes-header-btn');
+    notesButtons.forEach(btn => {
+        btn.classList.toggle('has-note', !!content.trim());
+    });
+
+    els.notesStatus.style.opacity = '1';
+    setTimeout(() => {
+       closeNotesModal();
+       setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
+    }, 1000);
+}
+
 function setupEventListeners() {
     document.body.addEventListener('click', (e) => {
         const target = e.target;
@@ -146,6 +254,9 @@ function setupEventListeners() {
                 break;
             case 'toggle-pin':
                 togglePin();
+                break;
+            case 'open-notes':
+                openNotesModal();
                 break;
             case 'toggle-sidebar-pin':
                 toggleSidebarPin(e, actionTarget.dataset.tabName);
@@ -201,8 +312,30 @@ function setupEventListeners() {
     });
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && els.kanjiDetailModal.classList.contains('active')) {
-            closeKanjiDetailModal();
+        if (e.key === 'Escape') {
+            if (els.kanjiDetailModal.classList.contains('active')) {
+                closeKanjiDetailModal();
+            } else if (!els.notesModal.classList.contains('modal-hidden')) {
+                closeNotesModal();
+            }
+        }
+    });
+
+    els.closeNotesModalBtn?.addEventListener('click', closeNotesModal);
+    els.notesSaveBtn?.addEventListener('click', saveAndCloseNotesModal);
+
+    // --- FIX IS HERE: Replaced the incorrect listener with the correct one ---
+    els.notesModalWrapper?.addEventListener('click', (e) => {
+        // Only close the modal if the click is on the wrapper itself, not the content inside it.
+        if (e.target === els.notesModalWrapper) {
+            closeNotesModal();
+        }
+    });
+
+    els.notesTextarea?.addEventListener('keydown', e => {
+        if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            saveAndCloseNotesModal();
         }
     });
 

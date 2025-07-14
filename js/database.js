@@ -7,7 +7,8 @@ import { openDB } from 'https://cdn.jsdelivr.net/npm/idb@8/+esm';
 import { state, config } from './config.js';
 import { updateProgressDashboard } from './ui.js';
 
-export const dbPromise = openDB('HandbookDB', 2, {
+// MODIFIED: Bumped version to 3
+export const dbPromise = openDB('HandbookDB', 3, {
     upgrade(db, oldVersion) {
         if (oldVersion < 1) {
             db.createObjectStore('levels');
@@ -16,6 +17,10 @@ export const dbPromise = openDB('HandbookDB', 2, {
         }
         if (oldVersion < 2) {
             db.createObjectStore('dictionary_cache');
+        }
+        // ADDED: New object store for notes
+        if (oldVersion < 3) {
+            db.createObjectStore('notes');
         }
     },
 });
@@ -114,4 +119,64 @@ export async function loadAllData(level) {
     }
     
     state.appData.ui = await uiPromise;
+}
+
+// --- ADDED FUNCTIONS FOR NOTES ---
+
+/**
+ * Saves a note for a specific level and tab.
+ * @param {string} level The level identifier (e.g., 'n5').
+ * @param {string} tabId The tab identifier (e.g., 'grammar').
+ * @param {string} content The note content.
+ */
+export async function saveNote(level, tabId, content) {
+    try {
+        const db = await dbPromise;
+        const key = `${level}-${tabId}`;
+        const noteObject = {
+            content: content,
+            lastModified: new Date().toISOString()
+        };
+        await db.put('notes', noteObject, key);
+    } catch (error) {
+        console.error(`Error saving note for ${level}-${tabId}:`, error);
+    }
+}
+
+
+
+/**
+ * Loads a note for a specific level and tab.
+ * @param {string} level The level identifier.
+ * @param {string} tabId The tab identifier.
+ * @returns {Promise<object|null>} The note object { content, lastModified }, or null if not found.
+ */
+export async function loadNote(level, tabId) {
+    try {
+        const db = await dbPromise;
+        const key = `${level}-${tabId}`;
+        // MODIFIED: Return the full object, or null if it doesn't exist.
+        const note = await db.get('notes', key);
+        return note || null;
+    } catch (error) {
+        console.error(`Error loading note for ${level}-${tabId}:`, error);
+        return null; // Ensure null is returned on error
+    }
+}
+
+/**
+ * Deletes all notes associated with a given level.
+ * @param {string} level The level to delete notes for.
+ */
+export async function deleteNotesForLevel(level) {
+    try {
+        const db = await dbPromise;
+        const tx = db.transaction('notes', 'readwrite');
+        const keys = await tx.store.getAllKeys();
+        const levelKeys = keys.filter(key => key.startsWith(`${level}-`));
+        await Promise.all(levelKeys.map(key => tx.store.delete(key)));
+        await tx.done;
+    } catch (error) {
+        console.error(`Error deleting notes for level ${level}:`, error);
+    }
 }

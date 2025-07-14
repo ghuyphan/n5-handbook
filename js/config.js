@@ -17,8 +17,10 @@ export const state = {
     currentLevel: config.defaultLevel,
     allAvailableLevels: [config.defaultLevel],
     pinnedTab: null,
-    isSwitchingLevel: false, // This will still be used as the primary lock
-    loadingStatus: 'idle', // NEW: Add this line ('idle', 'loading', 'error')
+    isSwitchingLevel: false,
+    loadingStatus: 'idle',
+    activeTab: 'progress',
+    notes: new Map(),
     fuseInstances: {},
     universalFuse: null,
     currentQuery: '',

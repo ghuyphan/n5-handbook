@@ -35,8 +35,9 @@
 
     <link rel="stylesheet" href="styles.css">
 
+    <!-- MODIFIED: Added Klee One font for the note's handwritten style -->
     <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&family=Klee+One&display=swap"
         media="print" onload="this.media='all'">
 
     <style>
@@ -97,7 +98,10 @@
             </svg>
             <h1 id="mobile-header-title" class="text-lg font-bold text-header truncate"></h1>
         </a>
-        <button id="pin-toggle" data-action="toggle-pin" class="p-2 ml-auto" style="display: none;"
+        <button id="mobile-notes-btn" data-action="open-notes" class="p-2 ml-auto notes-header-btn" style="display: none;" aria-label="Open notes">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+        </button>
+        <button id="pin-toggle" data-action="toggle-pin" class="p-2" style="display: none;"
             aria-label="Pin current section"></button>
     </header>
 
@@ -130,7 +134,7 @@
                     <h1 class="text-2xl font-bold sidebar-title">Handbook</h1>
                 </a>
                 <nav id="tabs" class="space-y-2">
-
+                    <!-- ... existing nav items ... -->
                     <div class="nav-item-wrapper relative">
                         <button data-action="change-tab" data-tab-name="external-search"
                             class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600">
@@ -270,6 +274,9 @@
                             onclick="document.getElementById('search-input').value = ''; document.getElementById('search-input').dispatchEvent(new Event('input'));"
                             aria-label="Clear search"></button>
                     </div>
+                    <button id="desktop-notes-btn" data-action="open-notes" class="header-icon-btn notes-header-btn" style="display: none;" aria-label="Open Notes">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                    </button>
                     <div id="header-lang-switcher" class="lang-switch"></div>
                     <div id="header-theme-toggle" class="theme-switch-wrapper"></div>
                 </div>
@@ -369,6 +376,7 @@
         </div>
     </div>
 
+    <!-- ... Other templates like card-template ... -->
     <template id="card-template">
         <div class="relative h-32 sm:h-40" data-item-id="">
             <div class="learn-toggle" data-action="toggle-learned" data-category="" data-id="">
@@ -429,6 +437,34 @@
         <div id="modal-content-container" class="relative w-full max-w-md">
         </div>
     </div>
+    
+    <!-- MODIFIED: Modal body has padding to frame the textarea. -->
+    <div id="notes-modal" class="modal-hidden">
+        <div id="notes-modal-backdrop" class="modal-backdrop"></div>
+        <div class="modal-wrapper">
+            <div class="modal-content-container">
+                <div class="modal-content glass-effect">
+                    <div class="modal-header">
+                        <h2 id="notes-modal-title" class="modal-title"></h2>
+                        <button id="close-notes-modal-btn" class="modal-close-btn" aria-label="Close notes">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4 md:p-6">
+                        <textarea id="notes-textarea" class="w-full h-full" style="min-height: 40vh; resize: vertical;" data-lang-placeholder-key="notesPlaceholder"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                         <span id="note-info-display" class="mr-auto"></span>
+                         <span id="notes-status" class="notes-status text-sm opacity-0 transition-opacity duration-300">Saved!</span>
+                        <button id="notes-save-btn" class="modal-button modal-button-primary" data-lang-key="saveNotes"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
 
     <script type="module" src="./js/main.js"></script>
 </body>

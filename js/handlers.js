@@ -7,7 +7,7 @@ import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.mjs';
 import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
-import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData } from './database.js';
+import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel } from './database.js';
 import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
@@ -286,6 +286,9 @@ export async function setLevel(level, fromHistory = false) {
     const minimumDisplayTimePromise = new Promise(resolve => setTimeout(resolve, 500));
     showLoader();
 
+    // Clear notes cache on level switch
+    state.notes.clear();
+
     try {
         await Promise.all([
             loadLevelData(level),
@@ -356,6 +359,8 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         closeSidebar();
         return;
     }
+
+    state.activeTab = tabName;
 
     if (!fromHistory) {
         const url = `?level=${state.currentLevel}&tab=${tabName}`;
@@ -438,6 +443,13 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
     }
 
     updateSearchPlaceholders(tabName);
+
+    // Show/hide notes buttons
+    const isNotesEligible = !['progress', 'external-search'].includes(tabName);
+    const displayStyle = isNotesEligible ? 'flex' : 'none';
+    if (els.desktopNotesBtn) els.desktopNotesBtn.style.display = displayStyle;
+    if (els.mobileNotesBtn) els.mobileNotesBtn.style.display = displayStyle;
+    
     closeSidebar();
 
     if (!suppressScroll) {
@@ -491,8 +503,6 @@ export function jumpToSection(tabName, sectionTitleKey) {
 }
 
 export async function deleteLevel(level) {
-    // This uses native `alert` and `confirm` which are not localizable by default.
-    // For a fully localized app, these would need to be replaced with custom modal dialogs.
     if (level === config.defaultLevel) {
         alert("The default level cannot be deleted.");
         return;
@@ -502,8 +512,13 @@ export async function deleteLevel(level) {
     }
     try {
         const db = await dbPromise;
-        await db.delete('levels', level);
-        await db.delete('progress', level);
+        // Delete notes along with level data
+        await Promise.all([
+            db.delete('levels', level),
+            db.delete('progress', level),
+            deleteNotesForLevel(level)
+        ]);
+        
         state.allAvailableLevels = state.allAvailableLevels.filter(l => l !== level);
         if (state.currentLevel === level) {
             await setLevel(config.defaultLevel);

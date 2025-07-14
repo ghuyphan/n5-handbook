@@ -61,6 +61,18 @@ export function populateEls() {
     els.fileInput = document.getElementById('file-input');
     els.importBtn = document.getElementById('import-btn');
 
+    // Notes Modal
+    els.desktopNotesBtn = document.getElementById('desktop-notes-btn');
+    els.mobileNotesBtn = document.getElementById('mobile-notes-btn');
+    els.notesModal = document.getElementById('notes-modal');
+    els.notesModalBackdrop = document.getElementById('notes-modal-backdrop');
+    els.notesModalWrapper = document.querySelector('#notes-modal .modal-wrapper');
+    els.notesModalTitle = document.getElementById('notes-modal-title');
+    els.closeNotesModalBtn = document.getElementById('close-notes-modal-btn');
+    els.notesTextarea = document.getElementById('notes-textarea');
+    els.notesSaveBtn = document.getElementById('notes-save-btn');
+    els.notesStatus = document.getElementById('notes-status');
+
     // Kanji Modal
     els.kanjiDetailModal = document.getElementById('kanji-detail-modal');
     els.kanjiModalBackdrop = document.querySelector('#kanji-detail-modal #modal-backdrop');

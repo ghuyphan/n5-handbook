@@ -695,7 +695,6 @@ input:checked+.slider:before {
     gap: 0.5rem;
     background-color: transparent;
     padding-top: 5px;
-    /* Add this line */
     padding-bottom: 8px;
     overflow-x: auto;
     scroll-behavior: smooth;
@@ -705,7 +704,6 @@ input:checked+.slider:before {
 
 .level-switch::-webkit-scrollbar {
     display: none;
-    /* Hide for Chrome, Safari, and Opera */
 }
 
 .level-switch-item-wrapper {
@@ -1974,4 +1972,78 @@ External Search Results Styling
     font-size: 1rem;
     line-height: 1.6;
     color: var(--text-primary);
+}
+.notes-header-btn.has-note svg {
+    /* fill: var(--accent-orange-dim); */
+    stroke: var(--accent-orange);
+}
+
+/* 2. Style the notes modal to look like a sticky note */
+#notes-modal .modal-content {
+    /* Use a semi-transparent yellow for the glass effect */
+    background-color: rgba(254, 244, 167, 0.85); 
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #3d3d3d; /* Darker text for readability on yellow */
+    border-radius: 8px;
+    border: 1px solid #e7d18c;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.15);
+    transform: rotate(-1.5deg); 
+    transition: transform 0.3s ease-out;
+}
+
+/* Straighten the note when the modal becomes active */
+#notes-modal .modal-wrapper.active .modal-content {
+    transform: rotate(0deg);
+}
+
+#notes-modal .modal-header {
+    border-bottom: 2px dashed #d1c08a; /* Dashed line like on a notepad */
+    padding-bottom: 1rem;
+}
+
+#notes-modal .modal-title {
+    color: #594a25; /* A darker, brownish text color for the title */
+}
+
+#notes-modal .modal-close-btn {
+    color: #8c7a4b;
+}
+
+#notes-modal .modal-close-btn:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Use a more handwritten-style font for the textarea */
+#notes-modal #notes-textarea {
+    color: #3d3d3d;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    background-color: transparent;
+}
+
+#notes-modal #notes-textarea::placeholder {
+    color: #a0926d;
+}
+
+#notes-modal .modal-footer {
+    padding-top: 0.5rem;
+    border-top: none;
+    align-items: center;
+}
+
+#notes-modal #note-info-display {
+    font-family: monospace;
+    color: #8c7a4b;
+    font-size: 0.8rem;
+}
+
+#notes-modal #notes-save-btn {
+    background-color: #f9bf2d;
+    color: #594a25;
+    font-weight: 600;
+}
+#notes-modal #notes-save-btn:hover {
+    background-color: #ffca43;
 }
