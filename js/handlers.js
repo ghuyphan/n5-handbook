@@ -11,6 +11,14 @@ import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData } from '
 import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
+function getUIText(key, replacements = {}) {
+    let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
+    for (const [placeholder, value] of Object.entries(replacements)) {
+        text = text.replace(`{${placeholder}}`, value);
+    }
+    return text;
+}
+
 function removeHighlights(container) {
     const marks = Array.from(container.querySelectorAll('mark.search-highlight'));
     marks.forEach(mark => {
@@ -93,45 +101,50 @@ export const handleSearch = debounce(() => {
     if (!activeTab) return;
 
     const activeTabId = activeTab.id;
-
     if (activeTabId === 'external-search') {
         handleExternalSearch(query);
-    } else {
-        removeHighlights(activeTab);
-        const fuse = state.fuseInstances[activeTabId];
-        const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
-        if (!query) {
-            allItems.forEach(item => { item.style.display = ''; });
-            activeTab.querySelectorAll('.search-wrapper').forEach(wrapper => { wrapper.style.display = ''; });
-            return;
-        }
-        if (!fuse) return;
-        allItems.forEach(item => { item.style.display = 'none'; });
-        activeTab.querySelectorAll('.search-wrapper').forEach(wrapper => { wrapper.style.display = 'none'; });
-        const results = fuse.search(query);
-        results.forEach(result => {
-            const itemElement = result.item.element;
-            itemElement.style.display = '';
-            highlightMatches(itemElement, query);
-            let parent = itemElement.closest('.search-wrapper');
-            if (parent) parent.style.display = '';
-            let accordion = itemElement.closest('.accordion-wrapper');
-            if (accordion) {
-                const button = accordion.querySelector('.accordion-button');
-                if (button && !button.classList.contains('open')) button.classList.add('open');
-            }
-        });
+        return;
     }
+    
+    removeHighlights(activeTab);
+    const fuse = state.fuseInstances[activeTabId];
+    const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
+    
+    if (!query) {
+        allItems.forEach(item => { item.style.display = ''; });
+        activeTab.querySelectorAll('.search-wrapper').forEach(wrapper => { wrapper.style.display = ''; });
+        return;
+    }
+
+    if (!fuse) return;
+    allItems.forEach(item => { item.style.display = 'none'; });
+    activeTab.querySelectorAll('.search-wrapper').forEach(wrapper => { wrapper.style.display = 'none'; });
+    
+    const results = fuse.search(query);
+    results.forEach(result => {
+        const itemElement = result.item.element;
+        itemElement.style.display = '';
+        highlightMatches(itemElement, query);
+        let parent = itemElement.closest('.search-wrapper');
+        if (parent) parent.style.display = '';
+        let accordion = itemElement.closest('.accordion-wrapper');
+        if (accordion) {
+            const button = accordion.querySelector('.accordion-button');
+            if (button && !button.classList.contains('open')) button.classList.add('open');
+        }
+    });
 }, 300);
 
 export function setLanguage(lang, skipRender = false) {
     state.currentLang = lang;
     saveSetting('language', lang);
     const uiStrings = state.appData.ui;
+
     const processText = (textKey) => {
         let text = uiStrings?.[lang]?.[textKey] || uiStrings?.['en']?.[textKey] || `[${textKey}]`;
         return text.replace('{level}', state.currentLevel.toUpperCase());
     };
+
     document.querySelectorAll('[data-lang-key]').forEach(el => {
         el.textContent = processText(el.dataset.langKey);
     });
@@ -154,7 +167,6 @@ export function setLanguage(lang, skipRender = false) {
 
     if (!skipRender) {
         state.fuseInstances = {};
-        // Re-render all currently loaded tabs with the new language
         Object.keys(state.appData).forEach(tabId => {
             if (tabId !== 'ui' && document.getElementById(tabId)?.innerHTML) {
                 renderContent(tabId);
@@ -182,170 +194,123 @@ export function toggleTheme(event) {
     });
 }
 
-/**
- * Shows the loading overlay with a fade-in effect.
- * Clones the overlay element to clear any lingering event listeners from previous,
- * potentially interrupted, level switches. This is a key step to prevent race conditions.
- */
 function showLoader() {
     if (!els.loadingOverlay) return;
-
-    // Clone the node to remove all old event listeners.
     const newOverlay = els.loadingOverlay.cloneNode(true);
     els.loadingOverlay.parentNode.replaceChild(newOverlay, els.loadingOverlay);
-    els.loadingOverlay = newOverlay; // Update the reference in our DOM cache.
-    els.loadingOverlay.innerHTML = `<div class="loader"></div>`; // Ensure default content
-
+    els.loadingOverlay = newOverlay;
+    els.loadingOverlay.innerHTML = `<div class="loader"></div>`;
     els.loadingOverlay.classList.remove('hidden');
-    
-    // Using requestAnimationFrame ensures the browser has processed the class removal 
-    // before we trigger the opacity transition, guaranteeing a smooth animation.
     requestAnimationFrame(() => {
         els.loadingOverlay.style.opacity = '1';
     });
 }
 
-/**
- * Hides the loading overlay and returns a promise that resolves when the
- * fade-out transition is complete.
- * @returns {Promise<void>} A promise that resolves when the loader is fully hidden.
- */
 function hideLoader() {
     return new Promise(resolve => {
         if (!els.loadingOverlay || els.loadingOverlay.style.opacity === '0') {
             resolve();
             return;
         }
-
         const onTransitionEnd = () => {
             els.loadingOverlay.classList.add('hidden');
             els.loadingOverlay.removeEventListener('transitionend', onTransitionEnd);
             resolve();
         };
-
         els.loadingOverlay.addEventListener('transitionend', onTransitionEnd);
         els.loadingOverlay.style.opacity = '0';
-
-        // Safety fallback: If the transitionend event doesn't fire for any reason,
-        // resolve the promise after a timeout to prevent the app from getting stuck.
         setTimeout(() => {
-            // This will only run if onTransitionEnd hasn't already resolved the promise.
             console.warn("Loader transitionend fallback triggered.");
             onTransitionEnd();
-        }, 450); // Should be slightly longer than your CSS transition duration (400ms).
+        }, 500);
     });
 }
 
-/**
- * Fetches all necessary data for the given level and updates the application state.
- * This includes level-specific content, user progress, and settings.
- * @param {string} level - The level identifier to load data for.
- */
 async function loadLevelData(level) {
     state.currentLevel = level;
     await saveSetting('currentLevel', level);
 
-    // Fetch core data concurrently for performance.
     const dataPromises = [
-        loadAllData(level), // Loads UI and custom level data. Modifies state.appData directly.
+        loadAllData(level),
         dbPromise.then(db => db.get('progress', state.currentLevel)),
         dbPromise.then(db => db.get('settings', 'levelSettings'))
     ];
-
-    // The result of loadAllData is not used here because it operates via side effects on `state.appData`.
     const [_, progressData, levelSettings] = await Promise.all(dataPromises);
 
-    // Preload tabs for default levels (non-critical, can fail gracefully).
     const db = await dbPromise;
     const isCustomLevel = !!(await db.get('levels', level));
     if (!isCustomLevel) {
-        const tabsToPreload = ['kanji', 'vocab', 'hiragana', 'katakana', 'grammar', 'keyPoints'];
-        await Promise.all(
-            tabsToPreload.map(tabId => loadTabData(level, tabId).catch(err => {
-                console.warn(`Could not pre-load tab '${tabId}' for level '${level}'.`, err);
-            }))
-        );
+        await Promise.all([
+            loadTabData(level, 'kanji'),
+            loadTabData(level, 'vocab')
+        ]).catch(err => {
+            console.error("CRITICAL PRELOAD FAILED: Could not load kanji/vocab data.", err);
+        });
     }
     
-    // Update the rest of the state after all data is successfully fetched.
     state.progress = progressData || { kanji: [], vocab: [] };
     state.pinnedTab = levelSettings?.[state.currentLevel]?.pinnedTab || null;
     state.fuseInstances = {};
     state.lastDictionaryQuery = '';
+    
+    if (!isCustomLevel) {
+        const otherTabs = ['hiragana', 'katakana', 'grammar', 'keyPoints'];
+        Promise.all(
+            otherTabs.map(tabId => loadTabData(level, tabId).catch(err => {
+                console.warn(`Non-critical preload of tab '${tabId}' failed.`, err);
+            }))
+        );
+    }
 }
 
-/**
- * Renders the UI components after new level data has been loaded.
- * @param {string} level - The newly set level.
- * @param {boolean} fromHistory - If the change was triggered by a history (back/forward) event.
- */
 async function renderLevelUI(level, fromHistory) {
     document.querySelectorAll('.tab-content').forEach(c => { c.innerHTML = ''; });
     updateProgressDashboard();
-    setLanguage(state.currentLang, true); // Re-apply language without re-rendering content yet.
+    setLanguage(state.currentLang, true);
     document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
     updateSidebarPinIcons();
-
     const isMobileView = window.innerWidth <= 768;
-    const defaultTab = isMobileView ? 'progress' : 'hiragana';
+    const defaultTab = isMobileView ? 'external-search' : 'hiragana';
     const targetTab = state.pinnedTab || defaultTab;
-    
     await changeTab(targetTab, null, false, fromHistory, true);
 }
 
-
-/**
- * Orchestrates the entire process of switching to a new level.
- * Ensures a smooth user experience with a loading overlay and robust error handling.
- * @param {string} level The level to switch to.
- * @param {boolean} [fromHistory=false] - True if triggered by browser history navigation.
- */
 export async function setLevel(level, fromHistory = false) {
     if (state.isSwitchingLevel || level === state.currentLevel) {
         if (level === state.currentLevel) closeSidebar();
         return;
     }
 
-    state.isSwitchingLevel = true; // Engage the master lock.
+    state.isSwitchingLevel = true;
     state.loadingStatus = 'loading';
-    
-    // Create a promise that enforces a minimum display time for the loader.
-    // This prevents a jarring "flash" if the data loads very quickly.
     const minimumDisplayTimePromise = new Promise(resolve => setTimeout(resolve, 500));
-
     showLoader();
 
     try {
-        // Run data loading and the minimum display timer concurrently.
-        // The code will only proceed once BOTH are complete.
         await Promise.all([
             loadLevelData(level),
             minimumDisplayTimePromise
         ]);
-
-        // Once data is ready, render the UI.
         await renderLevelUI(level, fromHistory);
         state.loadingStatus = 'idle';
-
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
         state.loadingStatus = 'error';
         if (els.loadingOverlay) {
+            const title = getUIText('errorLoadLevelTitle');
+            const body = getUIText('errorLoadLevelBody');
             els.loadingOverlay.innerHTML = `
                 <div class="text-center p-4">
-                    <h3 class="text-xl font-semibold text-white mb-2">Failed to Load Level</h3>
+                    <h3 class="text-xl font-semibold text-white mb-2">${title}</h3>
                     <p class="text-red-300">${error.message}</p>
-                    <p class="text-gray-300 mt-4">Please try refreshing or select another level.</p>
+                    <p class="text-gray-300 mt-4">${body}</p>
                 </div>`;
         }
-        // IMPORTANT: We do not proceed to the 'finally' block's hiding logic on error.
-        // The lock remains engaged to prevent interaction with a broken app state.
         return; 
     } finally {
-        // This block runs only if the `try` block completed without a critical, unhandled error.
         if (state.loadingStatus !== 'error') {
-            await hideLoader(); // Wait for the fade-out to complete.
-            state.isSwitchingLevel = false; // NOW it's safe to release the lock.
+            await hideLoader();
+            state.isSwitchingLevel = false;
         }
         closeSidebar();
     }
@@ -387,7 +352,6 @@ export function toggleSidebarPin(event, tabId) {
 
 export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false, forceRender = false) {
     const activeTabEl = document.querySelector('.tab-content.active');
-
     if (activeTabEl && activeTabEl.id === tabName && !fromHistory && !forceRender) {
         closeSidebar();
         return;
@@ -409,23 +373,36 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const activeTab = document.getElementById(tabName);
+    
     if (activeTab) {
         const isDataTab = !['external-search', 'progress'].includes(tabName);
-        let isDataMissing = isDataTab && !state.appData[tabName];
-
+        const isDataMissing = isDataTab && !state.appData[tabName];
         activeTab.classList.add('active');
 
         if (isDataMissing) {
-            try {
-                await loadTabData(state.currentLevel, tabName);
-                isDataMissing = false;
-            } catch (error) {
-                closeSidebar();
-                return;
-            }
-        }
+            const db = await dbPromise;
+            const isCustomLevel = !!(await db.get('levels', state.currentLevel));
 
-        if (isDataTab && !isDataMissing) {
+            if (isCustomLevel) {
+                const title = getUIText('errorContentNotAvailableTitle');
+                const body = getUIText('errorContentNotAvailableBody', { 
+                    tabName: tabName, 
+                    levelName: state.currentLevel.toUpperCase() 
+                });
+                activeTab.innerHTML = `<div class="p-6 text-center text-secondary">
+                    <h3 class="font-semibold text-lg text-primary mb-2">${title}</h3>
+                    <p>${body}</p>
+                </div>`;
+            } else {
+                try {
+                    await loadTabData(state.currentLevel, tabName);
+                    renderContent(tabName);
+                } catch (error) {
+                    closeSidebar();
+                    return;
+                }
+            }
+        } else if (isDataTab) {
             renderContent(tabName);
         }
 
@@ -447,20 +424,16 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         const isMobileView = window.innerWidth <= 768;
         if (isMobileView) {
             if (els.mobileSearchBar) {
-                const isSearchableTab = tabName !== 'progress';
-                els.mobileSearchBar.classList.toggle('visible', isSearchableTab);
+                els.mobileSearchBar.classList.toggle('visible', tabName !== 'progress');
             }
-
             const titleSpan = targetButton.querySelector('span');
             const titleKey = titleSpan?.dataset.langKey;
             const titleText = (state.appData.ui?.[state.currentLang]?.[titleKey]) || titleSpan?.textContent || '';
             if (els.mobileHeaderTitle) els.mobileHeaderTitle.textContent = titleText;
             if (els.pinToggle) els.pinToggle.style.display = 'block';
             updatePinButtonState(tabName);
-        } else {
-            if (els.pinToggle) {
-                els.pinToggle.style.display = 'none';
-            }
+        } else if (els.pinToggle) {
+            els.pinToggle.style.display = 'none';
         }
     }
 
@@ -468,9 +441,8 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
     closeSidebar();
 
     if (!suppressScroll) {
-        const newScrollY = state.tabScrollPositions.get(tabName) || 0;
         window.scrollTo({
-            top: newScrollY,
+            top: state.tabScrollPositions.get(tabName) || 0,
             behavior: 'instant'
         });
     }
@@ -479,6 +451,7 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 export function jumpToSection(tabName, sectionTitleKey) {
     const activeTab = document.querySelector('.tab-content.active');
     const isAlreadyOnTab = activeTab && activeTab.id === tabName;
+    
     const scrollToAction = () => {
         const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
         if (!sectionHeader) return;
@@ -518,6 +491,8 @@ export function jumpToSection(tabName, sectionTitleKey) {
 }
 
 export async function deleteLevel(level) {
+    // This uses native `alert` and `confirm` which are not localizable by default.
+    // For a fully localized app, these would need to be replaced with custom modal dialogs.
     if (level === config.defaultLevel) {
         alert("The default level cannot be deleted.");
         return;

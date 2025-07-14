@@ -53,7 +53,12 @@
     "searchRateLimitError": "Too many requests. Please wait a moment.",
     "searchServerError": "Server is temporarily unavailable. Please try again later.",
     "searchNetworkError": "Network connection failed. Please check your internet connection.",
-    "retryButton": "Retry"
+    "retryButton": "Retry",
+    "errorLoadLevelTitle": "Failed to Load Level",
+    "errorLoadLevelBody": "Please try refreshing or select another level.",
+    "errorContentNotAvailableTitle": "Content Not Available",
+    "errorContentNotAvailableBody": "This content ('{tabName}') was not included in the import for the custom level '{levelName}'.",
+    "errorFailedToLoadContent": "Failed to load content for {tabId}."
   },
   "vi": {
     "dashboard": "Bảng điều khiển",
@@ -109,6 +114,11 @@
     "searchRateLimitError": "Quá nhiều yêu cầu. Vui lòng chờ một lát.",
     "searchServerError": "Máy chủ tạm thời không khả dụng. Vui lòng thử lại sau.",
     "searchNetworkError": "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.",
-    "retryButton": "Thử lại"
+    "retryButton": "Thử lại",
+    "errorLoadLevelTitle": "Không thể tải cấp độ",
+    "errorLoadLevelBody": "Vui lòng thử làm mới trang hoặc chọn một cấp độ khác.",
+    "errorContentNotAvailableTitle": "Nội dung không có sẵn",
+    "errorContentNotAvailableBody": "Nội dung này ('{tabName}') không có trong tệp nhập cho cấp độ tuỳ chỉnh '{levelName}'.",
+    "errorFailedToLoadContent": "Không thể tải nội dung cho {tabId}."
   }
 }

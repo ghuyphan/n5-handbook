@@ -490,74 +490,93 @@ function populateAndBindControls() {
 }
 
 async function init() {
+    // 1. Prepare the DOM and load initial state from the database
     populateEls();
-    
+    await loadState(); // This loads language, last level, etc.
+
+    // 2. Initial UI setup that can happen before data is loaded
+    populateAndBindControls();
+    setupEventListeners();
+    setupTheme();
+
     try {
-        populateAndBindControls();
-        let remoteLevels = [];
+        // 3. Fetch remote level list and get custom levels from DB to build the switcher UI
+        let remoteLevels = [config.defaultLevel];
         try {
             const response = await fetch(`${config.dataPath}/levels.json`);
-            remoteLevels = response.ok ? (await response.json()).levels : [config.defaultLevel];
+            if (response.ok) {
+                remoteLevels = (await response.json()).levels;
+            }
         } catch (error) {
             console.warn("Could not fetch remote levels list. Falling back to default.", error);
-            remoteLevels = [config.defaultLevel];
         }
-
+        
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
-        await loadState();
+        state.allAvailableLevels = [...new Set([...remoteLevels, ...customLevels])]; // Keep a complete list of levels
+        buildLevelSwitcher(remoteLevels, customLevels);
 
         const params = new URLSearchParams(window.location.search);
         const urlLevel = params.get('level');
-        const urlTab = params.get('tab');
-        if (urlLevel) {
+        if (urlLevel && state.allAvailableLevels.includes(urlLevel)) {
             state.currentLevel = urlLevel;
         }
 
-        setupEventListeners();
-        buildLevelSwitcher(remoteLevels, customLevels);
-        setupImportModal();
-
-        // **MODIFIED**: Load base UI data, then pre-load Kanij/Vocab for progress bar
+        // Load the base UI text and any data for custom levels.
         await loadAllData(state.currentLevel);
-        if (state.currentLevel === config.defaultLevel) {
+
+        // Check if the current level is a default/remote level (not user-imported).
+        const isCustomLevel = customLevels.includes(state.currentLevel);
+
+        // If it's NOT a custom level, we MUST load the kanji and vocab data.
+        // The progress dashboard cannot be calculated without this data.
+        if (!isCustomLevel) {
             await Promise.all([
                 loadTabData(state.currentLevel, 'kanji'),
                 loadTabData(state.currentLevel, 'vocab')
-            ]);
+            ]).catch(error => {
+                console.error("Critical data (kanji/vocab) failed to load on init:", error);
+                // The app will continue, but the progress UI will be broken.
+            });
         }
-
-        setupTheme();
+        // 6. Now that critical data is loaded, render the main UI components
         updateProgressDashboard();
-        setLanguage(state.currentLang, true);
+        setLanguage(state.currentLang, true); // Apply language without full re-render
+        setupImportModal(); // Setup modal logic now that UI text is available
 
+        // 7. Finalize the UI state and hide the initial loader
         if (els.loadingOverlay) {
             els.loadingOverlay.style.opacity = '0';
             els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
         }
 
+        // Set the active level in the switcher and scroll it into view
         document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
         scrollActiveLevelIntoView();
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
-
+        
+        // 8. Determine the initial tab and set up the browser history
+        const urlTab = params.get('tab');
         const isMobileView = window.innerWidth <= 768;
-        const defaultTab = isMobileView ? 'external-search' : 'external-search';
+        const defaultTab = isMobileView ? 'external-search' : 'external-search'; // Or 'progress' if you prefer
         const initialTab = urlTab || state.pinnedTab || defaultTab;
         
-        changeTab(initialTab, null, false, true);
+        await changeTab(initialTab, null, false, true); // Change tab, marking it as part of initial history
         
         updateSidebarPinIcons();
 
+        // Replace the initial history state so the back button works correctly from the start.
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;
         history.replaceState(initialState, '', initialUrl);
 
     } catch (error) {
+        // This is a catastrophic failure during initialization.
         console.error('Initialization failed.', error);
         if (els.loadingOverlay) {
-            els.loadingOverlay.classList.add('hidden');
+            els.loadingOverlay.innerHTML = `<div style="text-align: center; padding: 40px; font-family: sans-serif; color: white;"><h2>Application Error</h2><p>Something went wrong during startup. Please try refreshing the page.</p><p style="color: #ff8a8a;">${error.message}</p></div>`;
         }
-        document.body.innerHTML = `<div style="text-align: center; padding: 40px; font-family: sans-serif;"><h2>Application Error</h2><p>Something went wrong during startup. Please try refreshing the page.</p></div>`;
+        // Don't hide the loader, show the error on it.
     }
 }
 
