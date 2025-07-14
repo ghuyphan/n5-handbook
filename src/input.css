@@ -295,8 +295,24 @@ mark.search-highlight {
 
     .responsive-grid,
     .kana-grid {
-        gap: 1rem;
+        gap: 0.5rem;
     }
+}
+
+.kana-grid .cell-bg {
+    border-radius: var(--radius-md);
+}
+
+.kana-grid>div:empty {
+    pointer-events: none;
+}
+
+.kana-font {
+    font-size: clamp(1.1rem, 5vw, 2.25rem);
+}
+
+.kana-font-digraph {
+    font-size: clamp(0.9rem, 4vw, 1.875rem);
 }
 
 @media (max-width: 480px) {
@@ -718,7 +734,7 @@ mark.search-highlight {
     display: grid;
     /* IMPROVEMENT: Changed to be responsive */
     grid-template-columns: repeat(5, 1fr);
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .kana-grid>div>p {
