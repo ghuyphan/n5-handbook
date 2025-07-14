@@ -492,7 +492,7 @@ function populateAndBindControls() {
 
 async function init() {
     populateEls();
-
+    
     try {
         populateAndBindControls();
         let remoteLevels = [];
@@ -517,7 +517,7 @@ async function init() {
 
         // We are no longer using the old externalSearch.js
         // The new logic is self-contained in jotoba.js and triggered by handleSearch
-
+        
         setupEventListeners();
         buildLevelSwitcher(remoteLevels, customLevels);
         setupImportModal();
