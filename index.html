@@ -35,7 +35,6 @@
 
     <link rel="stylesheet" href="styles.css">
 
-    <!-- MODIFIED: Added Klee One font for the note's handwritten style -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&family=Klee+One&display=swap"
         media="print" onload="this.media='all'">
@@ -98,11 +97,25 @@
             </svg>
             <h1 id="mobile-header-title" class="text-lg font-bold text-header truncate"></h1>
         </a>
-        <button id="mobile-notes-btn" data-action="open-notes" class="p-2 ml-auto notes-header-btn" style="display: none;" aria-label="Open notes">
-            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-        </button>
-        <button id="pin-toggle" data-action="toggle-pin" class="p-2" style="display: none;"
-            aria-label="Pin current section"></button>
+        <div class="ml-auto flex items-center gap-2">
+            <!-- MODIFIED: SVG icon replaced with the one you provided -->
+            <button id="mobile-notes-btn" data-action="open-notes" class="notes-header-btn" style="display: none;"
+                aria-label="Open notes">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 448 512">
+                    <path
+                        d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l224 0 0-112c0-26.5 21.5-48 48-48l112 0 0-224c0-35.3-28.7-64-64-64L64 32zM448 352l-45.3 0L336 352c-8.8 0-16 7.2-16 16l0 66.7 0 45.3 32-32 64-64 32-32z" />
+                </svg>
+            </button>
+            <button id="pin-toggle" data-action="toggle-pin" class="" style="display: none;"
+                aria-label="Pin current section">
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M16 3.02327C16 4.11438 15.1144 5 14.0233 5H9.97673C8.88562 5 8 4.11438 8 3.02327C8 1.93216 8.88562 1.04654 9.97673 1.04654H14.0233C15.1144 1.04654 16 1.93216 16 3.02327Z" />
+                    <path d="M12 22L15 15.5H9L12 22Z" />
+                    <path d="M13 15V5H11V15H13Z" />
+                </svg>
+            </button>
+        </div>
     </header>
 
     <div class="main-grid p-0 md:p-6 lg:p-8">
@@ -257,28 +270,36 @@
                     <h1 class="text-3xl font-bold text-header" data-lang-key="dashboard"></h1>
                     <p class="text-secondary truncate" data-lang-key="dashboardSubtitle"></p>
                 </div>
-                <div class="header-controls-wrapper glass-effect flex items-center gap-2 p-1.5 rounded-full">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+                <div class="flex items-center gap-2">
+                    <div class="header-controls-wrapper glass-effect flex items-center gap-2 p-1.5 rounded-full">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <label for="search-input" class="hidden-label">Search Handbook</label>
+                            <input type="search" id="search-input"
+                                class="w-full pl-11 pr-4 py-2.5 rounded-full border-none transition focus:ring-2 text-primary bg-transparent focus:ring-offset-0"
+                                style="--tw-ring-color: var(--search-focus-ring);"
+                                data-lang-placeholder-key="searchPlaceholder">
+                            <button class="clear-btn"
+                                onclick="document.getElementById('search-input').value = ''; document.getElementById('search-input').dispatchEvent(new Event('input'));"
+                                aria-label="Clear search"></button>
                         </div>
-                        <label for="search-input" class="hidden-label">Search Handbook</label>
-                        <input type="search" id="search-input"
-                            class="w-full pl-11 pr-4 py-2.5 rounded-full border-none transition focus:ring-2 text-primary bg-transparent focus:ring-offset-0"
-                            style="--tw-ring-color: var(--search-focus-ring);"
-                            data-lang-placeholder-key="searchPlaceholder">
-                        <button class="clear-btn"
-                            onclick="document.getElementById('search-input').value = ''; document.getElementById('search-input').dispatchEvent(new Event('input'));"
-                            aria-label="Clear search"></button>
+                        <div id="header-lang-switcher" class="lang-switch"></div>
+                        <div id="header-theme-toggle" class="theme-switch-wrapper"></div>
                     </div>
-                    <button id="desktop-notes-btn" data-action="open-notes" class="header-icon-btn notes-header-btn" style="display: none;" aria-label="Open Notes">
-                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                    <!-- MODIFIED: SVG icon replaced with the one you provided -->
+                    <button id="desktop-notes-btn" data-action="open-notes" class="notes-header-btn"
+                        style="display: none;" aria-label="Open Notes">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 448 512">
+                            <path
+                                d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l224 0 0-112c0-26.5 21.5-48 48-48l112 0 0-224c0-35.3-28.7-64-64-64L64 32zM448 352l-45.3 0L336 352c-8.8 0-16 7.2-16 16l0 66.7 0 45.3 32-32 64-64 32-32z" />
+                        </svg>
                     </button>
-                    <div id="header-lang-switcher" class="lang-switch"></div>
-                    <div id="header-theme-toggle" class="theme-switch-wrapper"></div>
                 </div>
             </header>
 
@@ -437,8 +458,7 @@
         <div id="modal-content-container" class="relative w-full max-w-md">
         </div>
     </div>
-    
-    <!-- MODIFIED: Modal body has padding to frame the textarea. -->
+
     <div id="notes-modal" class="modal-hidden">
         <div id="notes-modal-backdrop" class="modal-backdrop"></div>
         <div class="modal-wrapper">
@@ -448,23 +468,27 @@
                         <h2 id="notes-modal-title" class="modal-title"></h2>
                         <button id="close-notes-modal-btn" class="modal-close-btn" aria-label="Close notes">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
                     </div>
                     <div class="modal-body p-4 md:p-6">
-                        <textarea id="notes-textarea" class="w-full h-full" style="min-height: 40vh; resize: vertical;" data-lang-placeholder-key="notesPlaceholder"></textarea>
+                        <textarea id="notes-textarea" class="w-full h-full" style="min-height: 40vh; resize: vertical;"
+                            data-lang-placeholder-key="notesPlaceholder"></textarea>
                     </div>
                     <div class="modal-footer">
-                         <span id="note-info-display" class="mr-auto"></span>
-                         <span id="notes-status" class="notes-status text-sm opacity-0 transition-opacity duration-300">Saved!</span>
-                        <button id="notes-save-btn" class="modal-button modal-button-primary" data-lang-key="saveNotes"></button>
+                        <span id="note-info-display" class="mr-auto"></span>
+                        <span id="notes-status"
+                            class="notes-status text-sm opacity-0 transition-opacity duration-300">Saved!</span>
+                        <button id="notes-save-btn" class="modal-button modal-button-primary"
+                            data-lang-key="saveNotes"></button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
 
     <script type="module" src="./js/main.js"></script>
 </body>

@@ -62,8 +62,6 @@ mark.search-highlight {
     --pin-unpinned: #6B7280;
     --pin-background: var(--glass-bg);
     --pin-hover-bg: var(--nav-hover-bg);
-    --pin-pinned-bg: var(--accent-blue);
-    --pin-pinned-icon: #FFFFFF;
     --color-danger: #ef4444;
     --color-danger-bg: rgba(239, 68, 68, 0.15);
     --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
@@ -93,8 +91,6 @@ mark.search-highlight {
     --pin-unpinned: #9CA3AF;
     --pin-background: var(--glass-bg);
     --pin-hover-bg: var(--nav-hover-bg);
-    --pin-pinned-bg: var(--pin-color);
-    --pin-pinned-icon: #111827;
     --color-danger: #f87171;
     --color-danger-bg: rgba(248, 113, 113, 0.15);
 }
@@ -832,19 +828,15 @@ input:checked+.slider:before {
 }
 
 .sidebar-pin-btn.is-pinned svg {
-    fill: var(--pin-pinned-bg) !important;
+    fill: var(--accent-blue) !important;
     transform: scale(1.1);
 }
 
 .dark-mode .sidebar-pin-btn.is-pinned svg {
-    fill: var(--pin-pinned-bg) !important;
+    fill: var(--pin-color) !important;
 }
 
 .nav-item.active+.sidebar-pin-btn.is-pinned svg {
-    fill: var(--pin-pinned-icon) !important;
-}
-
-.dark-mode .nav-item.active+.sidebar-pin-btn.is-pinned svg {
     fill: #FFFFFF !important;
 }
 
@@ -1001,15 +993,14 @@ input:checked+.slider:before {
     word-break: break-word;
 }
 
+/* MODIFIED: Base style for the new solid pin icon */
 #pin-toggle {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    font-size: 1rem;
+    justify-content: center;
+    padding: 0.625rem;
     min-height: 2rem;
     min-width: 2rem;
-    font-weight: 600;
     background: var(--pin-background);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
@@ -1017,18 +1008,14 @@ input:checked+.slider:before {
     cursor: pointer;
     transition: background 0.4s var(--ease-out-quint), color 0.4s var(--ease-out-quint), box-shadow 0.4s var(--ease-out-quint), border-color 0.4s var(--ease-out-quint), transform 0.2s var(--ease-out-quint);
     outline: none;
-    position: relative;
-    overflow: hidden;
     will-change: background, color, box-shadow, transform;
 }
 
 #pin-toggle svg {
     transition: fill 0.4s var(--ease-out-quint), transform 0.4s var(--ease-out-quint);
-    width: 1.25em;
-    height: 1.25em;
-    display: inline-block;
-    vertical-align: middle;
-    fill: var(--pin-unpinned);
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: var(--pin-unpinned); /* Style with fill, not stroke */
 }
 
 #pin-toggle:hover,
@@ -1048,37 +1035,16 @@ input:checked+.slider:before {
     transform: scale(0.98);
 }
 
+/* FINAL FIX: Unified active state styling for the pin button */
 #pin-toggle.pinned {
-    background: var(--pin-pinned-bg);
-    border-color: var(--pin-pinned-bg);
-    animation: pin-pop 0.4s var(--ease-out-quint) forwards;
+    background: var(--pin-background); /* Keep the default glass background */
+    border-color: var(--pin-color);   /* Use the blue accent color for the border */
+    animation: none;
 }
 
 #pin-toggle.pinned svg {
-    fill: var(--pin-pinned-icon);
+    fill: var(--pin-color); /* Use the blue accent color for the icon fill */
     animation: pin-icon-rotate 0.5s var(--ease-out-quint) 0.1s forwards;
-}
-
-#pin-toggle.unpinning svg {
-    animation: unpin-icon-rotate 0.4s var(--ease-in-out-quad) forwards;
-}
-
-
-@keyframes pin-pop {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 2px 8px var(--shadow-color);
-    }
-
-    60% {
-        transform: scale(1.15);
-        box-shadow: 0 12px 32px var(--shadow-color);
-    }
-
-    100% {
-        transform: scale(1.05);
-        box-shadow: 0 8px 24px var(--shadow-color);
-    }
 }
 
 @keyframes pin-icon-rotate {
@@ -1095,26 +1061,14 @@ input:checked+.slider:before {
     }
 }
 
-@keyframes unpin-icon-rotate {
-    0% {
-        transform: rotate(0deg) scale(1.2);
-    }
-
-    100% {
-        transform: rotate(0deg) scale(1);
-    }
-}
-
-
 @media (max-width: 480px) {
     #pin-toggle {
-        font-size: 0.9rem;
-        padding: 0.5rem 0.75rem;
+        padding: 0.5rem;
     }
 
     #pin-toggle svg {
-        width: 1.1em;
-        height: 1.1em;
+        width: 1.1rem;
+        height: 1.1rem;
     }
 }
 
@@ -1581,21 +1535,15 @@ input:checked+.slider:before {
 }
 
 #kanji-detail-modal .text-xl {
-    /* The meaning */
     font-size: clamp(1.25rem, 5vw, 1.5rem);
-    /* Min size ~17px, very readable */
 }
 
 #kanji-detail-modal .text-sm {
-    /* Examples, sentence translations */
     font-size: clamp(1rem, 3.5vw, 1.1rem);
-    /* Min size ~13.5px, a huge improvement */
 }
 
 #kanji-detail-modal .text-xs {
-    /* Mnemonic and Radical info */
     font-size: clamp(0.9rem, 3vw, 1rem);
-    /* Min size ~12px, now legible */
 }
 
 @media (max-width: 480px) {
@@ -1689,32 +1637,22 @@ input:checked+.slider:before {
     border-bottom-right-radius: var(--radius-xl);
 }
 
-/*
-==============================================
-External Search Results Styling
-==============================================
-*/
-
 #search-input::-webkit-search-cancel-button,
 #mobile-search-input::-webkit-search-cancel-button {
   -webkit-appearance: none;
   appearance: none;
 }
 
-/* Style the container of the search input */
 .header-controls-wrapper .relative,
 .mobile-search-bar .relative {
   position: relative;
 }
 
-/* Style the new custom clear button for both desktop and mobile */
 #search-input,
 #mobile-search-input {
-  /* Add some padding on the right to make space for the button */
   padding-right: 2.5rem; 
 }
 
-/* Show the button only when the input is not empty */
 #search-input:not(:placeholder-shown) + .clear-btn,
 #mobile-search-input:not(:placeholder-shown) + .clear-btn {
   opacity: 1;
@@ -1722,7 +1660,6 @@ External Search Results Styling
   transform: translateY(-50%) scale(1);
 }
 
-/* The actual button styling */
 .clear-btn {
   position: absolute;
   right: 0.75rem;
@@ -1770,101 +1707,6 @@ External Search Results Styling
     width: 100%;
     min-height: 200px;
     min-height: clamp(200px, 35vh, 300px);
-}
-
-@keyframes anim-fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(10px) scale(0.98);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-@keyframes anim-fade-out {
-    from {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateY(10px) scale(0.98);
-    }
-}
-
-.anim-fade-in {
-    animation: anim-fade-in 0.5s var(--ease-out-quint) forwards;
-}
-
-.anim-fade-out {
-    animation: anim-fade-out 0.4s var(--ease-out-quint) forwards;
-}
-
-.content-anim-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-/* Your existing animation class for the main wrapper */
-.anim-fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
-.search-placeholder-notice {
-    margin-top: 1rem;
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-md);
-    background-color: var(--bg-teal);
-    border-left: 4px solid var(--accent-teal);
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    text-align: left;
-    max-width: 420px;
-    width: 100%;
-    line-height: 1.6;
-}
-
-.search-placeholder-box button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.875rem 1.5rem;
-    font-weight: 600;
-    border-radius: var(--radius-md);
-    border: none;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    background-color: var(--accent-blue);
-    color: white;
-    box-shadow: 0 4px 14px -3px rgba(59, 130, 246, 0.4);
-    margin-top: 1.5rem;
-}
-
-.search-placeholder-box button:hover {
-    background-color: #2563eb;
-    /* Darker blue for hover, from modal button style */
-    box-shadow: 0 6px 16px -3px rgba(59, 130, 246, 0.5);
-    transform: translateY(-2px);
-}
-
-.search-placeholder-box button:active {
-    transform: translateY(0);
 }
 
 .dict-section-header {
@@ -1973,18 +1815,68 @@ External Search Results Styling
     line-height: 1.6;
     color: var(--text-primary);
 }
-.notes-header-btn.has-note svg {
-    /* fill: var(--accent-orange-dim); */
-    stroke: var(--accent-orange);
+/* Notes Button Styling */
+.notes-header-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    min-height: 2rem;
+    min-width: 2rem;
+    background: var(--pin-background);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 14px var(--shadow-color);
+    cursor: pointer;
+    transition: background 0.4s var(--ease-out-quint), color 0.4s var(--ease-out-quint), box-shadow 0.4s var(--ease-out-quint), border-color 0.4s var(--ease-out-quint), transform 0.2s var(--ease-out-quint);
+    outline: none;
+    will-change: background, color, box-shadow, transform;
 }
 
-/* 2. Style the notes modal to look like a sticky note */
+.notes-header-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: var(--pin-unpinned);
+    transition: fill 0.4s var(--ease-out-quint), transform 0.4s var(--ease-out-quint);
+}
+
+.notes-header-btn:hover,
+.notes-header-btn:focus-visible {
+    background: var(--pin-hover-bg);
+    border-color: var(--pin-color);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    transform: scale(1.05);
+}
+
+.notes-header-btn:hover svg,
+.notes-header-btn:focus-visible svg {
+    fill: var(--pin-color);
+}
+
+.notes-header-btn:active {
+    transform: scale(0.98);
+}
+
+.notes-header-btn.has-note {
+    background-color: var(--pin-background); 
+    border-color: var(--accent-orange); 
+}
+
+.notes-header-btn.has-note svg {
+    fill: var(--accent-orange); 
+}
+
+.notes-header-btn.has-note:hover,
+.notes-header-btn.has-note:focus-visible {
+    background-color: var(--pin-hover-bg); 
+}
+
+/* Notes Modal Styling */
 #notes-modal .modal-content {
-    /* Use a semi-transparent yellow for the glass effect */
     background-color: rgba(254, 244, 167, 0.85); 
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    color: #3d3d3d; /* Darker text for readability on yellow */
+    color: #3d3d3d;
     border-radius: 8px;
     border: 1px solid #e7d18c;
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.15);
@@ -1992,18 +1884,17 @@ External Search Results Styling
     transition: transform 0.3s ease-out;
 }
 
-/* Straighten the note when the modal becomes active */
 #notes-modal .modal-wrapper.active .modal-content {
     transform: rotate(0deg);
 }
 
 #notes-modal .modal-header {
-    border-bottom: 2px dashed #d1c08a; /* Dashed line like on a notepad */
+    border-bottom: 2px dashed #d1c08a;
     padding-bottom: 1rem;
 }
 
 #notes-modal .modal-title {
-    color: #594a25; /* A darker, brownish text color for the title */
+    color: #594a25;
 }
 
 #notes-modal .modal-close-btn {
@@ -2014,7 +1905,6 @@ External Search Results Styling
     background-color: rgba(0, 0, 0, 0.08);
 }
 
-/* Use a more handwritten-style font for the textarea */
 #notes-modal #notes-textarea {
     color: #3d3d3d;
     font-family: 'Noto Sans JP', sans-serif;
