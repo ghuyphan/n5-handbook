@@ -5,7 +5,7 @@
 
 import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
-import { dbPromise, loadState, loadAllData } from './database.js';
+import { dbPromise, loadState, loadAllData, loadTabData } from './database.js';
 import { debounce } from './utils.js';
 import { renderContent, updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView } from './ui.js';
 import { setLanguage, toggleTheme, handleSearch, changeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
@@ -515,15 +515,20 @@ async function init() {
             state.currentLevel = urlLevel;
         }
 
-        // We are no longer using the old externalSearch.js
-        // The new logic is self-contained in jotoba.js and triggered by handleSearch
-        
         setupEventListeners();
         buildLevelSwitcher(remoteLevels, customLevels);
         setupImportModal();
+
+        // **MODIFIED**: Load base UI data, then pre-load Kanij/Vocab for progress bar
         await loadAllData(state.currentLevel);
+        if (state.currentLevel === config.defaultLevel) {
+            await Promise.all([
+                loadTabData(state.currentLevel, 'kanji'),
+                loadTabData(state.currentLevel, 'vocab')
+            ]);
+        }
+
         setupTheme();
-        renderContent();
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
 
@@ -539,7 +544,9 @@ async function init() {
         const isMobileView = window.innerWidth <= 768;
         const defaultTab = isMobileView ? 'external-search' : 'external-search';
         const initialTab = urlTab || state.pinnedTab || defaultTab;
+        
         changeTab(initialTab, null, false, true);
+        
         updateSidebarPinIcons();
 
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };

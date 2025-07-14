@@ -7,9 +7,8 @@ import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.mjs';
 import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
-import { dbPromise, saveProgress, saveSetting, loadAllData } from './database.js';
-// UPDATED: Removed createSearchPlaceholder, added updateExternalSearchTab (implicitly used via jotoba.js)
-import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, updateExternalSearchTab } from './ui.js';
+import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData } from './database.js';
+import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
 function removeHighlights(container) {
@@ -155,7 +154,12 @@ export function setLanguage(lang, skipRender = false) {
 
     if (!skipRender) {
         state.fuseInstances = {};
-        renderContent();
+        // Re-render all currently loaded tabs with the new language
+        Object.keys(state.appData).forEach(tabId => {
+            if (tabId !== 'ui' && document.getElementById(tabId)?.innerHTML) {
+                renderContent(tabId);
+            }
+        });
         updateProgressDashboard();
         const activeTab = document.querySelector('.tab-content.active');
         if (activeTab && activeTab.id === 'external-search') {
@@ -187,9 +191,18 @@ export async function setLevel(level, fromHistory = false) {
     state.lastDictionaryQuery = '';
     await saveSetting('currentLevel', level);
     els.loadingOverlay?.classList.remove('hidden');
+    els.loadingOverlay.style.opacity = '1';
 
     try {
+        // Pre-load essential data for progress bar
         await loadAllData(level);
+        if (state.currentLevel === config.defaultLevel) {
+             await Promise.all([
+                loadTabData(state.currentLevel, 'kanji'),
+                loadTabData(state.currentLevel, 'vocab')
+            ]);
+        }
+
         const db = await dbPromise;
         state.progress = (await db.get('progress', state.currentLevel)) || { kanji: [], vocab: [] };
         const levelSettings = await db.get('settings', 'levelSettings') || {};
@@ -197,7 +210,9 @@ export async function setLevel(level, fromHistory = false) {
         state.pinnedTab = currentLevelSettings?.pinnedTab || null;
         updateSidebarPinIcons();
         state.fuseInstances = {};
-        renderContent();
+
+        document.querySelectorAll('.tab-content').forEach(c => { c.innerHTML = ''; });
+
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
         document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
@@ -210,16 +225,20 @@ export async function setLevel(level, fromHistory = false) {
         console.error(`Failed to load level ${level}:`, error);
         alert(`Could not load data for level ${level.toUpperCase()}.`);
     } finally {
-        els.loadingOverlay?.classList.add('hidden');
+        els.loadingOverlay.style.opacity = '0';
+        els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
         closeSidebar();
     }
 }
+
 
 async function savePinnedTab(tabId) {
     try {
         const db = await dbPromise;
         let levelSettings = (await db.get('settings', 'levelSettings')) || {};
-        if (!levelSettings[state.currentLevel]) levelSettings[state.currentLevel] = {};
+        if (!levelSettings[state.currentLevel]) {
+            levelSettings[state.currentLevel] = {};
+        }
         levelSettings[state.currentLevel].pinnedTab = tabId || null;
         await saveSetting('levelSettings', levelSettings);
         updatePinButtonState(tabId);
@@ -247,7 +266,7 @@ export function toggleSidebarPin(event, tabId) {
     savePinnedTab(state.pinnedTab);
 }
 
-export function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false) {
+export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false) {
     const activeTabEl = document.querySelector('.tab-content.active');
     if (activeTabEl && activeTabEl.id === tabName && !fromHistory) {
         closeSidebar();
@@ -271,19 +290,39 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const activeTab = document.getElementById(tabName);
     if (activeTab) {
-        activeTab.classList.add('active');
-        // UPDATED: This block now uses the new UI rendering function
+        const isDataTab = !['external-search', 'progress'].includes(tabName);
+        let isDataMissing = isDataTab && !state.appData[tabName];
+
+        activeTab.classList.add('active'); // Activate tab so loader is visible
+
+        if (isDataMissing) {
+            try {
+                await loadTabData(state.currentLevel, tabName);
+                isDataMissing = false; // Data is no longer missing
+            } catch (error) {
+                // Error is already handled and displayed by loadTabData
+                closeSidebar();
+                return;
+            }
+        }
+        
+        // **MODIFIED**: Render content if it's a data tab and the data is now available
+        if (isDataTab && !isDataMissing) {
+            renderContent(tabName);
+        }
+        
         if (tabName === 'external-search') {
             const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
             searchInput.value = state.lastDictionaryQuery;
-            // Only set the initial 'prompt' state if the tab has never been initialized
-            if (!activeTab.querySelector('.results-container') && !activeTab.querySelector('.placeholder-container')) {
-                updateExternalSearchTab('prompt');
-            }
+            handleExternalSearch(state.lastDictionaryQuery);
         } else {
-             if (els.searchInput) els.searchInput.value = '';
-             if (els.mobileSearchInput) els.mobileSearchInput.value = '';
-             handleSearch();
+            if (els.searchInput) {
+                els.searchInput.value = '';
+            }
+            if (els.mobileSearchInput) {
+                els.mobileSearchInput.value = '';
+            }
+            handleSearch();
         }
     }
 
@@ -305,10 +344,12 @@ export function changeTab(tabName, buttonElement, suppressScroll = false, fromHi
             if (els.pinToggle) els.pinToggle.style.display = 'block';
             updatePinButtonState(tabName);
         } else {
-            if (els.pinToggle) els.pinToggle.style.display = 'none';
+            if (els.pinToggle) {
+                els.pinToggle.style.display = 'none';
+            }
         }
     }
-    
+
     updateSearchPlaceholders(tabName);
     closeSidebar();
 
@@ -327,7 +368,7 @@ export function jumpToSection(tabName, sectionTitleKey) {
     const scrollToAction = () => {
         const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
         if (!sectionHeader) return;
-        
+
         const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
         if (accordionWrapper && sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
             sectionHeader.click();
@@ -339,12 +380,12 @@ export function jumpToSection(tabName, sectionTitleKey) {
             const mobileHeader = document.querySelector('.mobile-header.sticky');
             const headerOffset = (mobileHeader && getComputedStyle(mobileHeader).position === 'sticky') ? mobileHeader.offsetHeight : 0;
             const buffer = 20;
-            
+
             window.scrollTo({
                 top: absoluteElementTop - headerOffset - buffer,
                 behavior: 'smooth'
             });
-            
+
             const itemToHighlight = sectionHeader.closest('.progress-item-wrapper, .search-wrapper, .accordion-wrapper');
             if (itemToHighlight) {
                 itemToHighlight.classList.add('is-highlighted');
@@ -358,8 +399,7 @@ export function jumpToSection(tabName, sectionTitleKey) {
     if (isAlreadyOnTab) {
         scrollToAction();
     } else {
-        changeTab(tabName, null, true);
-        setTimeout(scrollToAction, 50);
+        changeTab(tabName, null, true).then(scrollToAction);
     }
 }
 

@@ -509,10 +509,16 @@ export function updateExternalSearchTab(type, data = {}) {
     }
 }
 
-export function renderContent() {
+/**
+ * **MODIFIED**: Renders content for a specific tab ID, or all loaded tabs if no ID is provided.
+ * @param {string|null} tabId - The ID of the single tab to render.
+ */
+export function renderContent(tabId = null) {
     const renderSafely = (renderFn) => {
         try { renderFn(); } catch (e) { console.error("Render error:", e); }
     };
+
+    const tabsToRender = tabId ? [tabId] : Object.keys(state.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
 
     const prepareGojuonData = (originalData) => {
         if (!originalData) return {};
@@ -526,111 +532,105 @@ export function renderContent() {
         }
         return data;
     };
-
-    renderSafely(() => {
-        if (els.hiraganaTab) {
-            els.hiraganaTab.innerHTML = '';
-            if (state.appData.hiragana) {
+    
+    const renderMap = {
+        hiragana: () => renderSafely(() => {
+            if (els.hiraganaTab && state.appData.hiragana) {
+                els.hiraganaTab.innerHTML = '';
                 els.hiraganaTab.appendChild(createStaticSection(prepareGojuonData(state.appData.hiragana), '🌸', 'var(--accent-pink)'));
                 setupFuseForTab('hiragana');
             }
-        }
-    });
-
-    renderSafely(() => {
-        if (els.katakanaTab) {
-            els.katakanaTab.innerHTML = '';
-            if (state.appData.katakana) {
+        }),
+        katakana: () => renderSafely(() => {
+            if (els.katakanaTab && state.appData.katakana) {
+                els.katakanaTab.innerHTML = '';
                 els.katakanaTab.appendChild(createStaticSection(prepareGojuonData(state.appData.katakana), '🤖', 'var(--accent-blue)'));
                 setupFuseForTab('katakana');
             }
-        }
-    });
-
-    renderSafely(() => {
-        if (els.keyPointsTab) els.keyPointsTab.innerHTML = '';
-        if (!state.appData.keyPoints || !els.keyPointsTab) return;
-
-        const fragment = document.createDocumentFragment();
-        for (const key in state.appData.keyPoints) {
-            const section = state.appData.keyPoints[key];
-            const title = section[state.currentLang] || section.en;
-            let contentNode;
-            if (section.type === 'table') {
-                contentNode = createStyledList(section.content);
-            } else if (section.type === 'table-grid') {
-                contentNode = document.createElement('div');
-                contentNode.className = 'space-y-6';
-                section.content.forEach(sub => {
-                    const subTitle = sub.title[state.currentLang] || sub.title.en;
-                    const subList = createStyledList(sub.data);
-                    contentNode.innerHTML += `<div><h4 class="font-semibold text-md mb-3 text-primary">${subTitle}</h4></div>`;
-                    contentNode.lastChild.appendChild(subList);
-                });
+        }),
+        keyPoints: () => renderSafely(() => {
+            if (!els.keyPointsTab || !state.appData.keyPoints) return;
+            els.keyPointsTab.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            for (const key in state.appData.keyPoints) {
+                const section = state.appData.keyPoints[key];
+                const title = section[state.currentLang] || section.en;
+                let contentNode;
+                if (section.type === 'table') {
+                    contentNode = createStyledList(section.content);
+                } else if (section.type === 'table-grid') {
+                    contentNode = document.createElement('div');
+                    contentNode.className = 'space-y-6';
+                    section.content.forEach(sub => {
+                        const subTitle = sub.title[state.currentLang] || sub.title.en;
+                        const subList = createStyledList(sub.data);
+                        contentNode.innerHTML += `<div><h4 class="font-semibold text-md mb-3 text-primary">${subTitle}</h4></div>`;
+                        contentNode.lastChild.appendChild(subList);
+                    });
+                }
+                if (contentNode) {
+                    const contentWrapper = document.createElement('div');
+                    contentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
+                    contentWrapper.appendChild(contentNode);
+                    const searchTerms = generateSearchTerms([title, JSON.stringify(section.content)]);
+                    fragment.appendChild(createAccordion(title, contentWrapper, searchTerms, key));
+                }
             }
-            if (contentNode) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'space-y-4';
+            wrapper.appendChild(fragment);
+            els.keyPointsTab.appendChild(wrapper);
+            setupFuseForTab('key_points');
+        }),
+        grammar: () => renderSafely(() => {
+            if (!els.grammarTab || !state.appData.grammar) return;
+            els.grammarTab.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            for (const sectionKey in state.appData.grammar) {
+                const sectionData = state.appData.grammar[sectionKey];
+                const sectionTitle = sectionData[state.currentLang] || sectionData.en;
+                const grid = document.createElement('div');
+                grid.className = 'grammar-grid';
+                sectionData.items.forEach(item => {
+                    const langItem = item[state.currentLang] || item.en;
+                    const itemSearchData = generateSearchTerms([langItem.title, langItem.content]);
+                    const exampleMarkerRegex = /(<br>)?<b>(Example|Ví dụ).*?<\/b>/i;
+                    const match = langItem.content.match(exampleMarkerRegex);
+                    let description = langItem.content;
+                    let exampleHTML = '';
+                    if (match?.index) {
+                        description = langItem.content.substring(0, match.index);
+                        exampleHTML = langItem.content.substring(match.index).replace(/^<br>/, '');
+                    }
+                    const card = document.createElement('div');
+                    card.className = 'grammar-card cell-bg rounded-lg';
+                    card.dataset.searchItem = itemSearchData;
+                    card.innerHTML = `<h4 class="font-semibold text-primary noto-sans">${langItem.title}</h4><div class="grammar-description mt-2 text-secondary leading-relaxed text-sm">${description}</div>${exampleHTML ? `<div class="grammar-example mt-3 text-sm">${exampleHTML}</div>` : ''}`;
+                    grid.appendChild(card);
+                });
                 const contentWrapper = document.createElement('div');
                 contentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
-                contentWrapper.appendChild(contentNode);
-                const searchTerms = generateSearchTerms([title, JSON.stringify(section.content)]);
-                fragment.appendChild(createAccordion(title, contentWrapper, searchTerms, key));
+                contentWrapper.appendChild(grid);
+                const searchData = generateSearchTerms([sectionTitle, ...sectionData.items.flatMap(item => [item.en?.title, item.en?.content, item.vi?.title, item.vi?.content])]);
+                fragment.appendChild(createAccordion(sectionTitle, contentWrapper, searchData, sectionKey));
             }
+            const wrapper = document.createElement('div');
+            wrapper.className = 'space-y-4';
+            wrapper.appendChild(fragment);
+            els.grammarTab.appendChild(wrapper);
+            setupFuseForTab('grammar');
+        }),
+        kanji: () => renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)')),
+        vocab: () => renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)'))
+    };
+
+    tabsToRender.forEach(tab => {
+        if (renderMap[tab]) {
+            renderMap[tab]();
         }
-        const wrapper = document.createElement('div');
-        wrapper.className = 'space-y-4';
-        wrapper.appendChild(fragment);
-        els.keyPointsTab.appendChild(wrapper);
-        setupFuseForTab('key_points');
     });
-
-    renderSafely(() => {
-        if (els.grammarTab) els.grammarTab.innerHTML = '';
-        if (!state.appData.grammar || !els.grammarTab) return;
-
-        const fragment = document.createDocumentFragment();
-        for (const sectionKey in state.appData.grammar) {
-            const sectionData = state.appData.grammar[sectionKey];
-            const sectionTitle = sectionData[state.currentLang] || sectionData.en;
-
-            const grid = document.createElement('div');
-            grid.className = 'grammar-grid';
-            sectionData.items.forEach(item => {
-                const langItem = item[state.currentLang] || item.en;
-                const itemSearchData = generateSearchTerms([langItem.title, langItem.content]);
-                const exampleMarkerRegex = /(<br>)?<b>(Example|Ví dụ).*?<\/b>/i;
-                const match = langItem.content.match(exampleMarkerRegex);
-                let description = langItem.content;
-                let exampleHTML = '';
-                if (match?.index) {
-                    description = langItem.content.substring(0, match.index);
-                    exampleHTML = langItem.content.substring(match.index).replace(/^<br>/, '');
-                }
-
-                const card = document.createElement('div');
-                card.className = 'grammar-card cell-bg rounded-lg';
-                card.dataset.searchItem = itemSearchData;
-                card.innerHTML = `<h4 class="font-semibold text-primary noto-sans">${langItem.title}</h4><div class="grammar-description mt-2 text-secondary leading-relaxed text-sm">${description}</div>${exampleHTML ? `<div class="grammar-example mt-3 text-sm">${exampleHTML}</div>` : ''}`;
-                grid.appendChild(card);
-            });
-
-            const contentWrapper = document.createElement('div');
-            contentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
-            contentWrapper.appendChild(grid);
-            const searchData = generateSearchTerms([sectionTitle, ...sectionData.items.flatMap(item => [item.en?.title, item.en?.content, item.vi?.title, item.vi?.content])]);
-            fragment.appendChild(createAccordion(sectionTitle, contentWrapper, searchData, sectionKey));
-        }
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'space-y-4';
-        wrapper.appendChild(fragment);
-        els.grammarTab.appendChild(wrapper);
-
-        setupFuseForTab('grammar');
-    });
-
-    renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)'));
-    renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)'));
 }
+
 
 export function buildLevelSwitcher(remoteLevels = [], customLevels = []) {
     const sidebarSwitcher = document.getElementById('level-switcher-sidebar');

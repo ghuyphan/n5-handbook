@@ -37,10 +37,10 @@ export async function loadState() {
             db.get('settings', 'currentLevel'),
             db.get('settings', 'levelSettings') // Get the new object for all level-specific settings
         ]);
-        
+
         state.currentLang = lang || 'en';
         state.currentLevel = level || config.defaultLevel;
-        
+
         // Get the pinned tab specifically for the current level
         const currentLevelSettings = levelSettings?.[state.currentLevel];
         state.pinnedTab = currentLevelSettings?.pinnedTab || null;
@@ -72,6 +72,49 @@ export async function saveSetting(key, value) {
     }
 }
 
+/**
+ * **MODIFIED**: Loads data for a specific tab on-demand and shows a correctly styled loader.
+ * @param {string} level - The current level (e.g., 'n5').
+ * @param {string} tabId - The ID of the tab to load data for (e.g., 'hiragana').
+ */
+export async function loadTabData(level, tabId) {
+    if (state.appData[tabId]) {
+        return Promise.resolve();
+    }
+
+    const tabElement = document.getElementById(tabId);
+    if (tabElement) {
+        // Display loader immediately but without the redundant animation class.
+        tabElement.innerHTML = `
+            <div class="search-placeholder-wrapper" style="height: 50vh;">
+                <div class="search-placeholder-box" style="background: transparent; box-shadow: none; border: none;">
+                    <div class="loader"></div>
+                </div>
+            </div>`;
+    }
+
+    try {
+        const response = await fetch(`${config.dataPath}/${level}/${tabId}.json`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        state.appData[tabId] = data;
+    } catch (error) {
+        console.error(`Error loading data for tab ${tabId}:`, error);
+        if (tabElement) {
+            tabElement.innerHTML = `<p class="p-4 text-center text-red-400">Failed to load content.</p>`;
+        }
+        throw error;
+    }
+}
+
+
+/**
+ * **MODIFIED**: This function now only loads essential UI data and all data for custom levels.
+ * Data for default levels is loaded on-demand by `loadTabData`.
+ * @param {string} level The level to load.
+ */
 export async function loadAllData(level) {
     const uiPromise = fetch(`./data/${config.defaultLevel}/ui.json`)
         .then(res => res.ok ? res.json() : {})
@@ -80,33 +123,18 @@ export async function loadAllData(level) {
             return {};
         });
 
+    // If it's a custom level, load its data completely from IndexedDB.
     if (level !== config.defaultLevel) {
         const db = await dbPromise;
         const savedData = await db.get('levels', level);
         if (savedData) {
             state.appData = savedData;
-            state.appData.ui = await uiPromise;
+            state.appData.ui = await uiPromise; // Still merge the latest UI
             return;
         }
     }
 
-    try {
-        const files = ['hiragana', 'katakana', 'kanji', 'vocab', 'grammar', 'keyPoints'];
-        const fetchPromises = files.map((file) =>
-            fetch(`${config.dataPath}/${level}/${file}.json`).then((response) => {
-                if (!response.ok) throw new Error(`Failed to load ${file}.json for level ${level}`);
-                return response.json();
-            })
-        );
-
-        const [uiData, ...levelData] = await Promise.all([uiPromise, ...fetchPromises]);
-
-        state.appData = Object.fromEntries(files.map((file, i) => [file, levelData[i]]));
-        state.appData.ui = uiData;
-
-    } catch (error) {
-        console.error('Error loading application data:', error);
-        document.body.innerHTML = `<div style="text-align: center; padding: 40px; font-family: sans-serif;"><h2>Error Loading Data</h2><p>Could not load learning data for <b>JLPT ${level.toUpperCase()}</b>.</p></div>`;
-        throw error;
-    }
+    // For default levels, just initialize with the UI data.
+    // Tabs will be loaded lazily via loadTabData.
+    state.appData = { ui: await uiPromise };
 }
