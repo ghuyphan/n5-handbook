@@ -11,6 +11,9 @@ import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteN
 import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
+// --- OPTIMIZATION: Cache for searchable items and their original state ---
+const searchCache = new Map();
+
 // --- HELPER FUNCTIONS ---
 
 function getUIText(key, replacements = {}) {
@@ -25,36 +28,42 @@ function getActiveSearchInput() {
     return window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
 }
 
-// --- DOM MANIPULATION ---
+// --- OPTIMIZED DOM MANIPULATION ---
 
-function removeHighlights(container) {
-    const marks = Array.from(container.querySelectorAll('mark.search-highlight'));
-    marks.forEach(mark => {
-        const parent = mark.parentNode;
-        if (parent) {
-            parent.replaceChild(document.createTextNode(mark.textContent), mark);
-            parent.normalize();
+function clearAllHighlights(activeTabId) {
+    if (!searchCache.has(activeTabId)) return;
+
+    const cachedItems = searchCache.get(activeTabId);
+    for (const item of cachedItems) {
+        if (item.originalHTML) {
+            item.element.innerHTML = item.originalHTML;
+            delete item.originalHTML; // Clean up cache
         }
-    });
+    }
 }
 
 function highlightMatches(element, query) {
     if (!query) return;
+
+    const cacheEntry = searchCache.get(state.activeTab)?.find(item => item.element === element);
+    if (cacheEntry && !cacheEntry.originalHTML) {
+        cacheEntry.originalHTML = element.innerHTML; // Store original state only once
+    }
+
     const regex = new RegExp(`(${query.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1")})`, 'gi');
-    
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
     const nodesToModify = [];
     let currentNode;
+
     while (currentNode = walker.nextNode()) {
         if (regex.test(currentNode.nodeValue)) {
             nodesToModify.push(currentNode);
         }
     }
-    
+
     nodesToModify.forEach(node => {
         const fragment = document.createDocumentFragment();
-        const parts = node.nodeValue.split(regex);
-        parts.forEach(part => {
+        node.nodeValue.split(regex).forEach(part => {
             if (part.toLowerCase() === query.toLowerCase()) {
                 const mark = document.createElement('mark');
                 mark.className = 'search-highlight';
@@ -64,11 +73,10 @@ function highlightMatches(element, query) {
                 fragment.appendChild(document.createTextNode(part));
             }
         });
-        if (node.parentNode) {
-            node.parentNode.replaceChild(fragment, node);
-        }
+        node.parentNode?.replaceChild(fragment, node);
     });
 }
+
 
 // --- CORE HANDLERS ---
 
@@ -88,16 +96,22 @@ export function toggleLearned(category, id, element) {
 
 export function setupFuseForTab(tabId) {
     if (state.fuseInstances[tabId] || !state.appData[tabId]) return;
+
     const container = document.getElementById(tabId);
     if (!container) return;
-    const searchableElements = container.querySelectorAll('[data-search-item], [data-search]');
-    const collection = Array.from(searchableElements).map((el, index) => ({
+
+    // OPTIMIZATION: Cache searchable elements to avoid re-querying the DOM
+    const searchableElements = Array.from(container.querySelectorAll('[data-search-item], [data-search]'));
+    searchCache.set(tabId, searchableElements.map(el => ({ element: el })));
+
+    const fuseCollection = searchableElements.map((el, index) => ({
         id: el.dataset.itemId || `${tabId}-${index}`,
         element: el,
         searchData: el.dataset.searchItem || el.dataset.search
     }));
-    if (collection.length > 0) {
-        state.fuseInstances[tabId] = new Fuse(collection, {
+
+    if (fuseCollection.length > 0) {
+        state.fuseInstances[tabId] = new Fuse(fuseCollection, {
             keys: ['searchData'],
             includeScore: true,
             threshold: 0.3,
@@ -105,6 +119,7 @@ export function setupFuseForTab(tabId) {
         });
     }
 }
+
 
 export const handleSearch = debounce(() => {
     const query = getActiveSearchInput().value.trim();
@@ -117,28 +132,34 @@ export const handleSearch = debounce(() => {
         return;
     }
     
-    removeHighlights(activeTab);
-    const fuse = state.fuseInstances[activeTabId];
-    const allItems = activeTab.querySelectorAll('[data-search-item], [data-search]');
-    
+    // OPTIMIZATION: Use the cached list of elements
+    const allItems = searchCache.get(activeTabId)?.map(item => item.element) || [];
+    const allWrappers = activeTab.querySelectorAll('.search-wrapper');
+
+    clearAllHighlights(activeTabId);
+
     if (!query) {
         allItems.forEach(item => { item.style.display = ''; });
-        activeTab.querySelectorAll('.search-wrapper').forEach(wrapper => { wrapper.style.display = ''; });
+        allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
         return;
     }
 
+    const fuse = state.fuseInstances[activeTabId];
     if (!fuse) return;
+    
     allItems.forEach(item => { item.style.display = 'none'; });
-    activeTab.querySelectorAll('.search-wrapper').forEach(wrapper => { wrapper.style.display = 'none'; });
+    allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
     
     const results = fuse.search(query);
     results.forEach(result => {
         const itemElement = result.item.element;
         itemElement.style.display = '';
         highlightMatches(itemElement, query);
-        let parent = itemElement.closest('.search-wrapper');
-        if (parent) parent.style.display = '';
-        let accordion = itemElement.closest('.accordion-wrapper');
+        
+        const parentWrapper = itemElement.closest('.search-wrapper');
+        if (parentWrapper) parentWrapper.style.display = '';
+
+        const accordion = itemElement.closest('.accordion-wrapper');
         if (accordion) {
             const button = accordion.querySelector('.accordion-button');
             if (button && !button.classList.contains('open')) button.classList.add('open');
@@ -151,6 +172,7 @@ export function setLanguage(lang, skipRender = false) {
     saveSetting('language', lang);
     
     if (state.renderedTabs) state.renderedTabs.clear();
+    searchCache.clear(); // Clear search cache on language change
 
     const uiStrings = state.appData.ui;
     const processText = (textKey) => {
@@ -184,19 +206,16 @@ export function setLanguage(lang, skipRender = false) {
     updateSearchPlaceholders(state.activeTab);
 }
 
-// MODIFICATION: This function now updates the desktop emoji button as well.
 export function toggleTheme(event) {
     const isChecked = event.target.checked;
     const theme = isChecked ? 'dark' : 'light';
     document.documentElement.classList.toggle('dark-mode', isChecked);
     saveSetting('theme', theme);
 
-    // Sync other sliders
     document.querySelectorAll('.theme-switch input').forEach(input => {
         if (input !== event.target) input.checked = isChecked;
     });
 
-    // Sync the desktop emoji button
     const desktopEmojiSpan = document.getElementById('theme-emoji');
     if (desktopEmojiSpan) {
         desktopEmojiSpan.textContent = isChecked ? '🌙' : '☀️';
@@ -253,6 +272,7 @@ async function loadLevelData(level) {
     state.lastDictionaryQuery = '';
     state.notes.clear();
     if (state.renderedTabs) state.renderedTabs.clear();
+    searchCache.clear(); // Clear search cache
 
     const db = await dbPromise;
     const isCustomLevel = !!(await db.get('levels', level));
@@ -377,54 +397,62 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         return;
     }
 
+    // --- IMMEDIATE UI UPDATES ---
     state.activeTab = tabName;
+    updateTabUI(tabName);
+    closeSidebar();
+
+    if (activeTabEl) {
+        state.tabScrollPositions.set(activeTabEl.id, window.scrollY);
+        activeTabEl.classList.remove('active');
+    }
+    const newTabContentEl = document.getElementById(tabName);
+    if (!newTabContentEl) {
+        console.error(`Tab container not found for tab: ${tabName}`);
+        return;
+    }
+    newTabContentEl.classList.add('active');
+    // --- END OF IMMEDIATE UI UPDATES ---
+
+
     if (!fromHistory) {
         const url = `?level=${state.currentLevel}&tab=${tabName}`;
         history.pushState({ type: 'tab', tabName, level: state.currentLevel }, '', url);
     }
 
-    updateTabUI(tabName);
-
-    if (activeTabEl) {
-        state.tabScrollPositions.set(activeTabEl.id, window.scrollY);
-        if (activeTabEl.id === 'external-search') {
-            state.lastDictionaryQuery = getActiveSearchInput().value.trim();
-        }
+    if (activeTabEl?.id === 'external-search') {
+        state.lastDictionaryQuery = getActiveSearchInput().value.trim();
     }
 
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    const activeTab = document.getElementById(tabName);
-    if (!activeTab) {
-        console.error(`Tab container not found for tab: ${tabName}`);
-        return;
-    }
-    activeTab.classList.add('active');
 
     const isDataTab = !['external-search', 'progress'].includes(tabName);
 
     if (isDataTab) {
+        // Caching rendered tab content
         if (state.renderedTabs.has(tabName) && !forceRender) {
-            activeTab.innerHTML = state.renderedTabs.get(tabName);
+            newTabContentEl.innerHTML = state.renderedTabs.get(tabName);
+            // Re-initialize Fuse and search cache for the restored tab
+            setupFuseForTab(tabName);
         } else {
             const isDataMissing = !state.appData[tabName];
             if (isDataMissing) {
                 const loaderTemplate = document.getElementById('content-loader-template');
-                activeTab.innerHTML = '';
-                if (loaderTemplate) activeTab.appendChild(loaderTemplate.content.cloneNode(true));
+                newTabContentEl.innerHTML = '';
+                if (loaderTemplate) newTabContentEl.appendChild(loaderTemplate.content.cloneNode(true));
 
                 try {
                     await loadTabData(state.currentLevel, tabName);
                     renderContent(tabName);
-                    state.renderedTabs.set(tabName, activeTab.innerHTML);
+                    state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
                 } catch (error) {
                     console.error(`Error loading data for tab ${tabName}:`, error);
                     const title = getUIText('errorLoadContentTitle');
                     const body = getUIText('errorLoadContentBody');
-                    activeTab.innerHTML = `<div class="p-6 text-center text-secondary"><h3 class="font-semibold text-lg text-primary mb-2">${title}</h3><p class="text-red-400">${error.message}</p><p class="mt-2">${body}</p></div>`;
+                    newTabContentEl.innerHTML = `<div class="p-6 text-center text-secondary"><h3 class="font-semibold text-lg text-primary mb-2">${title}</h3><p class="text-red-400">${error.message}</p><p class="mt-2">${body}</p></div>`;
                 }
             } else {
                 renderContent(tabName);
-                state.renderedTabs.set(tabName, activeTab.innerHTML);
+                state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
             }
         }
     }
@@ -441,8 +469,6 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
             handleSearch();
         }
     }
-    
-    closeSidebar();
 
     if (!suppressScroll) {
         window.scrollTo({ top: state.tabScrollPositions.get(tabName) || 0, behavior: 'instant' });
