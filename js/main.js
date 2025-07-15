@@ -255,6 +255,35 @@ function handleThemeButtonClick() {
     }
 }
 
+function showLoader() {
+    if (!els.loadingOverlay) return;
+    els.loadingOverlay.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        els.loadingOverlay.style.opacity = '1';
+    });
+}
+
+function hideLoader() {
+    return new Promise(resolve => {
+        if (!els.loadingOverlay || els.loadingOverlay.style.opacity === '0') {
+            resolve();
+            return;
+        }
+        const onTransitionEnd = (e) => {
+            if (e.target !== els.loadingOverlay) return;
+            els.loadingOverlay.classList.add('hidden');
+            els.loadingOverlay.removeEventListener('transitionend', onTransitionEnd);
+            resolve();
+        };
+        els.loadingOverlay.addEventListener('transitionend', onTransitionEnd);
+        els.loadingOverlay.style.opacity = '0';
+        // Failsafe timeout
+        setTimeout(() => {
+            onTransitionEnd({ target: els.loadingOverlay });
+        }, 500);
+    });
+}
+
 function setupEventListeners() {
     document.body.addEventListener('click', (e) => {
         const target = e.target;

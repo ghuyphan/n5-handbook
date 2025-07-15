@@ -265,8 +265,10 @@ async function handleExternalSearchInternal(query, forceRefresh = false, isTabSw
         }
     }
     
-    // The 'isTabSwitch' flag is also passed here.
-    updateExternalSearchTab('searching', { query: normalizedQuery }, isTabSwitch);
+    // Only show the searching state if it's an actual search, not just a tab switch.
+    if (!isTabSwitch) {
+        updateExternalSearchTab('searching', { query: normalizedQuery }, false);
+    }
 
     try {
         const isJP = JAPANESE_REGEX.test(normalizedQuery);
