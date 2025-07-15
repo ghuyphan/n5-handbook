@@ -6,12 +6,6 @@
 
 > An interactive, multi-level web application to help you study Japanese. Start with the built-in **JLPT N5 and N4** material or **import your own custom study levels**. Features comprehensive study materials, progress tracking, a bilingual interface, and an integrated dictionary search.
 
------
-
-# N5 Handbook: Japanese Learning App
-
-An interactive, multi-level web application to help you study Japanese. Start with the built-in **JLPT N5 and N4** material or **import your own custom study levels**. Features comprehensive study materials, progress tracking, a bilingual interface, and an integrated dictionary search.
-
 ---
 
 **🚀 [View the Live Demo](https://ghuyphan.github.io/n5-handbook/) 🚀**
