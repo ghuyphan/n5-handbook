@@ -198,26 +198,28 @@ async function openNotesModal() {
     const getUIText = (key, replacements = {}) => {
         let text = state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
         if (key === 'lastSavedOn' && !state.appData.ui?.[state.currentLang]?.[key]) {
-             text = `Last saved: {date}`;
+            text = `Last saved: {date}`;
         }
         for (const [placeholder, value] of Object.entries(replacements)) {
             text = text.replace(`{${placeholder}}`, value);
         }
         return text;
     };
-    
+
     const navButton = document.querySelector(`.nav-item[data-tab-name="${tabId}"] span`);
     const tabDisplayName = navButton ? navButton.textContent.trim() : tabId;
-    
+
     els.notesModalTitle.textContent = getUIText('notesFor', { tabName: tabDisplayName });
     els.notesSaveBtn.textContent = getUIText('saveNotes');
     els.notesTextarea.placeholder = getUIText('notesPlaceholder');
-    
+
     const note = await loadNote(state.currentLevel, tabId);
     const noteInfoDisplay = document.getElementById('note-info-display');
 
+    let initialContent = '';
+
     if (note && typeof note === 'object' && note.lastModified) {
-        els.notesTextarea.value = note.content || '';
+        initialContent = note.content || '';
         const d = new Date(note.lastModified);
         if (!isNaN(d.getTime())) {
             const formattedDate = d.toISOString().split('T')[0];
@@ -226,15 +228,17 @@ async function openNotesModal() {
             noteInfoDisplay.textContent = '';
         }
     } else if (typeof note === 'string') {
-        els.notesTextarea.value = note;
+        initialContent = note;
         noteInfoDisplay.textContent = '';
     } else {
-        els.notesTextarea.value = '';
+        initialContent = '';
         noteInfoDisplay.textContent = '';
     }
-    
-    state.notes.set(tabId, els.notesTextarea.value);
-    
+
+    els.notesTextarea.value = initialContent;
+
+    state.notes.originalContent = initialContent;
+
     document.body.classList.add('body-no-scroll');
     els.notesModal.classList.remove('modal-hidden');
     els.notesModalBackdrop.classList.add('active');
@@ -243,16 +247,32 @@ async function openNotesModal() {
 }
 
 function closeNotesModal() {
+    const currentContent = els.notesTextarea.value;
+    const originalContent = state.notes.originalContent;
+
+    if (currentContent !== originalContent) {
+        const userIsSure = confirm("You have unsaved changes. Are you sure you want to close without saving?");
+
+        if (!userIsSure) {
+            return;
+        }
+    }
+
     document.body.classList.remove('body-no-scroll');
     els.notesModalBackdrop.classList.remove('active');
     els.notesModalWrapper.classList.remove('active');
     setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
+
+    state.notes.originalContent = '';
 }
 
 async function saveAndCloseNotesModal() {
     const content = els.notesTextarea.value;
     await saveNote(state.currentLevel, state.activeTab, content);
-    state.notes.set(state.activeTab, content);
+
+    state.notes.originalContent = content;
+
+    state.notes.data.set(state.activeTab, content);
 
     const notesButtons = document.querySelectorAll('.notes-header-btn');
     notesButtons.forEach(btn => {
@@ -261,15 +281,15 @@ async function saveAndCloseNotesModal() {
 
     els.notesStatus.style.opacity = '1';
     setTimeout(() => {
-       closeNotesModal();
-       setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
+        closeNotesModal();
+        setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
     }, 1000);
 }
 
 function handleThemeButtonClick() {
     const isDark = document.documentElement.classList.toggle('dark-mode');
     const newTheme = isDark ? 'dark' : 'light';
-    
+
     if (els.themeEmoji) {
         els.themeEmoji.textContent = isDark ? '🌙' : '☀️';
     }
@@ -315,8 +335,8 @@ function setupEventListeners() {
                 openNotesModal();
                 break;
             case 'close-kanji-modal':
-                 closeKanjiDetailModal();
-                 break;
+                closeKanjiDetailModal();
+                break;
             case 'toggle-sidebar-pin':
                 toggleSidebarPin(e, actionTarget.dataset.tabName);
                 break;
@@ -667,7 +687,7 @@ function populateAndBindControls() {
     if (headerLangSwitcher) {
         headerLangSwitcher.innerHTML = getLangSwitcherHTML();
     }
-    
+
     document.querySelectorAll('.sidebar-control-group .theme-switch input').forEach(el => el.addEventListener('change', toggleThemeSlider));
     document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
         e.preventDefault();
@@ -677,7 +697,7 @@ function populateAndBindControls() {
 
 async function init() {
     populateEls();
-    await loadState(); 
+    await loadState();
 
     populateAndBindControls();
     setupEventListeners();
@@ -693,7 +713,7 @@ async function init() {
         } catch (error) {
             console.warn("Could not fetch remote levels list. Falling back to default.", error);
         }
-        
+
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
         state.allAvailableLevels = [...new Set([...remoteLevels, ...customLevels])];
@@ -704,13 +724,13 @@ async function init() {
         if (urlLevel && state.allAvailableLevels.includes(urlLevel)) {
             state.currentLevel = urlLevel;
         }
-        
+
         await loadAllData(state.currentLevel);
 
         // FIX: Ensure data for progress calculation is loaded before rendering the dashboard.
         await loadRequiredDataForProgress();
         updateProgressDashboard();
-        
+
         setLanguage(state.currentLang, true);
         setupImportModal();
 
@@ -722,14 +742,14 @@ async function init() {
         document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
         scrollActiveLevelIntoView();
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
-        
+
         const urlTab = params.get('tab');
         const isMobileView = window.innerWidth <= 768;
         const defaultTab = isMobileView ? 'external-search' : 'external-search';
         const initialTab = urlTab || state.pinnedTab || defaultTab;
-        
-        await changeTab(initialTab, null, false, true); 
-        
+
+        await changeTab(initialTab, null, false, true);
+
         updateSidebarPinIcons();
 
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };

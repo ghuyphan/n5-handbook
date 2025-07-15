@@ -20,13 +20,17 @@ export const state = {
     isSwitchingLevel: false,
     loadingStatus: 'idle',
     activeTab: 'progress',
-    notes: new Map(),
+    notes: {
+        /** @type {Map<string, string>} */
+        data: new Map(), 
+        originalContent: '' 
+    },
     fuseInstances: {},
     universalFuse: null,
     currentQuery: '',
     lastDictionaryQuery: '',
     tabScrollPositions: new Map(),
-     renderedTabs: new Map(),
+    renderedTabs: new Map(),
     externalDB: {
         vocab: [],
         kanji: [],
