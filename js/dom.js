@@ -32,6 +32,7 @@ export function populateEls() {
     // Controls
     els.menuToggle = document.getElementById('menu-toggle');
     els.pinToggle = document.getElementById('pin-toggle');
+    els.themeEmoji = document.getElementById('theme-emoji'); // Added this line
 
     // Content containers
     els.progressOverview = document.getElementById('progress-overview');

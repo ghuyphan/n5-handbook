@@ -21,8 +21,6 @@ function getUIText(key, replacements = {}) {
     return text;
 }
 
-// REFINED: Added a helper to get the currently relevant search input element.
-// This avoids repeating the same ternary logic (DRY principle).
 function getActiveSearchInput() {
     return window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
 }
@@ -35,7 +33,7 @@ function removeHighlights(container) {
         const parent = mark.parentNode;
         if (parent) {
             parent.replaceChild(document.createTextNode(mark.textContent), mark);
-            parent.normalize(); // Merges adjacent text nodes for a clean DOM.
+            parent.normalize();
         }
     });
 }
@@ -44,7 +42,6 @@ function highlightMatches(element, query) {
     if (!query) return;
     const regex = new RegExp(`(${query.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1")})`, 'gi');
     
-    // Using TreeWalker is more performant than recursing through childNodes for deep trees.
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
     const nodesToModify = [];
     let currentNode;
@@ -54,7 +51,6 @@ function highlightMatches(element, query) {
         }
     }
     
-    // Batching modifications reduces layout thrashing.
     nodesToModify.forEach(node => {
         const fragment = document.createDocumentFragment();
         const parts = node.nodeValue.split(regex);
@@ -111,7 +107,7 @@ export function setupFuseForTab(tabId) {
 }
 
 export const handleSearch = debounce(() => {
-    const query = getActiveSearchInput().value.trim(); // REFINED: Use helper function
+    const query = getActiveSearchInput().value.trim();
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
 
@@ -154,7 +150,6 @@ export function setLanguage(lang, skipRender = false) {
     state.currentLang = lang;
     saveSetting('language', lang);
     
-    // OPTIMIZED: Invalidate the rendered tab cache as all text content is now stale.
     if (state.renderedTabs) state.renderedTabs.clear();
 
     const uiStrings = state.appData.ui;
@@ -180,8 +175,6 @@ export function setLanguage(lang, skipRender = false) {
     }
 
     if (!skipRender) {
-        // OPTIMIZED: Instead of re-rendering all tabs, just force re-render the active one.
-        // Others will be re-rendered on-demand when switched to, using the now-empty cache.
         const activeTab = document.querySelector('.tab-content.active');
         if (activeTab) {
             changeTab(activeTab.id, null, true, true, true);
@@ -191,22 +184,23 @@ export function setLanguage(lang, skipRender = false) {
     updateSearchPlaceholders(state.activeTab);
 }
 
-// In handlers.js
-
+// MODIFICATION: This function now updates the desktop emoji button as well.
 export function toggleTheme(event) {
     const isChecked = event.target.checked;
     const theme = isChecked ? 'dark' : 'light';
     document.documentElement.classList.toggle('dark-mode', isChecked);
-
-    try {
-        localStorage.setItem('theme', theme);
-    } catch (e) {
-        console.warn("Could not save theme to localStorage.", e);
-    }
     saveSetting('theme', theme);
+
+    // Sync other sliders
     document.querySelectorAll('.theme-switch input').forEach(input => {
         if (input !== event.target) input.checked = isChecked;
     });
+
+    // Sync the desktop emoji button
+    const desktopEmojiSpan = document.getElementById('theme-emoji');
+    if (desktopEmojiSpan) {
+        desktopEmojiSpan.textContent = isChecked ? '🌙' : '☀️';
+    }
 }
 
 function showLoader() {
@@ -235,7 +229,7 @@ function hideLoader() {
         };
         els.loadingOverlay.addEventListener('transitionend', onTransitionEnd);
         els.loadingOverlay.style.opacity = '0';
-        setTimeout(() => { // Fallback in case the event doesn't fire.
+        setTimeout(() => {
             onTransitionEnd({ target: els.loadingOverlay });
         }, 500);
     });
@@ -255,7 +249,6 @@ async function loadLevelData(level) {
     state.progress = progressData || { kanji: [], vocab: [] };
     state.pinnedTab = levelSettings?.[state.currentLevel]?.pinnedTab || null;
     
-    // OPTIMIZED: Clear all caches for the new level in one place.
     state.fuseInstances = {};
     state.lastDictionaryQuery = '';
     state.notes.clear();
@@ -264,8 +257,6 @@ async function loadLevelData(level) {
     const db = await dbPromise;
     const isCustomLevel = !!(await db.get('levels', level));
     if (!isCustomLevel) {
-        // OPTIMIZED: Pre-load data for all tabs in parallel (fire-and-forget).
-        // This makes subsequent tab switches feel instant as data is already in memory.
         const allTabs = ['kanji', 'vocab', 'hiragana', 'katakana', 'grammar', 'keyPoints'];
         Promise.all(allTabs.map(tabId => loadTabData(level, tabId).catch(err => {
             console.warn(`Non-critical preload of tab '${tabId}' failed.`, err);
@@ -276,7 +267,7 @@ async function loadLevelData(level) {
 async function renderLevelUI(level, fromHistory) {
     document.querySelectorAll('.tab-content').forEach(c => { c.innerHTML = ''; });
     updateProgressDashboard();
-    setLanguage(state.currentLang, true); // Update UI text without re-rendering content yet
+    setLanguage(state.currentLang, true);
     document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
     updateSidebarPinIcons();
     const isMobileView = window.innerWidth <= 768;
@@ -352,10 +343,6 @@ export function toggleSidebarPin(event, tabId) {
     savePinnedTab(state.pinnedTab);
 }
 
-/**
- * REFINED: Updates the UI elements (buttons, headers, etc.) related to a tab switch.
- * @param {string} tabName The name of the tab being activated.
- */
 function updateTabUI(tabName) {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tabName === tabName));
     const targetButton = document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
@@ -396,8 +383,6 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         history.pushState({ type: 'tab', tabName, level: state.currentLevel }, '', url);
     }
 
-    // Immediately update the main UI components for a responsive feel.
-    // This happens *before* any data is awaited.
     updateTabUI(tabName);
 
     if (activeTabEl) {
@@ -417,7 +402,6 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 
     const isDataTab = !['external-search', 'progress'].includes(tabName);
 
-    // OPTIMIZED: Caching logic for data-heavy tabs
     if (isDataTab) {
         if (state.renderedTabs.has(tabName) && !forceRender) {
             activeTab.innerHTML = state.renderedTabs.get(tabName);
@@ -431,7 +415,7 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
                 try {
                     await loadTabData(state.currentLevel, tabName);
                     renderContent(tabName);
-                    state.renderedTabs.set(tabName, activeTab.innerHTML); // Cache the result
+                    state.renderedTabs.set(tabName, activeTab.innerHTML);
                 } catch (error) {
                     console.error(`Error loading data for tab ${tabName}:`, error);
                     const title = getUIText('errorLoadContentTitle');
@@ -440,17 +424,16 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
                 }
             } else {
                 renderContent(tabName);
-                state.renderedTabs.set(tabName, activeTab.innerHTML); // Cache the result
+                state.renderedTabs.set(tabName, activeTab.innerHTML);
             }
         }
     }
 
     if (tabName === 'external-search') {
         getActiveSearchInput().value = state.lastDictionaryQuery;
-        // **THE FIX IS HERE**: Pass a 'true' flag to indicate this is a tab switch.
         handleExternalSearch(state.lastDictionaryQuery, false, true);
     } else if (tabName === 'progress') {
-        updateProgressDashboard(); // Always update progress dashboard on view
+        updateProgressDashboard();
     } else {
         const searchInput = getActiveSearchInput();
         if(searchInput.value) {
@@ -471,7 +454,6 @@ export function jumpToSection(tabName, sectionTitleKey) {
     const isAlreadyOnTab = activeTab?.id === tabName;
     
     const scrollToAction = () => {
-        // REFINED: Use requestAnimationFrame to ensure the element exists before we try to scroll.
         requestAnimationFrame(() => {
             const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
             if (!sectionHeader) return;
@@ -481,14 +463,14 @@ export function jumpToSection(tabName, sectionTitleKey) {
                 sectionHeader.click();
             }
 
-            setTimeout(() => { // Timeout allows accordion to animate open.
+            setTimeout(() => {
                 const elementRect = sectionHeader.getBoundingClientRect();
                 const absoluteElementTop = elementRect.top + window.scrollY;
                 const mobileHeader = document.querySelector('.mobile-header.sticky');
                 const headerOffset = (mobileHeader?.isConnected && getComputedStyle(mobileHeader).position === 'sticky') ? mobileHeader.offsetHeight : 0;
                 
                 window.scrollTo({
-                    top: absoluteElementTop - headerOffset - 20, // 20px buffer
+                    top: absoluteElementTop - headerOffset - 20,
                     behavior: 'smooth'
                 });
 
@@ -511,7 +493,6 @@ export function jumpToSection(tabName, sectionTitleKey) {
 }
 
 export async function deleteLevel(level) {
-    // REFINED: Use getUIText for translatable user-facing messages.
     if (level === config.defaultLevel) {
         alert(getUIText('errorDeleteDefaultLevel'));
         return;
