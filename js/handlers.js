@@ -3,7 +3,7 @@
  * @description Contains event handlers and core application logic for the event-driven architecture.
  */
 
-import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.mjs';
+import Fuse from 'fuse.js';
 import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';

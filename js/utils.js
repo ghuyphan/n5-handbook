@@ -3,7 +3,8 @@
  * @description Provides utility functions for the application.
  */
 
-import * as wanakana from 'https://cdn.jsdelivr.net/npm/wanakana@5.3.1/+esm';
+// To this:
+import * as wanakana from 'wanakana';
 
 /**
  * Creates a debounced function that delays invoking `func` until after `wait` milliseconds.

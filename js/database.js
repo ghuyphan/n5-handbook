@@ -3,7 +3,7 @@
  * @description Manages all IndexedDB operations for state and data persistence.
  */
 
-import { openDB } from 'https://cdn.jsdelivr.net/npm/idb@8/+esm';
+import { openDB } from 'idb';
 import { state, config } from './config.js';
 import { updateProgressDashboard } from './ui.js';
 
