@@ -294,8 +294,10 @@ export function moveLangPill(langSwitchElement) {
     const buttonWidth = activeBtn.offsetWidth;
     const buttonOffsetLeft = activeBtn.offsetLeft;
 
-    pill.style.width = `${buttonWidth}px`;
-    pill.style.transform = `translateX(${buttonOffsetLeft}px)`;
+    requestAnimationFrame(() => {
+         pill.style.width = `${buttonWidth}px`;
+         pill.style.transform = `translateX(${buttonOffsetLeft}px)`;
+    });
 }
 
 export function setupTheme() {

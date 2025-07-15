@@ -1311,7 +1311,7 @@ input:checked+.slider:before {
     content: "🌙";
 }
 
-/* UPDATED: Language Switcher Styles */
+/* === LANGUAGE SWITCHER FIX START === */
 .lang-switch {
     position: relative;
     background-color: var(--switch-bg);
@@ -1323,7 +1323,14 @@ input:checked+.slider:before {
 }
 
 .lang-switch-pill {
-    display: none;
+    position: absolute;
+    z-index: 1;
+    top: 2px;
+    bottom: 2px;
+    border-radius: var(--radius-full);
+    background-color: var(--accent-blue);
+    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.5);
+    transition: transform 0.4s var(--ease-out-quint), width 0.4s var(--ease-out-quint);
 }
 
 .lang-switch button {
@@ -1335,7 +1342,7 @@ input:checked+.slider:before {
     font-size: 0.875rem;
     border: none;
     cursor: pointer;
-    transition: color 0.4s var(--ease-in-out-quad), background-color .4s var(--ease-out-quint), box-shadow .4s var(--ease-out-quint);
+    transition: color 0.4s var(--ease-in-out-quad);
     background-color: transparent;
     color: var(--text-secondary);
 }
@@ -1347,14 +1354,14 @@ input:checked+.slider:before {
 .lang-switch button.active {
     color: white;
     font-weight: 700;
-    background-color: var(--accent-blue);
-    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.5);
+    background-color: transparent;
+    box-shadow: none;
 }
+/* === LANGUAGE SWITCHER FIX END === */
 
 .dark-mode .lang-switch button.active {
     color: white;
 }
-
 
 .lang-switch button:hover:not(.active) {
     color: var(--text-primary);
