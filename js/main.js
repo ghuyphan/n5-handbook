@@ -5,12 +5,13 @@
 
 import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
-import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote } from './database.js';
+import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting } from './database.js';
 import { debounce } from './utils.js';
 import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView } from './ui.js';
-import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
+import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
 
-// --- ADDED: Wrapper function to handle notes logic on tab change ---
+
+// --- Wrapper function to handle notes logic on tab change ---
 async function changeTab(tabName, ...args) {
     // Call the original function from handlers.js
     await originalChangeTab(tabName, ...args);
@@ -47,7 +48,6 @@ function handleStateChange(stateObj) {
     if (stateObj.level !== state.currentLevel) {
         setLevel(stateObj.level, true);
     } else {
-        // MODIFIED: Use our new wrapper function
         changeTab(stateObj.tabName, null, false, true);
     }
 }
@@ -180,24 +180,19 @@ async function openNotesModal() {
     const note = await loadNote(state.currentLevel, tabId);
     const noteInfoDisplay = document.getElementById('note-info-display');
 
-    // Handle both old (string) and new (object) note formats
     if (note && typeof note === 'object' && note.lastModified) {
-        // New format: { content: "...", lastModified: "..." }
         els.notesTextarea.value = note.content || '';
         const d = new Date(note.lastModified);
-        // Check if the date is valid before trying to format it
         if (!isNaN(d.getTime())) {
             const formattedDate = d.toISOString().split('T')[0];
             noteInfoDisplay.textContent = getUIText('lastSavedOn', { date: formattedDate });
         } else {
-            noteInfoDisplay.textContent = ''; // Don't show anything for an invalid date
+            noteInfoDisplay.textContent = '';
         }
     } else if (typeof note === 'string') {
-        // Old format: The note is just the content string
         els.notesTextarea.value = note;
-        noteInfoDisplay.textContent = ''; // No date info is available
+        noteInfoDisplay.textContent = '';
     } else {
-        // No note exists or it's null/malformed
         els.notesTextarea.value = '';
         noteInfoDisplay.textContent = '';
     }
@@ -223,7 +218,6 @@ async function saveAndCloseNotesModal() {
     await saveNote(state.currentLevel, state.activeTab, content);
     state.notes.set(state.activeTab, content);
 
-    // Also update the header icon state after saving
     const notesButtons = document.querySelectorAll('.notes-header-btn');
     notesButtons.forEach(btn => {
         btn.classList.toggle('has-note', !!content.trim());
@@ -234,6 +228,31 @@ async function saveAndCloseNotesModal() {
        closeNotesModal();
        setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
     }, 1000);
+}
+
+// --- NEW THEME BUTTON HANDLER ---
+function handleThemeButtonClick() {
+    const isDark = document.documentElement.classList.toggle('dark-mode');
+    const newTheme = isDark ? 'dark' : 'light';
+    
+    // Update Emoji on the button
+    if (els.themeEmoji) {
+        els.themeEmoji.textContent = isDark ? '🌙' : '☀️';
+    }
+
+    // Keep mobile slider in sync
+    const mobileThemeInput = document.querySelector('#sidebar-controls .theme-switch input');
+    if (mobileThemeInput) {
+        mobileThemeInput.checked = isDark;
+    }
+
+    // Save setting
+    saveSetting('theme', newTheme);
+    try {
+        localStorage.setItem('theme', newTheme);
+    } catch (e) {
+        console.warn("Could not save theme to localStorage.", e);
+    }
 }
 
 function setupEventListeners() {
@@ -251,6 +270,10 @@ function setupEventListeners() {
                 els.sidebar?.classList.add('open');
                 els.overlay?.classList.add('active');
                 document.body.classList.add('sidebar-open');
+                break;
+            // --- MODIFICATION: Added case for the new theme button ---
+            case 'toggle-theme':
+                handleThemeButtonClick();
                 break;
             case 'toggle-pin':
                 togglePin();
@@ -324,9 +347,7 @@ function setupEventListeners() {
     els.closeNotesModalBtn?.addEventListener('click', closeNotesModal);
     els.notesSaveBtn?.addEventListener('click', saveAndCloseNotesModal);
 
-    // --- FIX IS HERE: Replaced the incorrect listener with the correct one ---
     els.notesModalWrapper?.addEventListener('click', (e) => {
-        // Only close the modal if the click is on the wrapper itself, not the content inside it.
         if (e.target === els.notesModalWrapper) {
             closeNotesModal();
         }
@@ -610,12 +631,12 @@ function populateAndBindControls() {
     if (headerLangSwitcher) {
         headerLangSwitcher.innerHTML = getLangSwitcherHTML();
     }
-    const headerThemeToggle = document.getElementById('header-theme-toggle');
-    if (headerThemeToggle) {
-        headerThemeToggle.innerHTML = getThemeToggleHTML();
-    }
-
-    document.querySelectorAll('.theme-switch input').forEach(el => el.addEventListener('change', toggleTheme));
+    
+    // --- MODIFICATION: The desktop theme button is now handled by the main click listener, so this specific binding is removed ---
+    
+    // Bind mobile theme switch
+    document.querySelectorAll('.sidebar-control-group .theme-switch input').forEach(el => el.addEventListener('change', toggleThemeSlider));
+    // Bind language switchers
     document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
         e.preventDefault();
         setLanguage(e.currentTarget.dataset.lang);
@@ -623,17 +644,14 @@ function populateAndBindControls() {
 }
 
 async function init() {
-    // 1. Prepare the DOM and load initial state from the database
     populateEls();
-    await loadState(); // This loads language, last level, etc.
+    await loadState(); 
 
-    // 2. Initial UI setup that can happen before data is loaded
     populateAndBindControls();
     setupEventListeners();
     setupTheme();
 
     try {
-        // 3. Fetch remote level list and get custom levels from DB to build the switcher UI
         let remoteLevels = [config.defaultLevel];
         try {
             const response = await fetch(`${config.dataPath}/levels.json`);
@@ -646,7 +664,7 @@ async function init() {
         
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
-        state.allAvailableLevels = [...new Set([...remoteLevels, ...customLevels])]; // Keep a complete list of levels
+        state.allAvailableLevels = [...new Set([...remoteLevels, ...customLevels])];
         buildLevelSwitcher(remoteLevels, customLevels);
 
         const params = new URLSearchParams(window.location.search);
@@ -655,61 +673,50 @@ async function init() {
             state.currentLevel = urlLevel;
         }
 
-        // Load the base UI text and any data for custom levels.
         await loadAllData(state.currentLevel);
 
-        // Check if the current level is a default/remote level (not user-imported).
         const isCustomLevel = customLevels.includes(state.currentLevel);
 
-        // If it's NOT a custom level, we MUST load the kanji and vocab data.
-        // The progress dashboard cannot be calculated without this data.
         if (!isCustomLevel) {
             await Promise.all([
                 loadTabData(state.currentLevel, 'kanji'),
                 loadTabData(state.currentLevel, 'vocab')
             ]).catch(error => {
                 console.error("Critical data (kanji/vocab) failed to load on init:", error);
-                // The app will continue, but the progress UI will be broken.
             });
         }
-        // 6. Now that critical data is loaded, render the main UI components
-        updateProgressDashboard();
-        setLanguage(state.currentLang, true); // Apply language without full re-render
-        setupImportModal(); // Setup modal logic now that UI text is available
 
-        // 7. Finalize the UI state and hide the initial loader
+        updateProgressDashboard();
+        setLanguage(state.currentLang, true);
+        setupImportModal();
+
         if (els.loadingOverlay) {
             els.loadingOverlay.style.opacity = '0';
             els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
         }
 
-        // Set the active level in the switcher and scroll it into view
         document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
         scrollActiveLevelIntoView();
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
         
-        // 8. Determine the initial tab and set up the browser history
         const urlTab = params.get('tab');
         const isMobileView = window.innerWidth <= 768;
-        const defaultTab = isMobileView ? 'external-search' : 'external-search'; // Or 'progress' if you prefer
+        const defaultTab = isMobileView ? 'external-search' : 'external-search';
         const initialTab = urlTab || state.pinnedTab || defaultTab;
         
-        await changeTab(initialTab, null, false, true); // Change tab, marking it as part of initial history
+        await changeTab(initialTab, null, false, true); 
         
         updateSidebarPinIcons();
 
-        // Replace the initial history state so the back button works correctly from the start.
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;
         history.replaceState(initialState, '', initialUrl);
 
     } catch (error) {
-        // This is a catastrophic failure during initialization.
         console.error('Initialization failed.', error);
         if (els.loadingOverlay) {
             els.loadingOverlay.innerHTML = `<div style="text-align: center; padding: 40px; font-family: sans-serif; color: white;"><h2>Application Error</h2><p>Something went wrong during startup. Please try refreshing the page.</p><p style="color: #ff8a8a;">${error.message}</p></div>`;
         }
-        // Don't hide the loader, show the error on it.
     }
 }
 

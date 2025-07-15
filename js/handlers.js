@@ -447,7 +447,8 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 
     if (tabName === 'external-search') {
         getActiveSearchInput().value = state.lastDictionaryQuery;
-        handleExternalSearch(state.lastDictionaryQuery);
+        // **THE FIX IS HERE**: Pass a 'true' flag to indicate this is a tab switch.
+        handleExternalSearch(state.lastDictionaryQuery, false, true);
     } else if (tabName === 'progress') {
         updateProgressDashboard(); // Always update progress dashboard on view
     } else {

@@ -495,9 +495,11 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
             contentFragment.appendChild(sectionContainer);
         }
         
-        // Use a consistent fade-in animation for the results
+        // **THE FIX IS HERE:** Conditionally apply the animation.
         const animatedWrapper = document.createElement('div');
-        animatedWrapper.className = 'anim-fade-in';
+        if (!isInitialLoad) {
+            animatedWrapper.className = 'anim-fade-in';
+        }
         animatedWrapper.appendChild(contentFragment);
         resultsContainer.appendChild(animatedWrapper);
 

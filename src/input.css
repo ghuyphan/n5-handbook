@@ -190,9 +190,43 @@ mark.search-highlight {
     font-size: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
 }
 
-.header-controls-wrapper {
-    box-shadow: 0 4px 12px var(--shadow-color);
+/* UPDATED: New Search Header Styles */
+.search-header-container {
+    display: flex;
+    align-items: center;
     border-radius: var(--radius-full);
+    padding: 0.375rem;
+    padding-left: 1rem;
+    gap: 0.5rem;
+}
+
+.search-section {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.search-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    padding: 0.625rem 0;
+}
+
+.controls-divider {
+    width: 1px;
+    height: 24px;
+    background-color: var(--glass-border);
+    margin: 0 0.25rem;
+}
+
+.controls-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 /* --- Responsive Breakpoints --- */
@@ -416,7 +450,7 @@ mark.search-highlight {
 }
 
 /* --- Search Inputs & Clear Button --- */
-.header-controls-wrapper .relative,
+.search-section .relative,
 .mobile-search-bar .relative {
     position: relative;
 }
@@ -734,13 +768,12 @@ mark.search-highlight {
 /* --- Kana Grid --- */
 .kana-grid {
     display: grid;
-    /* IMPROVEMENT: Changed to be responsive */
     grid-template-columns: repeat(5, 1fr);
     gap: 0.5rem;
 }
 
 .kana-grid .cell-bg {
-    padding: 0.5rem; /* Or adjust to a value that looks good, e.g., 0.75rem */
+    padding: 0.5rem;
 }
 
 .kana-grid>div>p {
@@ -766,6 +799,7 @@ mark.search-highlight {
 /* --- Icon Buttons (Pin, Notes, Details) --- */
 #pin-toggle,
 .notes-header-btn,
+.theme-btn,
 .details-toggle,
 .learn-toggle {
     display: inline-flex;
@@ -778,10 +812,8 @@ mark.search-highlight {
     z-index: 10;
 }
 
-#pin-toggle,
-.notes-header-btn {
+#pin-toggle {
     position: static;
-    /* Override absolute positioning for these two */
     background: var(--pin-background);
     border: 1px solid var(--glass-border);
     box-shadow: 0 4px 14px var(--shadow-color);
@@ -789,6 +821,54 @@ mark.search-highlight {
     min-height: 2rem;
     min-width: 2rem;
     border-radius: var(--radius-lg);
+}
+
+.notes-header-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.625rem;
+    position: static;
+    background-color: var(--switch-bg);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: none;
+}
+.dark-mode .notes-header-btn {
+    background-color: #374151;
+}
+
+.notes-header-btn:hover {
+    transform: scale(1.1);
+}
+
+.notes-header-btn.has-note {
+    animation: note-pulse 1.5s infinite;
+    border: 1px solid var(--accent-orange)
+}
+.dark-mode .notes-header-btn.has-note {
+    border: 1px solid var(--accent-orange);
+}
+
+.notes-header-btn.has-note svg {
+    fill: var(--accent-orange);
+}
+
+/* New Theme Button Style */
+.theme-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    position: static;
+    background-color: var(--switch-bg);
+    border-radius: var(--radius-full);
+    border: none;
+    box-shadow: none;
+    transition: all 0.2s ease;
+}
+
+.theme-btn:hover {
+    transform: scale(1.1);
 }
 
 .details-toggle,
@@ -817,10 +897,6 @@ mark.search-highlight {
     transition: fill var(--transition-duration) var(--ease-out-quint);
 }
 
-.notes-header-btn {
-    padding: 0.5rem;
-}
-
 .learn-toggle:hover,
 .details-toggle:hover {
     transform: scale(1.15);
@@ -831,9 +907,7 @@ mark.search-highlight {
 }
 
 #pin-toggle:hover,
-#pin-toggle:focus-visible,
-.notes-header-btn:hover,
-.notes-header-btn:focus-visible {
+#pin-toggle:focus-visible {
     background: var(--pin-hover-bg);
     border-color: var(--pin-color);
     box-shadow: 0 8px 24px var(--shadow-color);
@@ -841,14 +915,11 @@ mark.search-highlight {
 }
 
 #pin-toggle:hover svg,
-#pin-toggle:focus-visible svg,
-.notes-header-btn:hover svg,
-.notes-header-btn:focus-visible svg {
+#pin-toggle:focus-visible svg {
     fill: var(--pin-color);
 }
 
-#pin-toggle:active,
-.notes-header-btn:active {
+#pin-toggle:active {
     transform: scale(0.98);
 }
 
@@ -859,14 +930,6 @@ mark.search-highlight {
 #pin-toggle.pinned svg {
     fill: var(--pin-color);
     animation: pin-icon-rotate 0.5s var(--ease-out-quint) forwards;
-}
-
-.notes-header-btn.has-note {
-    border-color: var(--accent-orange);
-}
-
-.notes-header-btn.has-note svg {
-    fill: var(--accent-orange);
 }
 
 .learn-toggle.learned {
@@ -894,7 +957,6 @@ mark.search-highlight {
 
 /* --- Notes Modal --- */
 #notes-modal .modal-content-container {
-    /* transform: rotate(-1.5deg); */
     transition: transform 0.3s ease-out;
 }
 
@@ -1066,6 +1128,14 @@ mark.search-highlight {
         transform: scale(1);
     }
 }
+
+/* UPDATED: Note Button Pulse Animation */
+@keyframes note-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(249, 115, 22, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+}
+
 
 /* Loading Spinner Animation */
 #loading-overlay {
@@ -1252,6 +1322,7 @@ input:checked+.slider:before {
     content: "🌙";
 }
 
+/* UPDATED: Language Switcher Styles */
 .lang-switch {
     position: relative;
     background-color: var(--switch-bg);
@@ -1263,15 +1334,7 @@ input:checked+.slider:before {
 }
 
 .lang-switch-pill {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    bottom: 2px;
-    border-radius: var(--radius-full);
-    background-color: var(--accent-blue);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    z-index: 1;
+    display: none;
 }
 
 .lang-switch button {
@@ -1283,18 +1346,30 @@ input:checked+.slider:before {
     font-size: 0.875rem;
     border: none;
     cursor: pointer;
-    transition: color 0.4s var(--ease-in-out-quad);
+    transition: color 0.4s var(--ease-in-out-quad), background-color .4s var(--ease-out-quint), box-shadow .4s var(--ease-out-quint);
     background-color: transparent;
-    color: var(--lang-inactive-color, #1F2937);
+    color: var(--text-secondary);
+}
+
+.dark-mode .lang-switch button {
+    color: var(--lang-inactive-color, #E5E7EB);
 }
 
 .lang-switch button.active {
     color: white;
     font-weight: 700;
+    background-color: var(--accent-blue);
+    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.5);
 }
+
+.dark-mode .lang-switch button.active {
+    color: white;
+}
+
 
 .lang-switch button:hover:not(.active) {
     color: var(--text-primary);
+    background-color: var(--nav-hover-bg);
 }
 
 .level-switch {

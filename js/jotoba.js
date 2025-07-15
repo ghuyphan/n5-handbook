@@ -4,7 +4,6 @@
  */
 import { els } from './dom.js';
 import { state } from './config.js';
-// UPDATED: Import the new centralized UI function
 import { updateExternalSearchTab } from './ui.js';
 
 import { dbPromise } from './database.js';
@@ -179,7 +178,6 @@ function getUIText(key, fallback) {
     return state.appData?.ui?.[state.currentLang]?.[key] || fallback;
 }
 
-// REFACTORED: This function now works with the persistent placeholder from ui.js
 function renderErrorState(error, query) {
     let errorMessage;
     const errorMessages = {
@@ -192,7 +190,6 @@ function renderErrorState(error, query) {
     const errorKey = Object.keys(errorMessages).find(key => error.message.includes(key)) || 'default';
 
     if (errorKey === 'noResults') {
-        // If the error is "No results", we should use the dedicated state in the UI module
         updateExternalSearchTab('no-results', { query });
         return;
     }
@@ -211,7 +208,6 @@ function renderErrorState(error, query) {
             </button>
         </div>`;
 
-    // Find the containers managed by ui.js and display the error
     const placeholderContainer = els.externalSearchTab.querySelector('.placeholder-container');
     const resultsContainer = els.externalSearchTab.querySelector('.results-container');
     
@@ -239,8 +235,8 @@ async function performSearch(query, isJP, signal) {
     return await searchJotoba(query, isJP, signal);
 }
 
-// UPDATED: This is the core logic change. It now uses the centralized UI function.
-async function handleExternalSearchInternal(query, forceRefresh = false) {
+// **THE FIX IS HERE**: Added the 'isTabSwitch' parameter.
+async function handleExternalSearchInternal(query, forceRefresh = false, isTabSwitch = false) {
     const searchId = ++currentSearchId;
     const controller = new AbortController();
 
@@ -252,33 +248,34 @@ async function handleExternalSearchInternal(query, forceRefresh = false) {
     const normalizedQuery = query.trim();
 
     if (normalizedQuery.length === 0) {
-        // This is the initial "prompt" state. Set the isInitialLoad flag to true.
         updateExternalSearchTab('prompt', {}, true);
         return;
     }
     
-    // Show the loading spinner state (we want this to animate)
-    updateExternalSearchTab('searching');
-
     const db = await dbPromise;
 
-    try {
-        if (!forceRefresh) {
-            const cachedResult = await getCachedResult(db, normalizedQuery);
-            if (cachedResult && cachedResult.lang === state.currentLang) {
-                if (searchId === currentSearchId) {
-                    updateExternalSearchTab('results', { results: cachedResult.data, query: normalizedQuery });
-                }
-                return;
+    if (!forceRefresh) {
+        const cachedResult = await getCachedResult(db, normalizedQuery);
+        if (cachedResult && cachedResult.lang === state.currentLang) {
+            if (searchId === currentSearchId) {
+                // Pass the 'isTabSwitch' flag to the UI function.
+                updateExternalSearchTab('results', { results: cachedResult.data, query: normalizedQuery }, isTabSwitch);
             }
+            return;
         }
+    }
+    
+    // The 'isTabSwitch' flag is also passed here.
+    updateExternalSearchTab('searching', { query: normalizedQuery }, isTabSwitch);
 
+    try {
         const isJP = JAPANESE_REGEX.test(normalizedQuery);
         const results = await performSearch(normalizedQuery, isJP, signal);
 
         if (searchId === currentSearchId) {
             await cacheResult(db, normalizedQuery, results);
-            updateExternalSearchTab('results', { results: results, query: normalizedQuery });
+            // And here.
+            updateExternalSearchTab('results', { results: results, query: normalizedQuery }, isTabSwitch);
         }
 
     } catch (error) {

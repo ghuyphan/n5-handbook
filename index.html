@@ -68,7 +68,6 @@
             display: block;
         }
 
-        /* MODIFIED: Added style for the new in-content loader */
         .content-loader-wrapper {
             display: flex;
             justify-content: center;
@@ -88,7 +87,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
             </svg>
         </button>
-        <!-- MODIFICATION START: Changed <a> to <div> and wrapped only the logo in an <a> tag -->
         <div class="flex items-center gap-2 min-w-0">
             <a href="/" aria-label="Go to homepage">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3000 3000" aria-labelledby="logoTitleMobile"
@@ -109,11 +107,10 @@
             </a>
             <h1 id="mobile-header-title" class="text-lg font-bold text-header truncate"></h1>
         </div>
-        <!-- MODIFICATION END -->
         <div class="ml-auto flex items-center gap-2">
             <button id="mobile-notes-btn" data-action="open-notes" class="notes-header-btn" style="display: none;"
                 aria-label="Open notes">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 448 512">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 448 512" class="w-5 h-5">
                     <path
                         d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l224 0 0-112c0-26.5 21.5-48 48-48l112 0 0-224c0-35.3-28.7-64-64-64L64 32zM448 352l-45.3 0L336 352c-8.8 0-16 7.2-16 16l0 66.7 0 45.3 32-32 64-64 32-32z" />
                 </svg>
@@ -139,7 +136,6 @@
                 </svg>
             </button>
             <div class="flex-grow">
-                <!-- MODIFICATION START: Changed <a> to <div> and wrapped only the logo in an <a> tag -->
                 <div class="flex items-center gap-3 mb-6 md:mb-10 site-title-link">
                     <a href="/" aria-label="Go to homepage">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3000 3000"
@@ -161,9 +157,7 @@
                     </a>
                     <h1 class="text-2xl font-bold sidebar-title">Handbook</h1>
                 </div>
-                <!-- MODIFICATION END -->
                 <nav id="tabs" class="space-y-2">
-                    <!-- ... existing nav items ... -->
                     <div class="nav-item-wrapper relative">
                         <button data-action="change-tab" data-tab-name="external-search"
                             class="nav-item w-full flex items-center gap-3 p-3 rounded-lg font-semibold text-gray-600">
@@ -286,37 +280,40 @@
                     <h1 class="text-3xl font-bold text-header" data-lang-key="dashboard"></h1>
                     <p class="text-secondary truncate" data-lang-key="dashboardSubtitle"></p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="header-controls-wrapper glass-effect flex items-center gap-2 p-1.5 rounded-full">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
+                <div class="glass-effect flex items-center gap-2 rounded-full py-1.5 px-4">
+                    <div class="flex flex-grow items-center gap-3">
+                        <svg class="w-5 h-5 text-secondary pointer-events-none flex-shrink-0" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <div class="relative w-full">
                             <label for="search-input" class="hidden-label">Search Handbook</label>
-                            <input type="search" id="search-input"
-                                class="w-full pl-11 pr-4 py-2.5 rounded-full border-none transition focus:ring-2 text-primary bg-transparent focus:ring-offset-0"
-                                style="--tw-ring-color: var(--search-focus-ring);"
+                            <input type="search" id="search-input" class="search-input"
                                 data-lang-placeholder-key="searchPlaceholder">
                             <button class="clear-btn"
                                 onclick="document.getElementById('search-input').value = ''; document.getElementById('search-input').dispatchEvent(new Event('input'));"
                                 aria-label="Clear search"></button>
                         </div>
-                        <div id="header-lang-switcher" class="lang-switch"></div>
-                        <div id="header-theme-toggle" class="theme-switch-wrapper"></div>
                     </div>
-                    <button id="desktop-notes-btn" data-action="open-notes" class="notes-header-btn"
-                        style="display: none;" aria-label="Open Notes">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 448 512">
-                            <path
-                                d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l224 0 0-112c0-26.5 21.5-48 48-48l112 0 0-224c0-35.3-28.7-64-64-64L64 32zM448 352l-45.3 0L336 352c-8.8 0-16 7.2-16 16l0 66.7 0 45.3 32-32 64-64 32-32z" />
-                        </svg>
-                    </button>
+
+                    <div class="controls-divider"></div>
+
+                    <div class="flex items-center gap-2">
+                        <div id="header-lang-switcher" class="lang-switch"></div>
+                        <button id="desktop-theme-btn" data-action="toggle-theme" class="theme-btn" aria-label="Toggle theme mode">
+                           <span id="theme-emoji" class="text-lg leading-none">🌙</span>
+                        </button>
+                        <button id="desktop-notes-btn" data-action="open-notes" class="notes-header-btn"
+                            style="display: none;" aria-label="Open Notes">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 448 512" class="w-5 h-5">
+                                <path
+                                    d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l224 0 0-112c0-26.5 21.5-48 48-48l112 0 0-224c0-35.3-28.7-64-64-64L64 32zM448 352l-45.3 0L336 352c-8.8 0-16 7.2-16 16l0 66.7 0 45.3 32-32 64-64 32-32z" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-            </header>
+                </header>
 
             <div class="mobile-search-bar md:hidden mt-4 mb-5 px-3">
                 <div class="relative w-full glass-effect rounded-full">
@@ -412,7 +409,6 @@
         </div>
     </div>
 
-    <!-- ... Other templates like card-template ... -->
     <template id="card-template">
         <div class="relative h-32 sm:h-40" data-item-id="">
             <div class="learn-toggle" data-action="toggle-learned" data-category="" data-id="">
@@ -430,7 +426,6 @@
         </div>
     </template>
 
-    <!-- MODIFIED: Added a new template for the in-content loader -->
     <template id="content-loader-template">
         <div class="content-loader-wrapper">
             <div class="loader"></div>
