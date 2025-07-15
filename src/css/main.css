@@ -246,45 +246,24 @@ body.sidebar-open {
 
 /* Responsive Breakpoints for Layout */
 @media (max-width: 1200px) {
-    html {
-        font-size: 15.5px;
+    .right-sidebar {
+        display: none;
     }
-
     .main-grid {
         grid-template-columns: 280px 1fr;
         padding: 0 1.5rem;
     }
-
-    .right-sidebar {
-        display: none;
-    }
-}
-
-@media (min-width: 1201px) {
-    #nav-progress-tab {
-        display: none;
-    }
 }
 
 @media (max-width: 768px) {
-    html {
-        font-size: 14px;
-    }
-
-    .content-wrapper {
-        padding: 1rem;
-    }
-
     .main-grid {
         grid-template-columns: 1fr;
         padding: 0;
         gap: 0;
     }
-
     .main-header {
         display: none;
     }
-
     .mobile-header {
         display: flex;
         padding: 0.75rem;
@@ -303,12 +282,6 @@ body.sidebar-open {
         padding-top: 2rem;
         padding-bottom: 2rem;
     }
-
-    .tab-content {
-        margin: 0;
-        padding: 0;
-    }
-
     #sidebar {
         position: fixed;
         top: 50%;
@@ -328,47 +301,11 @@ body.sidebar-open {
         scrollbar-width: none;
     }
 
-    #sidebar::-webkit-scrollbar {
-        display: none;
-    }
-
     #sidebar.open {
         left: 1rem;
     }
 }
 
-@media (max-width: 640px) {
-    .content-wrapper {
-        padding: 1rem;
-    }
-}
-
-@media (max-width: 480px) {
-    html {
-        font-size: 13.5px;
-    }
-
-    .content-wrapper,
-    .mobile-header {
-        padding: 0.75rem;
-        border-radius: 0 !important;
-    }
-
-    .mobile-search-bar,
-    #main-content {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-    }
-
-    #sidebar {
-        height: calc(100svh - 1.5rem);
-        padding: 1rem;
-    }
-
-    #sidebar.open {
-        left: 0.75rem;
-    }
-}
 
 /* --- 5. CORE UI COMPONENTS (Initial State) --- */
 .glass-effect {

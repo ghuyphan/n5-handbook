@@ -16,8 +16,10 @@
     <link rel="preload" href="./assets/siteIcon.png" as="image">
     <link rel="preload" href="/dist/deferred.min.css" as="style">
     <link rel="preload" href="/dist/main.min.js" as="script">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Klee+One&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Klee+One&family=Noto+Sans+JP:wght@400;700&display=swap"
+        rel="stylesheet">
 
 
     <meta name="description"
@@ -36,107 +38,8 @@
 
     <script>try { const e = localStorage.getItem("theme"), t = window.matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.classList.toggle("dark-mode", e ? "dark" === e : t) } catch (e) { console.error("Theme error", e) }</script>
 
-<link rel="stylesheet" href="/dist/main.min.css">
-<link rel="stylesheet" href="/dist/deferred.min.css" media="print" onload="this.media='all'">
-
-
-    <style>
-        /* Inlined Critical CSS */
-        :root {
-            --bg-main: #F4F7FE;
-            --text-primary: #1a1a2e;
-            --text-secondary: #5a5a78;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.25);
-            --shadow-color: rgba(99, 102, 241, 0.08);
-            --backdrop-bg: rgba(0, 0, 0, 0.3);
-            --radius-xl: 1.5rem;
-        }
-
-        .dark-mode {
-            --bg-main: #111827;
-            --text-primary: #F3F4F6;
-            --text-secondary: #D1D5DB;
-            --glass-bg: rgba(31, 41, 55, 0.75);
-            --glass-border: rgba(55, 65, 81, 0.25);
-            --shadow-color: rgba(31, 41, 55, 0.1);
-            --backdrop-bg: rgba(17, 24, 39, 0.5);
-        }
-
-        html {
-            scroll-behavior: smooth;
-            font-size: 16px;
-        }
-
-        body {
-            font-family: 'Inter', 'Noto Sans JP', sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        #loading-overlay {
-            position: fixed;
-            inset: 0;
-            background-color: var(--backdrop-bg);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .loader {
-            position: relative;
-            width: clamp(3.5rem, 15vw, 5rem);
-            aspect-ratio: 1 / 1;
-        }
-
-        .loader:before,
-        .loader:after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 4px solid #3B82F6;
-            animation: pulse 2.4s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.1); opacity: 1; }
-            100% { transform: scale(1.2); opacity: 0; }
-        }
-
-        .loader:after { animation-delay: -1.2s; }
-        .main-grid { display: grid; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        @media (min-width: 768px) {
-            .main-grid { grid-template-columns: 280px 1fr 280px; padding: 1.5rem; }
-            .right-sidebar { display: block; }
-        }
-        @media (max-width: 767px) {
-            .main-grid { grid-template-columns: 1fr; }
-            .right-sidebar { display: none; }
-            .main-header { display: none; }
-        }
-
-        .hidden-label {
-            border: 0;
-            clip: rect(0 0 0 0);
-            height: 1px;
-            margin: -1px;
-            overflow: hidden;
-            padding: 0;
-            position: absolute;
-            width: 1px;
-        }
-    </style>
+    <link rel="stylesheet" href="/dist/main.min.css">
+    <link rel="stylesheet" href="/dist/deferred.min.css" media="print" onload="this.media='all'">
 
 </head>
 
@@ -349,7 +252,6 @@
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                         <div class="relative w-full">
-                            <label for="search-input" class="hidden-label">Search Handbook</label>
                             <input type="search" id="search-input" class="search-input"
                                 data-lang-placeholder-key="searchPlaceholder">
                             <button class="clear-btn"

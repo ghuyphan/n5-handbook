@@ -59,6 +59,32 @@ function getSearchPlaceholderInnerContent(type, query = '') {
     return innerContent;
 }
 
+export function renderContentNotAvailable(tabName) {
+    const container = document.getElementById(tabName);
+    if (!container) return;
+
+    const getUIText = (key, replacements = {}) => {
+        let text = state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+        for (const [placeholder, value] of Object.entries(replacements)) {
+            text = text.replace(`{${placeholder}}`, value);
+        }
+        return text;
+    };
+
+    const title = getUIText('errorContentNotAvailableTitle');
+    const body = getUIText('errorContentNotAvailableBody', {
+        tabName: tabName,
+        levelName: state.currentLevel.toUpperCase()
+    });
+
+    container.innerHTML = `
+        <div class="p-6 text-center text-secondary content-anim-fade-in">
+            <h3 class="font-semibold text-lg text-primary mb-2">${title}</h3>
+            <p>${body}</p>
+        </div>
+    `;
+}
+
 
 function createAccordion(title, contentNode, searchData, titleKey) {
     const template = document.getElementById('accordion-template');
@@ -346,8 +372,10 @@ export function closeSidebar() {
 
 function renderCardBasedSection(containerId, data, category, gradient) {
     const container = document.getElementById(containerId);
-    if (container) container.innerHTML = '';
-    if (!data || !container) return;
+    if (!container) return; // FIX: Add guard clause
+
+    container.innerHTML = '';
+    if (!data) return; // FIX: Add guard clause
 
     const fragment = document.createDocumentFragment();
     for (const key in data) {
@@ -575,7 +603,14 @@ function prepareKanaData(originalData) {
 
 export function renderContent(tabId = null) {
     const renderSafely = (renderFn) => {
-        try { renderFn(); } catch (e) { console.error("Render error:", e); }
+        try { 
+            // Add a check to ensure data exists before rendering
+            if (state.appData[tabId]) {
+                renderFn(); 
+            }
+        } catch (e) { 
+            console.error("Render error:", e); 
+        }
     };
 
     const tabsToRender = tabId ? [tabId] : Object.keys(state.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));

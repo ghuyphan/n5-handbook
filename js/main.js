@@ -20,7 +20,12 @@ async function loadRequiredDataForProgress() {
     const promises = [];
     for (const type of requiredDataTypes) {
         if (!state.appData[type]) {
-            promises.push(loadTabData(state.currentLevel, type));
+            // Check if it's a default level before trying to load
+            const db = await dbPromise;
+            const isCustomLevel = await db.get('levels', state.currentLevel);
+            if (!isCustomLevel) {
+                promises.push(loadTabData(state.currentLevel, type));
+            }
         }
     }
     if (promises.length > 0) {
@@ -35,25 +40,6 @@ async function loadRequiredDataForProgress() {
 
 // --- Wrapper function to handle notes logic and progress updates on tab change ---
 async function changeTab(tabName, ...args) {
-    const isDataTab = !['progress', 'external-search'].includes(tabName);
-
-    // OPTIMIZATION: If data for this tab isn't loaded yet, fetch it on demand.
-    if (isDataTab && !state.appData[tabName]) {
-        const activeTab = document.getElementById(tabName);
-        if (activeTab) {
-            activeTab.innerHTML = `<div class="content-loader-wrapper"><div class="loader"></div></div>`;
-        }
-        try {
-            await loadTabData(state.currentLevel, tabName);
-        } catch (error) {
-            console.error(`Failed to load content for ${tabName}:`, error);
-            if (activeTab) {
-                activeTab.innerHTML = `<p class="text-center p-4 text-red-400">Failed to load content.</p>`;
-            }
-            return; // Stop execution if data loading fails
-        }
-    }
-
     // Call the original function from handlers.js to continue with tab switching logic
     await originalChangeTab(tabName, ...args);
 

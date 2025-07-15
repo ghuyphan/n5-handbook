@@ -8,7 +8,7 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel } from './database.js';
-import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher } from './ui.js';
+import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
 // --- OPTIMIZATION: Cache for searchable items and their original state ---
@@ -132,7 +132,6 @@ export const handleSearch = debounce(() => {
         return;
     }
     
-    // OPTIMIZATION: Use the cached list of elements
     const allItems = searchCache.get(activeTabId)?.map(item => item.element) || [];
     const allWrappers = activeTab.querySelectorAll('.search-wrapper');
 
@@ -172,7 +171,7 @@ export function setLanguage(lang, skipRender = false) {
     saveSetting('language', lang);
     
     if (state.renderedTabs) state.renderedTabs.clear();
-    searchCache.clear(); // Clear search cache on language change
+    searchCache.clear();
 
     const uiStrings = state.appData.ui;
     const processText = (textKey) => {
@@ -272,7 +271,7 @@ async function loadLevelData(level) {
     state.lastDictionaryQuery = '';
     state.notes.clear();
     if (state.renderedTabs) state.renderedTabs.clear();
-    searchCache.clear(); // Clear search cache
+    searchCache.clear();
 
     const db = await dbPromise;
     const isCustomLevel = !!(await db.get('levels', level));
@@ -290,9 +289,22 @@ async function renderLevelUI(level, fromHistory) {
     setLanguage(state.currentLang, true);
     document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
     updateSidebarPinIcons();
+    
+    // THE FIX: Show/Hide Kana tabs based on level
+    const showKana = level === config.defaultLevel;
+    document.querySelector('[data-tab-name="hiragana"]').parentElement.style.display = showKana ? '' : 'none';
+    document.querySelector('[data-tab-name="katakana"]').parentElement.style.display = showKana ? '' : 'none';
+
     const isMobileView = window.innerWidth <= 768;
-    const defaultTab = isMobileView ? 'external-search' : 'hiragana';
-    const targetTab = state.pinnedTab || defaultTab;
+    const defaultTab = isMobileView ? 'external-search' : (showKana ? 'hiragana' : 'keyPoints');
+    
+    let targetTab = state.pinnedTab || defaultTab;
+    if (!showKana && (targetTab === 'hiragana' || targetTab === 'katakana')) {
+        targetTab = 'keyPoints';
+        state.pinnedTab = null;
+        await savePinnedTab(null);
+    }
+    
     await changeTab(targetTab, null, false, fromHistory, true);
 }
 
@@ -316,7 +328,7 @@ export async function setLevel(level, fromHistory = false) {
         state.loadingStatus = 'idle';
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
-        state.loadingSßßtatus = 'error';
+        state.loadingStatus = 'error';
         if (els.loadingOverlay) {
             const title = getUIText('errorLoadLevelTitle');
             const body = getUIText('errorLoadLevelBody');
@@ -397,7 +409,6 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         return;
     }
 
-    // --- IMMEDIATE UI UPDATES ---
     state.activeTab = tabName;
     updateTabUI(tabName);
     closeSidebar();
@@ -412,8 +423,6 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         return;
     }
     newTabContentEl.classList.add('active');
-    // --- END OF IMMEDIATE UI UPDATES ---
-
 
     if (!fromHistory) {
         const url = `?level=${state.currentLevel}&tab=${tabName}`;
@@ -424,22 +433,27 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         state.lastDictionaryQuery = getActiveSearchInput().value.trim();
     }
 
-
     const isDataTab = !['external-search', 'progress'].includes(tabName);
+    const hasData = state.appData[tabName];
 
     if (isDataTab) {
-        // Caching rendered tab content
-        if (state.renderedTabs.has(tabName) && !forceRender) {
-            newTabContentEl.innerHTML = state.renderedTabs.get(tabName);
-            // Re-initialize Fuse and search cache for the restored tab
-            setupFuseForTab(tabName);
+        if (hasData) {
+            if (forceRender || !state.renderedTabs.has(tabName)) {
+                renderContent(tabName);
+                state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
+            } else {
+                newTabContentEl.innerHTML = state.renderedTabs.get(tabName);
+                setupFuseForTab(tabName);
+            }
         } else {
-            const isDataMissing = !state.appData[tabName];
-            if (isDataMissing) {
+            const db = await dbPromise;
+            const isCustomLevel = await db.get('levels', state.currentLevel);
+            if (isCustomLevel) {
+                renderContentNotAvailable(tabName);
+                state.renderedTabs.delete(tabName);
+            } else {
                 const loaderTemplate = document.getElementById('content-loader-template');
-                newTabContentEl.innerHTML = '';
-                if (loaderTemplate) newTabContentEl.appendChild(loaderTemplate.content.cloneNode(true));
-
+                newTabContentEl.innerHTML = loaderTemplate ? loaderTemplate.innerHTML : '<div class="loader"></div>';
                 try {
                     await loadTabData(state.currentLevel, tabName);
                     renderContent(tabName);
@@ -450,9 +464,6 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
                     const body = getUIText('errorLoadContentBody');
                     newTabContentEl.innerHTML = `<div class="p-6 text-center text-secondary"><h3 class="font-semibold text-lg text-primary mb-2">${title}</h3><p class="text-red-400">${error.message}</p><p class="mt-2">${body}</p></div>`;
                 }
-            } else {
-                renderContent(tabName);
-                state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
             }
         }
     }
