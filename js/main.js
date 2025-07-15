@@ -489,7 +489,7 @@ function setupImportModal() {
                 for (const char of line) {
                     if (char === '"' && (current.length === 0 || !inQuotes)) {
                         inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
+                    } else if (char === ';' && !inQuotes) {
                         values.push(current);
                         current = '';
                     } else {
