@@ -170,7 +170,8 @@ mark.search-highlight {
 }
 
 .modal-title {
-    font-size: clamp(1.1rem, 5vw, 1.25rem);
+    /* MODIFIED: Adjusted for better mobile scaling */
+    font-size: clamp(1.125rem, 4vw, 1.25rem);
     font-weight: 700;
     color: var(--text-primary);
 }
@@ -345,11 +346,13 @@ mark.search-highlight {
 }
 
 .kana-font {
-    font-size: clamp(1.1rem, 5vw, 2.25rem);
+    /* MODIFIED: Reduced max size for better fit on mobile */
+    font-size: clamp(1.1rem, 5vw, 1.8rem);
 }
 
 .kana-font-digraph {
-    font-size: clamp(0.9rem, 4vw, 1.875rem);
+    /* MODIFIED: Reduced max size for better fit on mobile */
+    font-size: clamp(0.9rem, 4vw, 1.5rem);
 }
 
 .details-toggle,
@@ -556,8 +559,9 @@ mark.search-highlight {
 
 .responsive-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
+    /* MODIFIED: Reduced minmax size for better fitting on smaller screens */
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem; /* MODIFIED: Reduced gap for mobile */
 }
 
 .table-responsive-wrapper {
@@ -808,19 +812,23 @@ mark.search-highlight {
 }
 
 #kanji-detail-modal .text-5xl {
-    font-size: clamp(2rem, 8vw, 3rem);
+    /* MODIFIED: Adjusted for more consistent mobile viewing */
+    font-size: clamp(2.5rem, 10vw, 3rem);
 }
 
 #kanji-detail-modal .text-xl {
-    font-size: clamp(1.25rem, 5vw, 1.5rem);
+    /* MODIFIED: Adjusted for more consistent mobile viewing */
+    font-size: clamp(1.125rem, 5vw, 1.25rem);
 }
 
 #kanji-detail-modal .text-sm {
-    font-size: clamp(1rem, 3.5vw, 1.1rem);
+    /* MODIFIED: Adjusted for more consistent mobile viewing */
+    font-size: clamp(0.9rem, 4vw, 1rem);
 }
 
 #kanji-detail-modal .text-xs {
-    font-size: clamp(0.9rem, 3vw, 1rem);
+    /* MODIFIED: Adjusted for more consistent mobile viewing */
+    font-size: clamp(0.8rem, 3.5vw, 0.875rem);
 }
 
 @media (max-width: 480px) {
@@ -868,7 +876,7 @@ mark.search-highlight {
 }
 
 .dict-section-header {
-    font-size: 1.25rem;
+    font-size: 1.125rem; /* MODIFIED: Slightly smaller header */
     font-weight: 700;
     color: var(--text-primary);
     padding-bottom: 0.5rem;
@@ -890,19 +898,19 @@ mark.search-highlight {
 }
 
 .dict-vocab-term {
-    font-size: 1.5rem;
+    font-size: 1.25rem; /* MODIFIED: Smaller term size */
     font-weight: 700;
     color: var(--text-primary);
     font-family: 'Noto Sans JP', sans-serif;
 }
 
 .dict-vocab-reading {
-    font-size: 1rem;
+    font-size: 0.9rem; /* MODIFIED: Smaller reading size */
     color: var(--text-secondary);
 }
 
 .dict-vocab-definitions {
-    font-size: 0.95rem;
+    font-size: 0.9rem; /* MODIFIED: Smaller definition size */
     line-height: 1.7;
     color: var(--text-secondary);
     padding-top: 0.75rem;
@@ -932,7 +940,7 @@ mark.search-highlight {
 }
 
 .dict-kanji-char {
-    font-size: 2.5rem;
+    font-size: 2rem; /* MODIFIED: Smaller kanji char size */
     font-weight: 700;
     color: var(--accent-teal);
     font-family: 'Noto Sans JP', sans-serif;
@@ -942,7 +950,7 @@ mark.search-highlight {
 .dict-kanji-readings {
     font-family: 'Noto Sans JP', sans-serif;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 .dict-kanji-readings .reading-label {
@@ -955,7 +963,7 @@ mark.search-highlight {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--glass-border);
-    font-size: 1rem;
+    font-size: 0.95rem; /* MODIFIED: Slightly smaller meaning size */
     line-height: 1.6;
     color: var(--text-primary);
 }
@@ -1377,4 +1385,39 @@ mark.search-highlight {
 input:checked+.slider:before {
     transform: translateX(24px);
     content: "🌙";
+}
+
+
+/* NEW: Mobile-specific component adjustments for smaller screens */
+@media (max-width: 768px) {
+    .search-placeholder-box {
+        padding: 1.5rem;
+    }
+    
+    .accordion-button {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-item-wrapper,
+    .cell-bg,
+    .grammar-card,
+    .dict-card {
+        padding: 1rem;
+    }
+
+    .responsive-grid {
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    
+    .kana-grid {
+        gap: 0.25rem;
+    }
+
+    .kana-grid .cell-bg {
+        padding: 0.25rem;
+    }
 }
