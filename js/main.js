@@ -192,15 +192,27 @@ function openKanjiDetailModal(kanjiId) {
         scrollContent.addEventListener('scroll', checkScroll);
         setTimeout(checkScroll, 50);
     }
-
-    els.kanjiDetailModal.classList.add('active');
+    
+    // NEW LOGIC: Use the same pattern as other modals
     document.body.classList.add('body-no-scroll');
+    els.kanjiDetailModal.classList.remove('modal-hidden');
+    els.kanjiModalBackdrop.classList.add('active');
+    // We now target the modal's wrapper for the animation class
+    els.kanjiDetailModal.querySelector('.modal-wrapper').classList.add('active');
 }
 
 function closeKanjiDetailModal() {
-    els.kanjiDetailModal.classList.remove('active');
+    // NEW LOGIC: Use the same pattern as other modals
     document.body.classList.remove('body-no-scroll');
+    els.kanjiModalBackdrop.classList.remove('active');
+    els.kanjiDetailModal.querySelector('.modal-wrapper').classList.remove('active');
+    
+    // Hide the modal container after the animation finishes
+    setTimeout(() => {
+        els.kanjiDetailModal.classList.add('modal-hidden');
+    }, 400); // Should match your --transition-duration
 }
+
 
 async function openNotesModal() {
     const tabId = state.activeTab;
@@ -250,25 +262,25 @@ function closeNotesModal() {
     const currentContent = els.notesTextarea.value;
     const originalContent = state.notes.originalContent;
 
+    const doClose = () => {
+        document.body.classList.remove('body-no-scroll');
+        els.notesModalBackdrop.classList.remove('active');
+        els.notesModalWrapper.classList.remove('active');
+        setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
+        state.notes.originalContent = '';
+    };
+
     if (currentContent !== originalContent) {
         showCustomConfirm(
             getUIText('unsavedChangesTitle', 'Unsaved Changes'),
             getUIText('unsavedChangesBody', 'You have unsaved changes. Are you sure you want to close without saving?')
         ).then(confirmed => {
             if (confirmed) {
-                document.body.classList.remove('body-no-scroll');
-                els.notesModalBackdrop.classList.remove('active');
-                els.notesModalWrapper.classList.remove('active');
-                setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
-                state.notes.originalContent = '';
+                doClose();
             }
         });
     } else {
-        document.body.classList.remove('body-no-scroll');
-        els.notesModalBackdrop.classList.remove('active');
-        els.notesModalWrapper.classList.remove('active');
-        setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
-        state.notes.originalContent = '';
+        doClose();
     }
 }
 
@@ -698,6 +710,7 @@ function populateAndBindControls() {
 async function init() {
     populateEls();
     await loadState();
+    
     populateAndBindControls();
     setupEventListeners();
     setupTheme();

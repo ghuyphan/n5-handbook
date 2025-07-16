@@ -444,9 +444,11 @@
         </div>
     </template>
 
-    <div id="kanji-detail-modal" class="fixed inset-0 z-[150] flex items-center justify-center p-4">
-        <div id="modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
-        <div id="modal-content-container" class="relative w-full max-w-md">
+    <div id="kanji-detail-modal" class="modal-hidden">
+        <div id="modal-backdrop" class="modal-backdrop"></div>
+        <div class="modal-wrapper">
+            <div id="modal-content-container" class="relative w-full max-w-md">
+            </div>
         </div>
     </div>
 

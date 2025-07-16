@@ -5,7 +5,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  src: url('../assets/fonts/inter-v13-latin_latin-ext_vietnamese-regular.woff2') format('woff2');
+  src: url('../assets/fonts/inter-v19-latin_latin-ext_vietnamese-regular.woff2') format('woff2');
 }
 /* inter-600 - latin-ext_vietnamese_latin */
 @font-face {
@@ -13,7 +13,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 600;
-  src: url('../assets/fonts/inter-v13-latin_latin-ext_vietnamese-600.woff2') format('woff2');
+  src: url('../assets/fonts/inter-v19-latin_latin-ext_vietnamese-600.woff2') format('woff2');
 }
 /* inter-700 - latin-ext_vietnamese_latin */
 @font-face {
@@ -21,7 +21,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 700;
-  src: url('../assets/fonts/inter-v13-latin_latin-ext_vietnamese-700.woff2') format('woff2');
+  src: url('../assets/fonts/inter-19-latin_latin-ext_vietnamese-700.woff2') format('woff2');
 }
 /* klee-one-regular - latin */
 @font-face {
@@ -29,7 +29,7 @@
   font-family: 'Klee One';
   font-style: normal;
   font-weight: 400;
-  src: url('../assets/fonts/klee-one-v9-latin-regular.woff2') format('woff2');
+  src: url('../assets/fonts/klee-one-v12-latin-regular.woff2') format('woff2');
 }
 /* noto-sans-jp-regular - japanese_latin */
 @font-face {
@@ -37,7 +37,7 @@
   font-family: 'Noto Sans JP';
   font-style: normal;
   font-weight: 400;
-  src: url('../assets/fonts/noto-sans-jp-v52-japanese_latin-regular.woff2') format('woff2'); 
+  src: url('../assets/fonts/noto-sans-jp-v54-japanese_latin-regular.woff2') format('woff2'); 
 }
 /* noto-sans-jp-700 - japanese_latin */
 @font-face {
@@ -45,7 +45,7 @@
   font-family: 'Noto Sans JP';
   font-style: normal;
   font-weight: 700;
-  src: url('../assets/fonts/noto-sans-jp-v52-japanese_latin-700.woff2') format('woff2'); 
+  src: url('../assets/fonts/noto-sans-jp-v54-japanese_latin-700.woff2') format('woff2'); 
 }
 
 /* ==========================================================================
