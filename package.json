@@ -6,7 +6,7 @@
   "scripts": {
     "build:css:main": "tailwindcss -i ./src/css/main.css -o ./dist/main.min.css --minify",
     "build:css:deferred": "tailwindcss -i ./src/css/deferred.css -o ./dist/deferred.min.css --minify",
-    "build": "npm run build:css:main && npm run build:css:deferred && esbuild ./js/main.js --bundle --minify --outfile=dist/main.min.js --format=esm",
+    "build": "npm run build:css:main && npm run build:css:deferred && esbuild ./js/main.js --bundle --minify --splitting --outdir=dist --format=esm",
     "build:dev": "esbuild ./js/main.js --bundle --splitting --outdir=dist --format=esm --sourcemap",
     "watch": "tailwindcss -i ./src/css/deferred.css -o ./dist/deferred.min.css --watch"
   },

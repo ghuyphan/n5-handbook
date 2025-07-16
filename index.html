@@ -4,7 +4,6 @@
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://raw.githubusercontent.com">
 
     <meta charset="UTF-8">
@@ -14,12 +13,13 @@
     <link rel="alternate icon" type="image/png" href="./assets/siteIcon.png">
 
     <link rel="preload" href="./assets/siteIcon.png" as="image">
+    <link rel="preload" href="/dist/main.min.css" as="style">
     <link rel="preload" href="/dist/deferred.min.css" as="style">
     <link rel="preload" href="/dist/main.min.js" as="script">
 
-    <link
+    <!-- <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Klee+One&family=Noto+Sans+JP:wght@400;700&display=swap"
-        rel="stylesheet">
+        rel="stylesheet"> -->
 
 
     <meta name="description"
@@ -39,6 +39,7 @@
     <script>try { const e = localStorage.getItem("theme"), t = window.matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.classList.toggle("dark-mode", e ? "dark" === e : t) } catch (e) { console.error("Theme error", e) }</script>
 
     <link rel="stylesheet" href="/dist/main.min.css">
+
     <link rel="stylesheet" href="/dist/deferred.min.css" media="print" onload="this.media='all'">
 
 </head>
@@ -52,7 +53,7 @@
             </svg>
         </button>
         <div class="flex items-center gap-2 min-w-0">
-            <a href="/" aria-label="Go to homepage">
+            <a href="/" aria-label="Go to homepage. JLPT Handbook Logo">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3000 3000" aria-labelledby="logoTitleMobile"
                     class="h-8 w-8 flex-shrink-0">
                     <title id="logoTitleMobile">JLPT Handbook Logo</title>
@@ -101,7 +102,7 @@
             </button>
             <div class="flex-grow">
                 <div class="flex items-center gap-3 mb-6 md:mb-10 site-title-link">
-                    <a href="/" aria-label="Go to homepage">
+                    <a href="/" aria-label="Go to homepage. JLPT Handbook Logo">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3000 3000"
                             aria-labelledby="logoTitleSidebar" class="h-10 w-10">
                             <title id="logoTitleSidebar">JLPT Handbook Logo</title>
@@ -296,6 +297,7 @@
             </div>
 
             <main id="main-content" class="relative px-4 sm:px-0">
+                <h2 class="sr-only">Main Content</h2>
                 <div id="loading-overlay">
                     <div class="loader"></div>
                 </div>
@@ -307,7 +309,12 @@
                 <div id="keyPoints" class="tab-content"></div>
                 <div id="vocab" class="tab-content"></div>
                 <div id="grammar" class="tab-content"></div>
-                <div id="external-search" class="tab-content"></div>
+                <div id="external-search" class="tab-content">
+                    <div class="results-container" style="display: none;"></div>
+                    <div class="placeholder-container search-placeholder-wrapper">
+                        <div class="search-placeholder-box"></div>
+                    </div>
+                </div>
             </main>
 
             <footer class="mt-auto text-center py-8">
@@ -524,15 +531,15 @@
             </div>
         </div>
     </div>
-    
+
     <template id="custom-dialog-template">
         <div class="modal-content glass-effect">
             <div class="modal-header">
                 <h2 id="custom-dialog-title" class="modal-title"></h2>
                 <button id="custom-dialog-close-btn" class="modal-close-btn" aria-label="Close dialog">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
                     </svg>
                 </button>
             </div>
@@ -540,7 +547,7 @@
                 <p id="custom-dialog-message" class="text-secondary"></p>
             </div>
             <div id="custom-dialog-actions" class="modal-footer">
-                </div>
+            </div>
         </div>
     </template>
 

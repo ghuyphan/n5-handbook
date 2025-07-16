@@ -698,18 +698,35 @@ function populateAndBindControls() {
 async function init() {
     populateEls();
     await loadState();
-
     populateAndBindControls();
     setupEventListeners();
     setupTheme();
 
+    // --- LCP FIX: Show content skeleton and hide loader ASAP ---
+    // Hide loader immediately to unblock rendering
+    if (els.loadingOverlay) {
+        els.loadingOverlay.style.opacity = '0';
+        els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
+    }
+    
+    // Set initial UI texts that don't depend on async data
+    setLanguage(state.currentLang, true); // `true` to skip re-rendering tabs
+    document.querySelectorAll('.lang-switch').forEach(moveLangPill);
+    
+    // Determine the initial tab but don't load its content yet
+    const params = new URLSearchParams(window.location.search);
+    let initialTab = params.get('tab') || state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'external-search');
+
+    // Render the initial tab with its placeholder content immediately
+    await changeTab(initialTab, null, false, true);
+    
+    // --- Now, load the rest of the data in the background ---
     try {
         const pkgResponse = await fetch('./package.json');
-        const pkg = await pkgResponse.json();
-        const version = pkg.version;
-        const versionElement = document.getElementById('app-version');
-        if (versionElement) {
-            versionElement.textContent = `v${version}`;
+        if (pkgResponse.ok) {
+            const pkg = await pkgResponse.json();
+            const versionElement = document.getElementById('app-version');
+            if (versionElement) versionElement.textContent = `v${pkg.version}`;
         }
     } catch (error) {
         console.error("Could not load version from package.json", error);
@@ -719,9 +736,7 @@ async function init() {
         let remoteLevels = [config.defaultLevel];
         try {
             const response = await fetch(`${config.dataPath}/levels.json`);
-            if (response.ok) {
-                remoteLevels = (await response.json()).levels;
-            }
+            if (response.ok) remoteLevels = (await response.json()).levels;
         } catch (error) {
             console.warn("Could not fetch remote levels list. Falling back to default.", error);
         }
@@ -729,39 +744,25 @@ async function init() {
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
         state.allAvailableLevels = [...new Set([...remoteLevels, ...customLevels])];
-        buildLevelSwitcher(remoteLevels, customLevels);
-
-        const params = new URLSearchParams(window.location.search);
+        
         const urlLevel = params.get('level');
         if (urlLevel && state.allAvailableLevels.includes(urlLevel)) {
             state.currentLevel = urlLevel;
         }
 
         await loadAllData(state.currentLevel);
-         await setupTabsForLevel(state.currentLevel);
 
+        // Populate dynamic UI elements now that data is loaded
+        buildLevelSwitcher(remoteLevels, customLevels);
+        document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
+        scrollActiveLevelIntoView();
+        
+        await setupTabsForLevel(state.currentLevel);
         await loadRequiredDataForProgress();
         updateProgressDashboard();
 
-        setLanguage(state.currentLang, true);
+        setLanguage(state.currentLang, true); // Re-apply language to newly created elements
         setupImportModal();
-
-        if (els.loadingOverlay) {
-            els.loadingOverlay.style.opacity = '0';
-            els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
-        }
-
-        document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
-        scrollActiveLevelIntoView();
-        document.querySelectorAll('.lang-switch').forEach(moveLangPill);
-
-        const urlTab = params.get('tab');
-        const isMobileView = window.innerWidth <= 768;
-        const defaultTab = isMobileView ? 'external-search' : 'external-search';
-        const initialTab = urlTab || state.pinnedTab || defaultTab;
-
-        await changeTab(initialTab, null, false, true);
-
         updateSidebarPinIcons();
 
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
@@ -769,7 +770,7 @@ async function init() {
         history.replaceState(initialState, '', initialUrl);
 
     } catch (error) {
-        console.error('Initialization failed.', error);
+        console.error('Deferred initialization failed.', error);
         if (els.loadingOverlay) {
             showCustomAlert(
                 getUIText('applicationErrorTitle', 'Application Error'),
