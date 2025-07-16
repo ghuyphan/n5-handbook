@@ -721,39 +721,32 @@ async function init() {
     const params = new URLSearchParams(window.location.search);
     let initialTab = params.get('tab') || state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'external-search');
 
-    await changeTab(initialTab, null, false, true);
-
+    // **PERFORMANCE FIX START**
     try {
-        const pkgResponse = await fetch('./package.json');
-        if (pkgResponse.ok) {
-            const pkg = await pkgResponse.json();
-            const versionElement = document.getElementById('app-version');
-            if (versionElement) versionElement.textContent = `v${pkg.version}`;
-        }
-    } catch (error) {
-        console.error("Could not load version from package.json", error);
-    }
-
-    try {
-        let remoteLevels = [config.defaultLevel];
-        try {
-            const response = await fetch(`${config.dataPath}/levels.json`);
-            if (response.ok) remoteLevels = (await response.json()).levels;
-        } catch (error) {
-            console.warn("Could not fetch remote levels list. Falling back to default.", error);
-        }
-
+        // --- 1. Fetch remote and local level lists in parallel ---
         const db = await dbPromise;
-        const customLevels = await db.getAllKeys('levels');
+        const remoteLevelsPromise = fetch(`${config.dataPath}/levels.json`)
+            .then(res => res.ok ? res.json() : { levels: [] })
+            .catch(err => {
+                console.warn("Could not fetch remote levels list. Falling back to default.", err);
+                return { levels: [config.defaultLevel] };
+            });
+        
+        const customLevelsPromise = db.getAllKeys('levels');
+
+        const [remoteData, customLevels] = await Promise.all([remoteLevelsPromise, customLevelsPromise]);
+        
+        const remoteLevels = remoteData.levels || [config.defaultLevel];
         state.allAvailableLevels = [...new Set([...remoteLevels, ...customLevels])];
 
+        // --- 2. Determine initial level and load its data ---
         const urlLevel = params.get('level');
         if (urlLevel && state.allAvailableLevels.includes(urlLevel)) {
             state.currentLevel = urlLevel;
         }
-
         await loadAllData(state.currentLevel);
 
+        // --- 3. Build UI with the data we now have ---
         buildLevelSwitcher(remoteLevels, customLevels);
         document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
         scrollActiveLevelIntoView();
@@ -761,10 +754,17 @@ async function init() {
         await setupTabsForLevel(state.currentLevel);
         await loadRequiredDataForProgress();
         updateProgressDashboard();
-
-        setLanguage(state.currentLang, true);
-        setupImportModal(); // This function now handles its own trigger.
+        
+        // --- 4. Set final UI states ---
+        setLanguage(state.currentLang, true); // Update all text
+        setupImportModal();
         updateSidebarPinIcons();
+
+        await changeTab(initialTab, null, false, true); // Go to initial tab
+
+        // --- 5. Set version and history state (non-critical) ---
+        const versionElement = document.getElementById('app-version');
+        if(versionElement) versionElement.textContent = 'v1.0.0'; // Hardcode version
 
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;
@@ -779,6 +779,8 @@ async function init() {
             );
         }
     }
+    // **PERFORMANCE FIX END**
 }
+
 
 document.addEventListener('DOMContentLoaded', init);
