@@ -204,7 +204,14 @@ export function toggleTheme(event) {
     const isChecked = event.target.checked;
     const theme = isChecked ? 'dark' : 'light';
     document.documentElement.classList.toggle('dark-mode', isChecked);
+    // Save to both IndexedDB and LocalStorage to fix the refresh bug
     saveSetting('theme', theme);
+    try {
+        localStorage.setItem('theme', theme);
+    } catch (e) {
+        console.warn("Could not save theme to localStorage.", e);
+    }
+
 
     document.querySelectorAll('.theme-switch input').forEach(input => {
         if (input !== event.target) input.checked = isChecked;

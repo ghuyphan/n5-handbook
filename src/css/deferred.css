@@ -978,6 +978,17 @@ mark.search-highlight {
     animation: fadeIn 0.5s var(--ease-out-quint) forwards;
 }
 
+/* NEW */
+.content-loader-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 300px;
+    /* Or whatever height you prefer */
+}
+
+
 @keyframes anim-fade-out {
     from {
         opacity: 1;
