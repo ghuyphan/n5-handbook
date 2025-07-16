@@ -192,25 +192,21 @@ function openKanjiDetailModal(kanjiId) {
         scrollContent.addEventListener('scroll', checkScroll);
         setTimeout(checkScroll, 50);
     }
-    
-    // NEW LOGIC: Use the same pattern as other modals
+
     document.body.classList.add('body-no-scroll');
     els.kanjiDetailModal.classList.remove('modal-hidden');
     els.kanjiModalBackdrop.classList.add('active');
-    // We now target the modal's wrapper for the animation class
     els.kanjiDetailModal.querySelector('.modal-wrapper').classList.add('active');
 }
 
 function closeKanjiDetailModal() {
-    // NEW LOGIC: Use the same pattern as other modals
     document.body.classList.remove('body-no-scroll');
     els.kanjiModalBackdrop.classList.remove('active');
     els.kanjiDetailModal.querySelector('.modal-wrapper').classList.remove('active');
-    
-    // Hide the modal container after the animation finishes
+
     setTimeout(() => {
         els.kanjiDetailModal.classList.add('modal-hidden');
-    }, 400); // Should match your --transition-duration
+    }, 400); 
 }
 
 
@@ -323,62 +319,56 @@ function handleThemeButtonClick() {
     }
 }
 
+// --- UPDATED EVENT LISTENER SETUP ---
 function setupEventListeners() {
     document.body.addEventListener('click', (e) => {
-        const target = e.target;
-        const actionTarget = target.closest('[data-action]');
+        const actionTarget = e.target.closest('[data-action]');
         if (!actionTarget) return;
 
-        e.preventDefault(); // Prevent default link/button behavior
         const action = actionTarget.dataset.action;
 
-        switch (action) {
-            case 'change-tab':
-                changeTab(actionTarget.dataset.tabName, actionTarget);
-                break;
-            case 'toggle-sidebar':
+        // For actions that don't need dynamic imports, handle them immediately.
+        const immediateActions = {
+            'change-tab': () => changeTab(actionTarget.dataset.tabName, actionTarget),
+            'toggle-sidebar': () => {
                 els.sidebar?.classList.add('open');
                 els.overlay?.classList.add('active');
                 document.body.classList.add('sidebar-open');
-                break;
-            case 'toggle-theme':
-                handleThemeButtonClick();
-                break;
-            case 'toggle-pin':
-                togglePin();
-                break;
-            case 'open-notes':
-                openNotesModal();
-                break;
-            case 'close-kanji-modal':
-                closeKanjiDetailModal();
-                break;
-            case 'toggle-sidebar-pin':
-                toggleSidebarPin(e, actionTarget.dataset.tabName);
-                break;
-            case 'flip-card':
+            },
+            'toggle-theme': () => handleThemeButtonClick(),
+            'toggle-pin': () => togglePin(),
+            'toggle-sidebar-pin': () => toggleSidebarPin(e, actionTarget.dataset.tabName),
+            'flip-card': () => {
                 if (!e.target.closest('[data-action="show-kanji-details"]')) {
                     actionTarget.closest('.card').classList.toggle('is-flipped');
                 }
-                break;
-            case 'toggle-learned':
-                toggleLearned(actionTarget.dataset.category, actionTarget.dataset.id, actionTarget);
-                break;
-            case 'jump-to-section':
-                jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey);
-                break;
-            case 'delete-level':
-                deleteLevel(actionTarget.dataset.levelName);
-                break;
-            case 'set-level':
-                setLevel(actionTarget.dataset.levelName);
-                break;
-            case 'toggle-accordion':
-                actionTarget.classList.toggle('open');
-                break;
-            case 'show-kanji-details':
-                openKanjiDetailModal(actionTarget.dataset.id);
-                break;
+            },
+            'toggle-learned': () => toggleLearned(actionTarget.dataset.category, actionTarget.dataset.id, actionTarget),
+            'jump-to-section': () => jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey),
+            'delete-level': () => deleteLevel(actionTarget.dataset.levelName),
+            'set-level': () => setLevel(actionTarget.dataset.levelName),
+            'toggle-accordion': () => actionTarget.classList.toggle('open')
+        };
+
+        if (immediateActions[action]) {
+            e.preventDefault();
+            immediateActions[action]();
+        }
+
+        // Handle actions that require dynamic module loading.
+        if (action === 'open-notes') {
+            e.preventDefault();
+            import('./main.js').then(module => module.openNotesModal());
+        }
+
+        if (action === 'show-kanji-details') {
+            e.preventDefault();
+            import('./main.js').then(module => module.openKanjiDetailModal(actionTarget.dataset.id));
+        }
+
+        if (action === 'close-kanji-modal') {
+            e.preventDefault();
+            import('./main.js').then(module => module.closeKanjiDetailModal());
         }
     });
 
@@ -408,7 +398,7 @@ function setupEventListeners() {
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (els.kanjiDetailModal.classList.contains('active')) {
+            if (!els.kanjiDetailModal.classList.contains('modal-hidden')) {
                 closeKanjiDetailModal();
             } else if (!els.notesModal.classList.contains('modal-hidden')) {
                 closeNotesModal();
@@ -494,8 +484,8 @@ function setupImportModal() {
 
     const handleFileSelect = async (files) => {
         const selectedFiles = files ? Array.from(files) : [];
-        importedData = {}; // Clear previous data
-        els.fileInput.value = ''; // Crucial for allowing re-selection of the same file after error
+        importedData = {}; 
+        els.fileInput.value = ''; 
         els.fileImportArea.classList.add('state-preview');
 
         const supportedFileNames = ['grammar.csv', 'hiragana.csv', 'kanji.csv', 'katakana.csv', 'keyPoints.csv', 'vocab.csv'];
@@ -674,7 +664,12 @@ function setupImportModal() {
         }
     };
 
-    document.getElementById('sidebar-import-btn')?.addEventListener('click', openModal);
+    // Dynamically load the import modal logic when the button is clicked.
+    const importBtn = document.getElementById('sidebar-import-btn');
+    if (importBtn) {
+        importBtn.addEventListener('click', openModal);
+    }
+
     els.closeModalBtn?.addEventListener('click', closeModal);
     els.modalWrapper?.addEventListener('click', (e) => { if (e.target === els.modalWrapper) closeModal(); });
     els.levelNameInput?.addEventListener('input', updateImportButtonState);
@@ -710,30 +705,24 @@ function populateAndBindControls() {
 async function init() {
     populateEls();
     await loadState();
-    
+
     populateAndBindControls();
     setupEventListeners();
     setupTheme();
 
-    // --- LCP FIX: Show content skeleton and hide loader ASAP ---
-    // Hide loader immediately to unblock rendering
     if (els.loadingOverlay) {
         els.loadingOverlay.style.opacity = '0';
         els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
     }
-    
-    // Set initial UI texts that don't depend on async data
-    setLanguage(state.currentLang, true); // `true` to skip re-rendering tabs
+
+    setLanguage(state.currentLang, true);
     document.querySelectorAll('.lang-switch').forEach(moveLangPill);
-    
-    // Determine the initial tab but don't load its content yet
+
     const params = new URLSearchParams(window.location.search);
     let initialTab = params.get('tab') || state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'external-search');
 
-    // Render the initial tab with its placeholder content immediately
     await changeTab(initialTab, null, false, true);
-    
-    // --- Now, load the rest of the data in the background ---
+
     try {
         const pkgResponse = await fetch('./package.json');
         if (pkgResponse.ok) {
@@ -757,7 +746,7 @@ async function init() {
         const db = await dbPromise;
         const customLevels = await db.getAllKeys('levels');
         state.allAvailableLevels = [...new Set([...remoteLevels, ...customLevels])];
-        
+
         const urlLevel = params.get('level');
         if (urlLevel && state.allAvailableLevels.includes(urlLevel)) {
             state.currentLevel = urlLevel;
@@ -765,17 +754,16 @@ async function init() {
 
         await loadAllData(state.currentLevel);
 
-        // Populate dynamic UI elements now that data is loaded
         buildLevelSwitcher(remoteLevels, customLevels);
         document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
         scrollActiveLevelIntoView();
-        
+
         await setupTabsForLevel(state.currentLevel);
         await loadRequiredDataForProgress();
         updateProgressDashboard();
 
-        setLanguage(state.currentLang, true); // Re-apply language to newly created elements
-        setupImportModal();
+        setLanguage(state.currentLang, true);
+        setupImportModal(); // This function now handles its own trigger.
         updateSidebarPinIcons();
 
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
