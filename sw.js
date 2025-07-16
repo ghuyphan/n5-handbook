@@ -7,6 +7,7 @@ const DATA_CACHE_NAME = 'jlpt-handbook-data-v1';
 const APP_SHELL_URLS = [
   '/',
   '/index.html',
+  '/offline.html', // Added offline fallback page
   '/dist/main.min.css',
   '/dist/deferred.min.css',
   '/dist/main.min.js',
@@ -94,6 +95,9 @@ self.addEventListener('fetch', event => {
                     cache.put(request, responseToCache);
                 });
                 return networkResponse;
+            }).catch(() => {
+                // If the network fails, and the item is not in the cache, show the offline page.
+                return caches.match('/offline.html');
             });
             return cachedResponse || fetchPromise;
         })

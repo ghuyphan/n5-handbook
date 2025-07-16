@@ -36,6 +36,8 @@
 * **📌 Pin Your Favorite Tab**: Keep your most-used section just a click away.
 * **📝 Take Notes**: Jot down personal mnemonics or reminders for any topic.
 * **🎨 Light & Dark Modes**: Study comfortably, day or night.
+* **⚡️ Offline Ready**: Access content and continue studying even without an internet connection.
+* **📱 Installable App**: Add to your home screen for quick access and a native app-like experience.
 
 ---
 
