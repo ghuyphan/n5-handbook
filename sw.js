@@ -1,17 +1,19 @@
-const CACHE_NAME = 'jlpt-handbook-cache-v2'; // Bumped version
-const FONT_CACHE_NAME = 'jlpt-handbook-font-cache-v1';
+// A more descriptive cache name
+const CACHE_NAME = 'jlpt-handbook-assets-v1';
+const FONT_CACHE_NAME = 'jlpt-handbook-fonts-v1';
+const DATA_CACHE_NAME = 'jlpt-handbook-data-v1';
 
-// App shell files - critical for the app to work
+
 const APP_SHELL_URLS = [
   '/',
   '/index.html',
   '/dist/main.min.css',
   '/dist/deferred.min.css',
   '/dist/main.min.js',
-  '/assets/siteIcon.png'
+  '/assets/siteIcon.png',
+  '/assets/siteIcon.webp' // Added webp version
 ];
 
-// Fonts
 const FONT_URLS = [
   '/assets/fonts/noto-sans-jp-v54-japanese_latin-700.woff2',
   '/assets/fonts/noto-sans-jp-v54-japanese_latin-regular.woff2',
@@ -21,75 +23,79 @@ const FONT_URLS = [
   '/assets/fonts/klee-one-v12-latin-regular.woff2'
 ];
 
-
-// Install event: cache all essential assets.
+// Install: Cache all essential assets.
 self.addEventListener('install', event => {
   event.waitUntil(
     Promise.all([
       caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL_URLS)),
       caches.open(FONT_CACHE_NAME).then(cache => cache.addAll(FONT_URLS))
-    ])
+    ]).then(() => self.skipWaiting()) // Force the new service worker to activate
   );
 });
 
-
-// Activate event: clean up old caches.
+// Activate: Clean up old caches.
 self.addEventListener('activate', event => {
+    const cacheWhitelist = [CACHE_NAME, FONT_CACHE_NAME, DATA_CACHE_NAME];
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
-                    if (cacheName !== CACHE_NAME && cacheName !== FONT_CACHE_NAME) {
+                    if (!cacheWhitelist.includes(cacheName)) {
                         return caches.delete(cacheName);
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim()) // Take control of all pages
     );
 });
 
 
-// Fetch event: apply caching strategies.
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Use Cache First for fonts
-    if (FONT_URLS.some(fontUrl => url.pathname.endsWith(fontUrl))) {
+    // Strategy for fonts: Cache First
+    if (url.pathname.startsWith('/assets/fonts/')) {
+        event.respondWith(caches.match(request).then(cachedResponse => {
+            return cachedResponse || fetch(request).then(networkResponse => {
+                const responseToCache = networkResponse.clone();
+                caches.open(FONT_CACHE_NAME).then(cache => cache.put(request, responseToCache));
+                return networkResponse;
+            });
+        }));
+        return;
+    }
+    
+    // Strategy for data from GitHub: Network first, then cache
+    if (url.hostname === 'raw.githubusercontent.com') {
         event.respondWith(
-            caches.match(request).then(cachedResponse => {
-                return cachedResponse || fetch(request).then(response => {
-                    const responseToCache = response.clone();
-                    caches.open(FONT_CACHE_NAME).then(cache => {
-                        cache.put(request, responseToCache);
-                    });
-                    return response;
+            fetch(request)
+            .then(networkResponse => {
+                const responseToCache = networkResponse.clone();
+                caches.open(DATA_CACHE_NAME).then(cache => {
+                    cache.put(request, responseToCache);
                 });
+                return networkResponse;
             })
+            .catch(() => caches.match(request))
         );
         return;
     }
-
-    // Use Stale-While-Revalidate for App Shell and Data
+    
+    // Strategy for App Shell: Stale-While-Revalidate
     event.respondWith(
-        caches.open(CACHE_NAME).then(cache => {
-            return cache.match(request).then(cachedResponse => {
-                const fetchPromise = fetch(request).then(networkResponse => {
-                    // Don't cache chrome-extension requests
-                    if (request.url.startsWith('chrome-extension://')) {
-                        return networkResponse;
-                    }
-                    const responseToCache = networkResponse.clone();
-                    cache.put(request, responseToCache);
+        caches.match(request).then(cachedResponse => {
+            const fetchPromise = fetch(request).then(networkResponse => {
+                if (request.url.startsWith('chrome-extension://')) {
                     return networkResponse;
-                }).catch(() => {
-                    // Return the cached response if the network fails
-                    return cachedResponse;
+                }
+                const responseToCache = networkResponse.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                    cache.put(request, responseToCache);
                 });
-
-                // Return cached response immediately, and update the cache in the background.
-                return cachedResponse || fetchPromise;
+                return networkResponse;
             });
+            return cachedResponse || fetchPromise;
         })
     );
 });
