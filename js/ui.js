@@ -7,6 +7,7 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { generateSearchTerms } from './utils.js';
 import { setupFuseForTab } from './handlers.js';
+import { dbPromise } from './database.js';
 
 /**
  * REFINED: Now includes a new 'error' state for better user feedback.
@@ -370,12 +371,15 @@ export function closeSidebar() {
     document.body.classList.remove('sidebar-open');
 }
 
-function renderCardBasedSection(containerId, data, category, gradient) {
+async function renderCardBasedSection(containerId, data, category, gradient) {
     const container = document.getElementById(containerId);
-    if (!container) return; // FIX: Add guard clause
+    if (!container) return; 
 
     container.innerHTML = '';
-    if (!data) return; // FIX: Add guard clause
+    if (!data) {
+        renderContentNotAvailable(containerId)
+        return;
+    };
 
     const fragment = document.createDocumentFragment();
     for (const key in data) {
@@ -525,7 +529,6 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
             contentFragment.appendChild(sectionContainer);
         }
         
-        // **THE FIX IS HERE:** Conditionally apply the animation.
         const animatedWrapper = document.createElement('div');
         if (!isInitialLoad) {
             animatedWrapper.className = 'anim-fade-in';
@@ -541,10 +544,9 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
         if (placeholderBox) {
             placeholderBox.innerHTML = getSearchPlaceholderInnerContent(type, query);
             
-            // Apply animation for content changes, but not on the very first load.
             if (!isInitialLoad) {
                 placeholderBox.classList.remove('anim-fade-in');
-                void placeholderBox.offsetWidth; // Force browser reflow to restart animation
+                void placeholderBox.offsetWidth;
                 placeholderBox.classList.add('anim-fade-in');
             }
         }
@@ -582,38 +584,42 @@ function prepareKanaData(originalData) {
 
         let layoutToApply = null;
 
-        // Detect section type based on its most unique content.
-        if (romajiSet.has('kya') || romajiSet.has('gya')) { // Youon (digraphs)
+        if (romajiSet.has('kya') || romajiSet.has('gya')) {
             layoutToApply = LAYOUTS.youon;
-        } else if (romajiSet.has('ga') || romajiSet.has('za')) { // Dakuten
+        } else if (romajiSet.has('ga') || romajiSet.has('za')) { 
             layoutToApply = LAYOUTS.dakuten;
-        } else if (romajiSet.has('pa')) { // Handakuten
+        } else if (romajiSet.has('pa')) {
             layoutToApply = LAYOUTS.handakuten;
-        } else if (romajiSet.has('a')) { // Gojuon (checked last as it's the most basic)
+        } else if (romajiSet.has('a')) {
             layoutToApply = LAYOUTS.gojuon;
         }
 
         if (layoutToApply) {
-            // Replace the section's items with the ordered/padded grid.
             section.items = layoutToApply.map(r => r ? findChar(r) : { isPlaceholder: true });
         }
     }
     return data;
 }
 
-export function renderContent(tabId = null) {
-    const renderSafely = (renderFn) => {
-        try { 
-            // Add a check to ensure data exists before rendering
-            if (state.appData[tabId]) {
+export async function renderContent(tabId = null) {
+    const renderSafely = async (renderFn, tabName) => { 
+        try {
+            if (state.appData[tabName]) {
                 renderFn(); 
+            } else {
+                const db = await dbPromise;
+                const isCustomLevel = await db.get('levels', state.currentLevel);
+                if (isCustomLevel) {
+                    renderContentNotAvailable(tabName);
+                }
             }
         } catch (e) { 
-            console.error("Render error:", e); 
+            console.error("Render error in tab", tabName, ":", e); 
+            renderContentNotAvailable(tabName);
         }
     };
 
-    const tabsToRender = tabId ? [tabId] : Object.keys(state.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
+    const tabsToRender = tabId ? [tabId] : Object.keys(u.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
 
     const renderMap = {
         hiragana: () => renderSafely(() => {
@@ -622,14 +628,14 @@ export function renderContent(tabId = null) {
                 els.hiraganaTab.appendChild(createStaticSection(prepareKanaData(state.appData.hiragana), '🌸', 'var(--accent-pink)'));
                 setupFuseForTab('hiragana');
             }
-        }),
+        }, 'hiragana'),
         katakana: () => renderSafely(() => {
             if (els.katakanaTab && state.appData.katakana) {
                 els.katakanaTab.innerHTML = '';
                 els.katakanaTab.appendChild(createStaticSection(prepareKanaData(state.appData.katakana), '🤖', 'var(--accent-blue)'));
                 setupFuseForTab('katakana');
             }
-        }),
+        }, 'katakana'),
         keyPoints: () => renderSafely(() => {
             if (!els.keyPointsTab || !state.appData.keyPoints) return;
             els.keyPointsTab.innerHTML = '';
@@ -662,8 +668,8 @@ export function renderContent(tabId = null) {
             wrapper.className = 'space-y-4';
             wrapper.appendChild(fragment);
             els.keyPointsTab.appendChild(wrapper);
-            setupFuseForTab('keyPoints'); // Corrected key
-        }),
+            setupFuseForTab('keyPoints');
+        }, 'keyPoints'),
         grammar: () => renderSafely(() => {
             if (!els.grammarTab || !state.appData.grammar) return;
             els.grammarTab.innerHTML = '';
@@ -701,16 +707,16 @@ export function renderContent(tabId = null) {
             wrapper.appendChild(fragment);
             els.grammarTab.appendChild(wrapper);
             setupFuseForTab('grammar');
-        }),
-        kanji: () => renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)')),
-        vocab: () => renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)'))
+        }, 'grammar'),
+        kanji: () => renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)'), 'kanji'),
+        vocab: () => renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)'), 'vocab')
     };
 
-    tabsToRender.forEach(tab => {
+    for (const tab of tabsToRender) {
         if (renderMap[tab]) {
-            renderMap[tab]();
+            await renderMap[tab]();
         }
-    });
+    }
 }
 
 
@@ -770,32 +776,16 @@ export function updateSearchPlaceholders(activeTabId) {
     }
 }
 
-// NEW: Custom Dialog Functions
-/**
- * Generic function to show a custom modal dialog.
- * @param {object} options - Configuration for the dialog.
- * @param {string} options.title - The title of the dialog.
- * @param {string} options.message - The main message content.
- * @param {Array<object>} options.buttons - Array of button configurations:
- * [{ text: string, className: string, action: string }]
- * `action` can be 'confirm' or 'cancel'.
- * @param {function} [options.onOpen] - Callback function when the modal opens.
- * @param {function} [options.onClose] - Callback function when the modal closes.
- * @returns {Promise<string>} A promise that resolves with the action of the clicked button ('confirm' or 'cancel').
- */
 export function showCustomDialog({ title, message, buttons, onOpen, onClose }) {
     return new Promise((resolve) => {
-        // Ensure the container exists and is hidden
         if (!els.customDialogContainer) return;
 
-        // Clone the template content
         const template = document.getElementById('custom-dialog-template');
         const clone = template.content.cloneNode(true);
 
         const contentContainer = els.customDialogContainer.querySelector('.modal-content-container');
         if (!contentContainer) return;
 
-        // Clear previous content
         contentContainer.innerHTML = '';
         contentContainer.appendChild(clone);
 
@@ -806,7 +796,7 @@ export function showCustomDialog({ title, message, buttons, onOpen, onClose }) {
 
         dialogTitle.textContent = title;
         dialogMessage.textContent = message;
-        dialogActions.innerHTML = ''; // Clear previous buttons
+        dialogActions.innerHTML = ''; 
 
         let cleanupEventListeners;
 
@@ -832,10 +822,8 @@ export function showCustomDialog({ title, message, buttons, onOpen, onClose }) {
             dialogActions.appendChild(button);
         });
 
-        // Event listener for the top-right close button
         closeBtn.addEventListener('click', handleButtonClick('cancel'));
 
-        // Event listener for backdrop click
         const handleBackdropClick = (e) => {
             if (e.target === els.customDialogBackdrop || e.target === els.customDialogWrapper) {
                 handleButtonClick('cancel')();
@@ -855,7 +843,6 @@ export function showCustomDialog({ title, message, buttons, onOpen, onClose }) {
             });
         };
 
-        // Show the dialog
         document.body.classList.add('body-no-scroll');
         els.customDialogContainer.classList.remove('modal-hidden');
         els.customDialogBackdrop.classList.add('active');
@@ -865,27 +852,15 @@ export function showCustomDialog({ title, message, buttons, onOpen, onClose }) {
     });
 }
 
-/**
- * Shows a custom alert dialog.
- * @param {string} title - The alert title.
- * @param {string} message - The alert message.
- * @returns {Promise<void>} A promise that resolves when the dialog is closed.
- */
 export function showCustomAlert(title, message) {
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
     return showCustomDialog({
         title,
         message,
         buttons: [{ text: getUIText('okButton', 'OK'), className: 'modal-button-primary', action: 'confirm' }],
-    }).then(() => {}); // Convert 'confirm' resolution to void
+    }).then(() => {});
 }
 
-/**
- * Shows a custom confirmation dialog.
- * @param {string} title - The confirm title.
- * @param {string} message - The confirm message.
- * @returns {Promise<boolean>} A promise that resolves to true if confirmed, false if cancelled.
- */
 export function showCustomConfirm(title, message) {
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
     return showCustomDialog({
@@ -903,13 +878,12 @@ export function closeCustomDialog() {
     els.customDialogBackdrop?.classList.remove('active');
     els.customDialogWrapper?.classList.remove('active');
     setTimeout(() => els.customDialogContainer?.classList.add('modal-hidden'), 300);
-    // Clear content after animation to ensure it's hidden
     if (els.customDialogContainer) {
         const contentContainer = els.customDialogContainer.querySelector('.modal-content-container');
         if (contentContainer) {
             setTimeout(() => {
                 contentContainer.innerHTML = '';
-            }, 300); // Wait for the transition to finish
+            }, 300); 
         }
     }
 }

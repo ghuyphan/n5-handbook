@@ -1,13 +1,8 @@
-/**
- * @module handlers
- * @description Contains event handlers and core application logic for the event-driven architecture.
- */
-
 import Fuse from 'fuse.js';
 import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
-import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel } from './database.js';
+import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote } from './database.js';
 import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
@@ -28,7 +23,7 @@ function getActiveSearchInput() {
     return window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
 }
 
-// --- OPTIMIZED DOM MANIPULATION ---
+// --- OPTIMIZED DOM MANIPULATION -- -
 
 function clearAllHighlights(activeTabId) {
     if (!searchCache.has(activeTabId)) return;
@@ -269,7 +264,8 @@ async function loadLevelData(level) {
     
     state.fuseInstances = {};
     state.lastDictionaryQuery = '';
-    state.notes.clear();
+    state.notes.data = new Map();
+    state.notes.originalContent = '';
     if (state.renderedTabs) state.renderedTabs.clear();
     searchCache.clear();
 
@@ -290,7 +286,6 @@ async function renderLevelUI(level, fromHistory) {
     document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
     updateSidebarPinIcons();
     
-    // THE FIX: Show/Hide Kana tabs based on level
     const showKana = level === config.defaultLevel;
     document.querySelector('[data-tab-name="hiragana"]').parentElement.style.display = showKana ? '' : 'none';
     document.querySelector('[data-tab-name="katakana"]').parentElement.style.display = showKana ? '' : 'none';

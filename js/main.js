@@ -7,8 +7,21 @@ import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting } from './database.js';
 import { debounce } from './utils.js';
-import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, renderContent, showCustomAlert } from './ui.js';
+import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, renderContent, showCustomAlert, showCustomConfirm } from './ui.js';
 import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
+
+// Helper function to get UI text, now accessible throughout the module
+const getUIText = (key, replacements = {}) => {
+    let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
+    if (key === 'lastSavedOn' && !state.appData.ui?.[state.currentLang]?.[key]) {
+        text = `Last saved: {date}`;
+    }
+    for (const [placeholder, value] of Object.entries(replacements)) {
+        text = text.replace(`{${placeholder}}`, value);
+    }
+    return text;
+};
+
 
 /**
  * Ensures that data required for calculating progress is loaded.
@@ -107,8 +120,6 @@ function openKanjiDetailModal(kanjiId) {
     }
     const clone = template.content.cloneNode(true);
 
-    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
-
     // --- Populate Template ---
     clone.querySelector('[data-template-id="kanji-char"]').textContent = kanjiItem.kanji;
     clone.querySelector('[data-template-id="kanji-meaning"]').textContent = kanjiItem.meaning?.[state.currentLang] || kanjiItem.meaning?.en || '';
@@ -195,17 +206,6 @@ async function openNotesModal() {
     const tabId = state.activeTab;
     if (!tabId || ['progress', 'external-search'].includes(tabId)) return;
 
-    const getUIText = (key, replacements = {}) => {
-        let text = state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
-        if (key === 'lastSavedOn' && !state.appData.ui?.[state.currentLang]?.[key]) {
-            text = `Last saved: {date}`;
-        }
-        for (const [placeholder, value] of Object.entries(replacements)) {
-            text = text.replace(`{${placeholder}}`, value);
-        }
-        return text;
-    };
-
     const navButton = document.querySelector(`.nav-item[data-tab-name="${tabId}"] span`);
     const tabDisplayName = navButton ? navButton.textContent.trim() : tabId;
 
@@ -251,23 +251,19 @@ function closeNotesModal() {
     const originalContent = state.notes.originalContent;
 
     if (currentContent !== originalContent) {
-        // Use custom confirm dialog instead of native one
         showCustomConfirm(
             getUIText('unsavedChangesTitle', 'Unsaved Changes'),
             getUIText('unsavedChangesBody', 'You have unsaved changes. Are you sure you want to close without saving?')
         ).then(confirmed => {
             if (confirmed) {
-                // User confirmed to close without saving
                 document.body.classList.remove('body-no-scroll');
                 els.notesModalBackdrop.classList.remove('active');
                 els.notesModalWrapper.classList.remove('active');
                 setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
                 state.notes.originalContent = '';
             }
-            // If not confirmed, do nothing (keep modal open)
         });
     } else {
-        // No unsaved changes, close normally
         document.body.classList.remove('body-no-scroll');
         els.notesModalBackdrop.classList.remove('active');
         els.notesModalWrapper.classList.remove('active');
@@ -282,8 +278,6 @@ async function saveAndCloseNotesModal() {
 
     state.notes.originalContent = content;
 
-    state.notes.data.set(state.activeTab, content);
-
     const notesButtons = document.querySelectorAll('.notes-header-btn');
     notesButtons.forEach(btn => {
         btn.classList.toggle('has-note', !!content.trim());
@@ -291,7 +285,7 @@ async function saveAndCloseNotesModal() {
 
     els.notesStatus.style.opacity = '1';
     setTimeout(() => {
-        closeNotesModal(); // This will now trigger the custom confirm if changes were made
+        closeNotesModal(); 
         setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
     }, 1000);
 }
@@ -437,14 +431,6 @@ function setupImportModal() {
     let importedData = {};
     let levelNameIsValid = false;
 
-    const getUIText = (key, replacements = {}) => {
-        let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
-        for (const [placeholder, value] of Object.entries(replacements)) {
-            text = text.replace(`{${placeholder}}`, value);
-        }
-        return text;
-    };
-
     const updateModalLocale = () => {
         els.importModal.querySelectorAll('[data-lang-key]').forEach(el => el.textContent = getUIText(el.dataset.langKey));
         els.importModal.querySelectorAll('[data-lang-placeholder-key]').forEach(el => el.placeholder = getUIText(el.dataset.langPlaceholderKey));
@@ -506,7 +492,6 @@ function setupImportModal() {
         if (validFiles.length === 0) {
             els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoSupportedFiles')}</p>`;
             updateImportButtonState();
-            // Revert to initial state after a delay for better UX
             setTimeout(resetModal, 2000); 
             return;
         }
@@ -623,7 +608,6 @@ function setupImportModal() {
             if (results.length === 0) {
                 els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoValidData')}</p>`;
                 updateImportButtonState();
-                // Revert to initial state after a delay for better UX
                 setTimeout(resetModal, 2000); 
                 return;
             }
@@ -639,7 +623,6 @@ function setupImportModal() {
             els.fileImportArea.innerHTML = previewHtml;
         } catch (err) {
             els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${err}</p>`;
-            // Revert to initial state after a delay for better UX
             setTimeout(resetModal, 2000);
         }
         updateImportButtonState();
@@ -744,7 +727,6 @@ async function init() {
 
         await loadAllData(state.currentLevel);
 
-        // FIX: Ensure data for progress calculation is loaded before rendering the dashboard.
         await loadRequiredDataForProgress();
         updateProgressDashboard();
 
@@ -776,7 +758,6 @@ async function init() {
     } catch (error) {
         console.error('Initialization failed.', error);
         if (els.loadingOverlay) {
-            // Use custom alert for fatal errors
             showCustomAlert(
                 getUIText('applicationErrorTitle', 'Application Error'),
                 getUIText('applicationErrorBody', 'Something went wrong during startup. Please try refreshing the page.') + `\n\nError: ${error.message}`
