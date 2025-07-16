@@ -285,6 +285,19 @@ async function renderLevelUI(level, fromHistory) {
     setLanguage(state.currentLang, true);
     document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
     updateSidebarPinIcons();
+
+    const db = await dbPromise;
+    const levelData = await db.get('levels', level);
+    const availableTabs = levelData ? Object.keys(levelData) : ['kanji', 'vocab', 'hiragana', 'katakana', 'grammar', 'keyPoints'];
+
+    document.querySelectorAll('.nav-item-wrapper').forEach(wrapper => {
+        const tabName = wrapper.querySelector('[data-tab-name]')?.dataset.tabName;
+        if (tabName && !['progress', 'external-search'].includes(tabName) && !availableTabs.includes(tabName)) {
+            wrapper.style.display = 'none';
+        } else {
+            wrapper.style.display = '';
+        }
+    });
     
     const showKana = level === config.defaultLevel;
     document.querySelector('[data-tab-name="hiragana"]').parentElement.style.display = showKana ? '' : 'none';

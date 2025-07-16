@@ -121,6 +121,20 @@ export async function loadAllData(level) {
     state.appData.ui = await uiPromise;
 }
 
+export async function updateLevelData(level, newData) {
+    try {
+        const db = await dbPromise;
+        const existingData = await db.get('levels', level);
+        
+        // A simple merge, you might want more sophisticated logic here
+        const mergedData = { ...existingData, ...newData };
+
+        await db.put('levels', mergedData, level);
+    } catch (error) {
+        console.error(`Error updating data for level ${level}:`, error);
+    }
+}
+
 // --- ADDED FUNCTIONS FOR NOTES ---
 
 /**

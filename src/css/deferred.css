@@ -42,7 +42,7 @@ mark.search-highlight {
 .cell-bg,
 .grammar-card,
 .dict-card {
-    padding: 1.25rem;
+    padding: clamp(0.75rem, 3vw, 1.25rem);
     transition: transform var(--transition-duration) var(--ease-out-quint), background-color var(--transition-duration) var(--ease-out-quint), box-shadow var(--transition-duration) var(--ease-out-quint);
     will-change: transform, box-shadow;
 }
@@ -170,7 +170,6 @@ mark.search-highlight {
 }
 
 .modal-title {
-    /* MODIFIED: Adjusted for better mobile scaling */
     font-size: clamp(1.125rem, 4vw, 1.25rem);
     font-weight: 700;
     color: var(--text-primary);
@@ -346,12 +345,10 @@ mark.search-highlight {
 }
 
 .kana-font {
-    /* MODIFIED: Reduced max size for better fit on mobile */
     font-size: clamp(1.1rem, 5vw, 1.8rem);
 }
 
 .kana-font-digraph {
-    /* MODIFIED: Reduced max size for better fit on mobile */
     font-size: clamp(0.9rem, 4vw, 1.5rem);
 }
 
@@ -559,9 +556,8 @@ mark.search-highlight {
 
 .responsive-grid {
     display: grid;
-    /* MODIFIED: Reduced minmax size for better fitting on smaller screens */
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1rem; /* MODIFIED: Reduced gap for mobile */
+    gap: 1rem;
 }
 
 .table-responsive-wrapper {
@@ -696,7 +692,7 @@ mark.search-highlight {
 #file-import-area.state-preview {
     border-style: solid;
     border-color: var(--glass-border);
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 0.2);
     cursor: default;
     padding: 1.25rem;
     text-align: left;
@@ -812,22 +808,18 @@ mark.search-highlight {
 }
 
 #kanji-detail-modal .text-5xl {
-    /* MODIFIED: Adjusted for more consistent mobile viewing */
     font-size: clamp(2.5rem, 10vw, 3rem);
 }
 
 #kanji-detail-modal .text-xl {
-    /* MODIFIED: Adjusted for more consistent mobile viewing */
     font-size: clamp(1.125rem, 5vw, 1.25rem);
 }
 
 #kanji-detail-modal .text-sm {
-    /* MODIFIED: Adjusted for more consistent mobile viewing */
     font-size: clamp(0.9rem, 4vw, 1rem);
 }
 
 #kanji-detail-modal .text-xs {
-    /* MODIFIED: Adjusted for more consistent mobile viewing */
     font-size: clamp(0.8rem, 3.5vw, 0.875rem);
 }
 
@@ -876,7 +868,7 @@ mark.search-highlight {
 }
 
 .dict-section-header {
-    font-size: 1.125rem; /* MODIFIED: Slightly smaller header */
+    font-size: clamp(1.1rem, 4vw, 1.25rem);
     font-weight: 700;
     color: var(--text-primary);
     padding-bottom: 0.5rem;
@@ -898,19 +890,19 @@ mark.search-highlight {
 }
 
 .dict-vocab-term {
-    font-size: 1.25rem; /* MODIFIED: Smaller term size */
+    font-size: clamp(1.1rem, 4vw, 1.25rem);
     font-weight: 700;
     color: var(--text-primary);
     font-family: 'Noto Sans JP', sans-serif;
 }
 
 .dict-vocab-reading {
-    font-size: 0.9rem; /* MODIFIED: Smaller reading size */
+    font-size: clamp(0.85rem, 3vw, 0.9rem);
     color: var(--text-secondary);
 }
 
 .dict-vocab-definitions {
-    font-size: 0.9rem; /* MODIFIED: Smaller definition size */
+    font-size: clamp(0.85rem, 3vw, 0.9rem);
     line-height: 1.7;
     color: var(--text-secondary);
     padding-top: 0.75rem;
@@ -940,7 +932,7 @@ mark.search-highlight {
 }
 
 .dict-kanji-char {
-    font-size: 2rem; /* MODIFIED: Smaller kanji char size */
+    font-size: clamp(1.8rem, 8vw, 2rem);
     font-weight: 700;
     color: var(--accent-teal);
     font-family: 'Noto Sans JP', sans-serif;
@@ -963,7 +955,7 @@ mark.search-highlight {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--glass-border);
-    font-size: 0.95rem; /* MODIFIED: Slightly smaller meaning size */
+    font-size: clamp(0.9rem, 3.5vw, 0.95rem);
     line-height: 1.6;
     color: var(--text-primary);
 }

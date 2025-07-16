@@ -704,6 +704,18 @@ async function init() {
     setupTheme();
 
     try {
+        const pkgResponse = await fetch('./package.json');
+        const pkg = await pkgResponse.json();
+        const version = pkg.version;
+        const versionElement = document.getElementById('app-version');
+        if (versionElement) {
+            versionElement.textContent = `v${version}`;
+        }
+    } catch (error) {
+        console.error("Could not load version from package.json", error);
+    }
+
+    try {
         let remoteLevels = [config.defaultLevel];
         try {
             const response = await fetch(`${config.dataPath}/levels.json`);
