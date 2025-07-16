@@ -4,7 +4,7 @@
   "description": "Your personal, interactive space to master Japanese. Dive into built-in JLPT N5 & N4 materials, or bring your own study lists by importing custom levels!",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#F4F7FE",
+  "background_color": "#111827",
   "theme_color": "#2998FF",
   "icons": [
     {
