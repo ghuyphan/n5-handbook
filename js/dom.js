@@ -78,4 +78,10 @@ export function populateEls() {
     els.kanjiDetailModal = document.getElementById('kanji-detail-modal');
     els.kanjiModalBackdrop = document.querySelector('#kanji-detail-modal #modal-backdrop');
     els.kanjiModalContentContainer = document.querySelector('#kanji-detail-modal #modal-content-container');
+
+    // NEW: Custom Dialog Elements
+    els.customDialogContainer = document.getElementById('custom-dialog-container');
+    els.customDialogBackdrop = document.getElementById('custom-dialog-backdrop');
+    els.customDialogWrapper = document.querySelector('#custom-dialog-container .modal-wrapper');
+    // Note: The title, message, and actions will be injected directly into the cloned template
 }

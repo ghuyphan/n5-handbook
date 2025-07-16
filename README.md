@@ -125,4 +125,3 @@ npm run watch
 
 ## 🙏 Acknowledgements
 * Dictionary data from [Jotoba](https://jotoba.de/) and [JDict](https://jdict.net/)
-```

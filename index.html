@@ -511,6 +511,32 @@
             </div>
         </div>
     </template>
+
+    <div id="custom-dialog-container" class="modal-hidden">
+        <div id="custom-dialog-backdrop" class="modal-backdrop"></div>
+        <div class="modal-wrapper">
+            <div class="modal-content-container">
+                <template id="custom-dialog-template">
+                    <div class="modal-content glass-effect">
+                        <div class="modal-header">
+                            <h2 id="custom-dialog-title" class="modal-title"></h2>
+                            <button id="custom-dialog-close-btn" class="modal-close-btn" aria-label="Close dialog">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p id="custom-dialog-message" class="text-secondary"></p>
+                        </div>
+                        <div id="custom-dialog-actions" class="modal-footer">
+                            </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
     <script type="module" src="./dist/main.min.js"></script>
 </body>
 

@@ -8,7 +8,7 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel } from './database.js';
-import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable } from './ui.js';
+import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
 // --- OPTIMIZATION: Cache for searchable items and their original state ---
@@ -332,7 +332,7 @@ export async function setLevel(level, fromHistory = false) {
         if (els.loadingOverlay) {
             const title = getUIText('errorLoadLevelTitle');
             const body = getUIText('errorLoadLevelBody');
-            els.loadingOverlay.innerHTML = `<div class="text-center p-4"><h3 class="text-xl font-semibold text-white mb-2">${title}</h3><p class="text-red-300">${error.message}</p><p class="text-gray-300 mt-4">${body}</p></div>`;
+            showCustomAlert(title, `${error.message}\n\n${body}`);
         }
         return; 
     } finally {
@@ -462,7 +462,7 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
                     console.error(`Error loading data for tab ${tabName}:`, error);
                     const title = getUIText('errorLoadContentTitle');
                     const body = getUIText('errorLoadContentBody');
-                    newTabContentEl.innerHTML = `<div class="p-6 text-center text-secondary"><h3 class="font-semibold text-lg text-primary mb-2">${title}</h3><p class="text-red-400">${error.message}</p><p class="mt-2">${body}</p></div>`;
+                    showCustomAlert(title, `${error.message}\n\n${body}`);
                 }
             }
         }
@@ -531,12 +531,19 @@ export function jumpToSection(tabName, sectionTitleKey) {
 
 export async function deleteLevel(level) {
     if (level === config.defaultLevel) {
-        alert(getUIText('errorDeleteDefaultLevel'));
+        showCustomAlert(getUIText('errorTitle', 'Error'), getUIText('errorDeleteDefaultLevel'));
         return;
     }
-    if (!confirm(getUIText('confirmDeleteLevel', { level: level.toUpperCase() }))) {
+
+    const confirmed = await showCustomConfirm(
+        getUIText('confirmDeleteLevelTitle', 'Confirm Deletion'),
+        getUIText('confirmDeleteLevel', { level: level.toUpperCase() })
+    );
+
+    if (!confirmed) {
         return;
     }
+    
     try {
         const db = await dbPromise;
         await Promise.all([
@@ -555,9 +562,9 @@ export async function deleteLevel(level) {
             buildLevelSwitcher(remoteData.levels || [config.defaultLevel], customLevels);
             document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === state.currentLevel));
         }
-        alert(getUIText('successDeleteLevel', { level: level.toUpperCase() }));
+        showCustomAlert(getUIText('successTitle', 'Success'), getUIText('successDeleteLevel', { level: level.toUpperCase() }));
     } catch (error) {
         console.error("Failed to delete level:", error);
-        alert(getUIText('errorDeleteLevel'));
+        showCustomAlert(getUIText('errorTitle', 'Error'), getUIText('errorDeleteLevel'));
     }
 }

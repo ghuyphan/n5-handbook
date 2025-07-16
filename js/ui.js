@@ -769,3 +769,147 @@ export function updateSearchPlaceholders(activeTabId) {
         els.mobileSearchInput.placeholder = mobilePlaceholderText;
     }
 }
+
+// NEW: Custom Dialog Functions
+/**
+ * Generic function to show a custom modal dialog.
+ * @param {object} options - Configuration for the dialog.
+ * @param {string} options.title - The title of the dialog.
+ * @param {string} options.message - The main message content.
+ * @param {Array<object>} options.buttons - Array of button configurations:
+ * [{ text: string, className: string, action: string }]
+ * `action` can be 'confirm' or 'cancel'.
+ * @param {function} [options.onOpen] - Callback function when the modal opens.
+ * @param {function} [options.onClose] - Callback function when the modal closes.
+ * @returns {Promise<string>} A promise that resolves with the action of the clicked button ('confirm' or 'cancel').
+ */
+export function showCustomDialog({ title, message, buttons, onOpen, onClose }) {
+    return new Promise((resolve) => {
+        // Ensure the container exists and is hidden
+        if (!els.customDialogContainer) return;
+
+        // Clone the template content
+        const template = document.getElementById('custom-dialog-template');
+        const clone = template.content.cloneNode(true);
+
+        const contentContainer = els.customDialogContainer.querySelector('.modal-content-container');
+        if (!contentContainer) return;
+
+        // Clear previous content
+        contentContainer.innerHTML = '';
+        contentContainer.appendChild(clone);
+
+        const dialogTitle = contentContainer.querySelector('#custom-dialog-title');
+        const dialogMessage = contentContainer.querySelector('#custom-dialog-message');
+        const dialogActions = contentContainer.querySelector('#custom-dialog-actions');
+        const closeBtn = contentContainer.querySelector('#custom-dialog-close-btn');
+
+        dialogTitle.textContent = title;
+        dialogMessage.textContent = message;
+        dialogActions.innerHTML = ''; // Clear previous buttons
+
+        let cleanupEventListeners;
+
+        const handleButtonClick = (action) => {
+            return () => {
+                cleanupEventListeners();
+                closeCustomDialog();
+                if (action === 'confirm') {
+                    resolve('confirm');
+                } else {
+                    resolve('cancel');
+                }
+                if (onClose) onClose(action);
+            };
+        };
+
+        buttons.forEach(btnConfig => {
+            const button = document.createElement('button');
+            button.textContent = btnConfig.text;
+            button.className = `modal-button ${btnConfig.className || 'modal-button-secondary'}`;
+            button.dataset.actionType = btnConfig.action;
+            button.addEventListener('click', handleButtonClick(btnConfig.action));
+            dialogActions.appendChild(button);
+        });
+
+        // Event listener for the top-right close button
+        closeBtn.addEventListener('click', handleButtonClick('cancel'));
+
+        // Event listener for backdrop click
+        const handleBackdropClick = (e) => {
+            if (e.target === els.customDialogBackdrop || e.target === els.customDialogWrapper) {
+                handleButtonClick('cancel')();
+            }
+        };
+        els.customDialogBackdrop.addEventListener('click', handleBackdropClick);
+        els.customDialogWrapper.addEventListener('click', handleBackdropClick);
+
+
+        cleanupEventListeners = () => {
+            els.customDialogBackdrop.removeEventListener('click', handleBackdropClick);
+            els.customDialogWrapper.removeEventListener('click', handleBackdropClick);
+            closeBtn.removeEventListener('click', handleButtonClick('cancel'));
+            buttons.forEach(btnConfig => {
+                const btn = dialogActions.querySelector(`[data-action-type="${btnConfig.action}"]`);
+                if (btn) btn.removeEventListener('click', handleButtonClick(btnConfig.action));
+            });
+        };
+
+        // Show the dialog
+        document.body.classList.add('body-no-scroll');
+        els.customDialogContainer.classList.remove('modal-hidden');
+        els.customDialogBackdrop.classList.add('active');
+        els.customDialogWrapper.classList.add('active');
+
+        if (onOpen) onOpen();
+    });
+}
+
+/**
+ * Shows a custom alert dialog.
+ * @param {string} title - The alert title.
+ * @param {string} message - The alert message.
+ * @returns {Promise<void>} A promise that resolves when the dialog is closed.
+ */
+export function showCustomAlert(title, message) {
+    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+    return showCustomDialog({
+        title,
+        message,
+        buttons: [{ text: getUIText('okButton', 'OK'), className: 'modal-button-primary', action: 'confirm' }],
+    }).then(() => {}); // Convert 'confirm' resolution to void
+}
+
+/**
+ * Shows a custom confirmation dialog.
+ * @param {string} title - The confirm title.
+ * @param {string} message - The confirm message.
+ * @returns {Promise<boolean>} A promise that resolves to true if confirmed, false if cancelled.
+ */
+export function showCustomConfirm(title, message) {
+    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+    return showCustomDialog({
+        title,
+        message,
+        buttons: [
+            { text: getUIText('cancelButton', 'Cancel'), className: 'modal-button-secondary', action: 'cancel' },
+            { text: getUIText('confirmButton', 'Confirm'), className: 'modal-button-primary', action: 'confirm' }
+        ],
+    }).then(action => action === 'confirm');
+}
+
+export function closeCustomDialog() {
+    document.body.classList.remove('body-no-scroll');
+    els.customDialogBackdrop?.classList.remove('active');
+    els.customDialogWrapper?.classList.remove('active');
+    setTimeout(() => els.customDialogContainer?.classList.add('modal-hidden'), 300);
+    // Clear content after animation to ensure it's hidden
+    if (els.customDialogContainer) {
+        const contentContainer = els.customDialogContainer.querySelector('.modal-content-container');
+        if (contentContainer) {
+            setTimeout(() => {
+                contentContainer.innerHTML = '';
+            }, 300); // Wait for the transition to finish
+        }
+    }
+}

@@ -7,7 +7,7 @@ import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting } from './database.js';
 import { debounce } from './utils.js';
-import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, renderContent } from './ui.js';
+import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, renderContent, showCustomAlert } from './ui.js';
 import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
 
 /**
@@ -251,19 +251,29 @@ function closeNotesModal() {
     const originalContent = state.notes.originalContent;
 
     if (currentContent !== originalContent) {
-        const userIsSure = confirm("You have unsaved changes. Are you sure you want to close without saving?");
-
-        if (!userIsSure) {
-            return;
-        }
+        // Use custom confirm dialog instead of native one
+        showCustomConfirm(
+            getUIText('unsavedChangesTitle', 'Unsaved Changes'),
+            getUIText('unsavedChangesBody', 'You have unsaved changes. Are you sure you want to close without saving?')
+        ).then(confirmed => {
+            if (confirmed) {
+                // User confirmed to close without saving
+                document.body.classList.remove('body-no-scroll');
+                els.notesModalBackdrop.classList.remove('active');
+                els.notesModalWrapper.classList.remove('active');
+                setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
+                state.notes.originalContent = '';
+            }
+            // If not confirmed, do nothing (keep modal open)
+        });
+    } else {
+        // No unsaved changes, close normally
+        document.body.classList.remove('body-no-scroll');
+        els.notesModalBackdrop.classList.remove('active');
+        els.notesModalWrapper.classList.remove('active');
+        setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
+        state.notes.originalContent = '';
     }
-
-    document.body.classList.remove('body-no-scroll');
-    els.notesModalBackdrop.classList.remove('active');
-    els.notesModalWrapper.classList.remove('active');
-    setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
-
-    state.notes.originalContent = '';
 }
 
 async function saveAndCloseNotesModal() {
@@ -281,7 +291,7 @@ async function saveAndCloseNotesModal() {
 
     els.notesStatus.style.opacity = '1';
     setTimeout(() => {
-        closeNotesModal();
+        closeNotesModal(); // This will now trigger the custom confirm if changes were made
         setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
     }, 1000);
 }
@@ -486,7 +496,8 @@ function setupImportModal() {
 
     const handleFileSelect = async (files) => {
         const selectedFiles = files ? Array.from(files) : [];
-        importedData = {};
+        importedData = {}; // Clear previous data
+        els.fileInput.value = ''; // Crucial for allowing re-selection of the same file after error
         els.fileImportArea.classList.add('state-preview');
 
         const supportedFileNames = ['grammar.csv', 'hiragana.csv', 'kanji.csv', 'katakana.csv', 'keyPoints.csv', 'vocab.csv'];
@@ -495,6 +506,8 @@ function setupImportModal() {
         if (validFiles.length === 0) {
             els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoSupportedFiles')}</p>`;
             updateImportButtonState();
+            // Revert to initial state after a delay for better UX
+            setTimeout(resetModal, 2000); 
             return;
         }
 
@@ -610,6 +623,8 @@ function setupImportModal() {
             if (results.length === 0) {
                 els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoValidData')}</p>`;
                 updateImportButtonState();
+                // Revert to initial state after a delay for better UX
+                setTimeout(resetModal, 2000); 
                 return;
             }
 
@@ -624,6 +639,8 @@ function setupImportModal() {
             els.fileImportArea.innerHTML = previewHtml;
         } catch (err) {
             els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${err}</p>`;
+            // Revert to initial state after a delay for better UX
+            setTimeout(resetModal, 2000);
         }
         updateImportButtonState();
     };
@@ -651,11 +668,11 @@ function setupImportModal() {
 
             await setLevel(levelName);
 
-            alert(getUIText('importSuccess', { levelName: levelName.toUpperCase() }));
+            showCustomAlert(getUIText('successTitle', 'Success'), getUIText('importSuccess', { levelName: levelName.toUpperCase() }));
             closeModal();
         } catch (error) {
             console.error("Failed to save imported level:", error);
-            alert("Error: Could not save the new level.");
+            showCustomAlert(getUIText('errorTitle', 'Error'), getUIText('errorSaveImportedLevel', 'Error: Could not save the new level.'));
         } finally {
             els.importBtn.disabled = false;
             els.importBtn.querySelector('span').textContent = getUIText('importButton');
@@ -759,7 +776,11 @@ async function init() {
     } catch (error) {
         console.error('Initialization failed.', error);
         if (els.loadingOverlay) {
-            els.loadingOverlay.innerHTML = `<div style="text-align: center; padding: 40px; font-family: sans-serif; color: white;"><h2>Application Error</h2><p>Something went wrong during startup. Please try refreshing the page.</p><p style="color: #ff8a8a;">${error.message}</p></div>`;
+            // Use custom alert for fatal errors
+            showCustomAlert(
+                getUIText('applicationErrorTitle', 'Application Error'),
+                getUIText('applicationErrorBody', 'Something went wrong during startup. Please try refreshing the page.') + `\n\nError: ${error.message}`
+            );
         }
     }
 }

@@ -69,7 +69,18 @@
     "notesFor": "Notes for {tabName}",
     "notesPlaceholder": "Type your personal notes, mnemonics, or reminders here...\n\n(Ctrl/Cmd + S to save and close)",
     "saveNotes": "Save & Close",
-    "lastSavedOn": "Last saved: {date}"
+    "lastSavedOn": "Last saved: {date}",
+    "okButton": "OK",
+    "cancelButton": "Cancel",
+    "confirmButton": "Confirm",
+    "successTitle": "Success",
+    "errorTitle": "Error",
+    "confirmDeleteLevelTitle": "Confirm Deletion",
+    "applicationErrorTitle": "Application Error",
+    "applicationErrorBody": "Something went wrong during startup. Please try refreshing the page.",
+    "unsavedChangesTitle": "Unsaved Changes",
+    "unsavedChangesBody": "You have unsaved changes. Are you sure you want to close without saving?",
+    "errorSaveImportedLevel": "Error: Could not save the new level."
   },
   "vi": {
     "dashboard": "Bảng điều khiển",
@@ -141,6 +152,17 @@
     "notesFor": "Ghi chú cho {tabName}",
     "notesPlaceholder": "Nhập ghi chú cá nhân, mẹo ghi nhớ, hoặc lời nhắc của bạn ở đây...\n\n(Ctrl/Cmd + S để lưu và đóng)",
     "saveNotes": "Lưu & Đóng",
-    "lastSavedOn": "Lưu lần cuối: {date}"
+    "lastSavedOn": "Lưu lần cuối: {date}",
+    "okButton": "OK",
+    "cancelButton": "Huỷ",
+    "confirmButton": "Xác nhận",
+    "successTitle": "Thành công",
+    "errorTitle": "Lỗi",
+    "confirmDeleteLevelTitle": "Xác nhận xoá",
+    "applicationErrorTitle": "Lỗi ứng dụng",
+    "applicationErrorBody": "Đã xảy ra lỗi trong quá trình khởi động. Vui lòng thử làm mới trang.",
+    "unsavedChangesTitle": "Thay đổi chưa lưu",
+    "unsavedChangesBody": "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn đóng mà không lưu không?",
+    "errorSaveImportedLevel": "Lỗi: Không thể lưu cấp độ mới."
   }
 }
