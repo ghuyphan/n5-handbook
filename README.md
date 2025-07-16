@@ -60,9 +60,9 @@ Got your own study material? Awesome! Follow these simple steps to add it to the
 
 1.  **Get Your Files Ready 📁**
 
-    * You'll need your data in **CSV** format. You can easily create this with Google Sheets, Excel, or any spreadsheet software.
-    * **Important Rule**: Use a **semicolon (`;`)** to separate your columns, not a comma.
-    * If any of your text contains a semicolon, be sure to wrap that text in **double quotes (`"`)**.
+    * You'll need your data in **CSV (Comma-Separated Values)** format. You can create this with Google Sheets, Excel, or any spreadsheet software.
+    * The app will automatically detect if your file uses **commas (`,`)** or **semicolons (`;`)** as separators.
+    * If any of your text contains the separator character, be sure to wrap that text in **double quotes (`"`)**.
     * Name your files exactly as listed below so the app knows what's inside:
         * `hiragana.csv`
         * `katakana.csv`
@@ -93,7 +93,7 @@ This is the most important part! To make sure your files import correctly, you n
 
 #### **Kanji (`kanji.csv`)**
 
-| kanji | onyomi | kunyomi | meaning_en | meaning_vi | radical_en | radical_vi | mnemonic_en | mnemonic_vi |
+| kanji | onyomi | kunyomi | meaning\_en | meaning\_vi | radical\_en | radical\_vi | mnemonic\_en | mnemonic\_vi |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
 | 水 | スイ | みず | water | nước | Water | Nước | Water droplets | Giọt nước |
 
@@ -101,14 +101,14 @@ This is the most important part! To make sure your files import correctly, you n
 
 #### **Vocabulary (`vocab.csv`)**
 
-| word | reading | meaning_en | meaning_vi |
+| word | reading | meaning\_en | meaning\_vi |
 | :-- | :-- | :-- | :-- |
 | 猫 | ねこ | cat | con mèo |
 | 犬 | いぬ | dog | con chó |
 
 #### **Grammar (`grammar.csv`)**
 
-| title_en | title_vi | content_en | content_vi |
+| title\_en | title\_vi | content\_en | content\_vi |
 | :-- | :-- | :-- | :-- |
 | About X | Về X | This pattern is used to... | Mẫu này được dùng để... |
 | Because of Y | Bởi vì Y | The reason for this is... | Lý do cho việc này là... |
@@ -138,7 +138,7 @@ This is the most important part! To make sure your files import correctly, you n
 
 #### **Kanji (`kanji.csv`)**
 
-| kanji | onyomi | kunyomi | meaning_en | meaning_vi | radical_en | radical_vi | mnemonic_en | mnemonic_vi |
+| kanji | onyomi | kunyomi | meaning\_en | meaning\_vi | radical\_en | radical\_vi | mnemonic\_en | mnemonic\_vi |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
 | 水 | スイ | みず | water | nước | Water | Nước | Water droplets | Giọt nước |
 
@@ -146,14 +146,14 @@ This is the most important part! To make sure your files import correctly, you n
 
 #### **Từ vựng (`vocab.csv`)**
 
-| word | reading | meaning_en | meaning_vi |
+| word | reading | meaning\_en | meaning\_vi |
 | :-- | :-- | :-- | :-- |
 | 猫 | ねこ | cat | con mèo |
 | 犬 | いぬ | dog | con chó |
 
 #### **Ngữ pháp (`grammar.csv`)**
 
-| title_en | title_vi | content_en | content_vi |
+| title\_en | title\_vi | content\_en | content\_vi |
 | :-- | :-- | :-- | :-- |
 | About X | Về X | This pattern is used to... | Mẫu này được dùng để... |
 | Because of Y | Bởi vì Y | The reason for this is... | Lý do cho việc này là... |

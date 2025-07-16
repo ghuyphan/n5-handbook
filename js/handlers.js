@@ -3,7 +3,7 @@ import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote } from './database.js';
-import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm } from './ui.js';
+import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm, setupTabsForLevel } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
 // --- OPTIMIZATION: Cache for searchable items and their original state ---
@@ -286,33 +286,20 @@ async function renderLevelUI(level, fromHistory) {
     document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
     updateSidebarPinIcons();
 
-    const db = await dbPromise;
-    const levelData = await db.get('levels', level);
-    const availableTabs = levelData ? Object.keys(levelData) : ['kanji', 'vocab', 'hiragana', 'katakana', 'grammar', 'keyPoints'];
+    // This now correctly handles which tabs to show or hide.
+    await setupTabsForLevel(level);
 
-    document.querySelectorAll('.nav-item-wrapper').forEach(wrapper => {
-        const tabName = wrapper.querySelector('[data-tab-name]')?.dataset.tabName;
-        if (tabName && !['progress', 'external-search'].includes(tabName) && !availableTabs.includes(tabName)) {
-            wrapper.style.display = 'none';
-        } else {
-            wrapper.style.display = '';
-        }
-    });
-    
     const showKana = level === config.defaultLevel;
-    document.querySelector('[data-tab-name="hiragana"]').parentElement.style.display = showKana ? '' : 'none';
-    document.querySelector('[data-tab-name="katakana"]').parentElement.style.display = showKana ? '' : 'none';
-
     const isMobileView = window.innerWidth <= 768;
     const defaultTab = isMobileView ? 'external-search' : (showKana ? 'hiragana' : 'keyPoints');
-    
+
     let targetTab = state.pinnedTab || defaultTab;
     if (!showKana && (targetTab === 'hiragana' || targetTab === 'katakana')) {
         targetTab = 'keyPoints';
         state.pinnedTab = null;
         await savePinnedTab(null);
     }
-    
+
     await changeTab(targetTab, null, false, fromHistory, true);
 }
 

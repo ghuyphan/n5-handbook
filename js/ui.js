@@ -322,8 +322,8 @@ export function moveLangPill(langSwitchElement) {
     const buttonOffsetLeft = activeBtn.offsetLeft;
 
     requestAnimationFrame(() => {
-         pill.style.width = `${buttonWidth}px`;
-         pill.style.transform = `translateX(${buttonOffsetLeft}px)`;
+        pill.style.width = `${buttonWidth}px`;
+        pill.style.transform = `translateX(${buttonOffsetLeft}px)`;
     });
 }
 
@@ -373,7 +373,7 @@ export function closeSidebar() {
 
 async function renderCardBasedSection(containerId, data, category, gradient) {
     const container = document.getElementById(containerId);
-    if (!container) return; 
+    if (!container) return;
 
     container.innerHTML = '';
     if (!data) {
@@ -435,7 +435,7 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
         placeholderContainer.innerHTML = `<div class="search-placeholder-box"></div>`;
         els.externalSearchTab.appendChild(placeholderContainer);
     }
-    
+
     if (type === 'results') {
         placeholderContainer.style.display = 'none';
         resultsContainer.style.display = 'block';
@@ -528,7 +528,7 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
             sectionContainer.appendChild(kanjiGrid);
             contentFragment.appendChild(sectionContainer);
         }
-        
+
         const animatedWrapper = document.createElement('div');
         if (!isInitialLoad) {
             animatedWrapper.className = 'anim-fade-in';
@@ -543,7 +543,7 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
         const placeholderBox = placeholderContainer.querySelector('.search-placeholder-box');
         if (placeholderBox) {
             placeholderBox.innerHTML = getSearchPlaceholderInnerContent(type, query);
-            
+
             if (!isInitialLoad) {
                 placeholderBox.classList.remove('anim-fade-in');
                 void placeholderBox.offsetWidth;
@@ -586,7 +586,7 @@ function prepareKanaData(originalData) {
 
         if (romajiSet.has('kya') || romajiSet.has('gya')) {
             layoutToApply = LAYOUTS.youon;
-        } else if (romajiSet.has('ga') || romajiSet.has('za')) { 
+        } else if (romajiSet.has('ga') || romajiSet.has('za')) {
             layoutToApply = LAYOUTS.dakuten;
         } else if (romajiSet.has('pa')) {
             layoutToApply = LAYOUTS.handakuten;
@@ -601,11 +601,33 @@ function prepareKanaData(originalData) {
     return data;
 }
 
+export async function setupTabsForLevel(levelName) {
+    const db = await dbPromise;
+    const levelData = await db.get('levels', levelName);
+    const availableDataKeys = levelData ? Object.keys(levelData) : ['kanji', 'vocab', 'grammar', 'keyPoints', 'hiragana', 'katakana'];
+
+    document.querySelectorAll('.nav-item-wrapper').forEach(wrapper => {
+        const tabName = wrapper.querySelector('[data-tab-name]')?.dataset.tabName;
+        if (tabName && !['progress', 'external-search'].includes(tabName)) {
+            wrapper.style.display = availableDataKeys.includes(tabName) ? '' : 'none';
+        }
+    });
+
+    // ▼▼▼ THIS IS THE MODIFIED LOGIC ▼▼▼
+    // Instead of just checking for the default level, we now check if the level is either 'n5' or 'n4'.
+    const showKana = ['n5', 'n4'].includes(levelName);
+    const hiraganaTab = document.querySelector('[data-tab-name="hiragana"]')?.parentElement;
+    const katakanaTab = document.querySelector('[data-tab-name="katakana"]')?.parentElement;
+
+    if (hiraganaTab) hiraganaTab.style.display = showKana ? '' : 'none';
+    if (katakanaTab) katakanaTab.style.display = showKana ? '' : 'none';
+}
+
 export async function renderContent(tabId = null) {
-    const renderSafely = async (renderFn, tabName) => { 
+    const renderSafely = async (renderFn, tabName) => {
         try {
             if (state.appData[tabName]) {
-                renderFn(); 
+                renderFn();
             } else {
                 const db = await dbPromise;
                 const isCustomLevel = await db.get('levels', state.currentLevel);
@@ -613,8 +635,8 @@ export async function renderContent(tabId = null) {
                     renderContentNotAvailable(tabName);
                 }
             }
-        } catch (e) { 
-            console.error("Render error in tab", tabName, ":", e); 
+        } catch (e) {
+            console.error("Render error in tab", tabName, ":", e);
             renderContentNotAvailable(tabName);
         }
     };
@@ -796,7 +818,7 @@ export function showCustomDialog({ title, message, buttons, onOpen, onClose }) {
 
         dialogTitle.textContent = title;
         dialogMessage.textContent = message;
-        dialogActions.innerHTML = ''; 
+        dialogActions.innerHTML = '';
 
         let cleanupEventListeners;
 
@@ -858,7 +880,7 @@ export function showCustomAlert(title, message) {
         title,
         message,
         buttons: [{ text: getUIText('okButton', 'OK'), className: 'modal-button-primary', action: 'confirm' }],
-    }).then(() => {});
+    }).then(() => { });
 }
 
 export function showCustomConfirm(title, message) {
@@ -874,16 +896,40 @@ export function showCustomConfirm(title, message) {
 }
 
 export function closeCustomDialog() {
+    if (!els.customDialogContainer || els.customDialogContainer.classList.contains('modal-hidden')) {
+        return; // Already closed or not present
+    }
+
+    const backdrop = els.customDialogBackdrop;
+    const wrapper = els.customDialogWrapper;
+    const container = els.customDialogContainer;
+
     document.body.classList.remove('body-no-scroll');
-    els.customDialogBackdrop?.classList.remove('active');
-    els.customDialogWrapper?.classList.remove('active');
-    setTimeout(() => els.customDialogContainer?.classList.add('modal-hidden'), 300);
-    if (els.customDialogContainer) {
-        const contentContainer = els.customDialogContainer.querySelector('.modal-content-container');
+    if (backdrop) backdrop.classList.remove('active');
+    if (wrapper) wrapper.classList.remove('active');
+
+    // Use a transitionend event listener for cleanup to be more robust.
+    const onTransitionEnd = (e) => {
+        // Ensure we are listening to the end of the wrapper's transition
+        if (e.target !== wrapper) return;
+
+        container.classList.add('modal-hidden');
+        const contentContainer = container.querySelector('.modal-content-container');
         if (contentContainer) {
-            setTimeout(() => {
-                contentContainer.innerHTML = '';
-            }, 300); 
+            contentContainer.innerHTML = '';
+        }
+        wrapper.removeEventListener('transitionend', onTransitionEnd);
+    };
+
+    // If the wrapper has a transition, listen for it. Otherwise, clean up immediately.
+    if (wrapper && getComputedStyle(wrapper).transitionDuration !== '0s') {
+        wrapper.addEventListener('transitionend', onTransitionEnd, { once: true });
+    } else {
+        // Fallback for when there's no transition (e.g., prefers-reduced-motion)
+        container.classList.add('modal-hidden');
+        const contentContainer = container.querySelector('.modal-content-container');
+        if (contentContainer) {
+            contentContainer.innerHTML = '';
         }
     }
 }

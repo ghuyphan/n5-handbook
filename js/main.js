@@ -7,7 +7,7 @@ import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting } from './database.js';
 import { debounce } from './utils.js';
-import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, renderContent, showCustomAlert, showCustomConfirm } from './ui.js';
+import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui.js';
 import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
 
 // Helper function to get UI text, now accessible throughout the module
@@ -738,6 +738,7 @@ async function init() {
         }
 
         await loadAllData(state.currentLevel);
+         await setupTabsForLevel(state.currentLevel);
 
         await loadRequiredDataForProgress();
         updateProgressDashboard();
