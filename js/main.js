@@ -98,7 +98,7 @@ function handleStateChange(stateObj) {
     }
 }
 
-function openKanjiDetailModal(kanjiId) {
+export function openKanjiDetailModal(kanjiId) {
     let kanjiItem = null;
     for (const key in state.appData.kanji) {
         const found = state.appData.kanji[key].items.find(item => item.id === kanjiId);
@@ -192,14 +192,14 @@ function openKanjiDetailModal(kanjiId) {
         scrollContent.addEventListener('scroll', checkScroll);
         setTimeout(checkScroll, 50);
     }
-
+    
     document.body.classList.add('body-no-scroll');
     els.kanjiDetailModal.classList.remove('modal-hidden');
     els.kanjiModalBackdrop.classList.add('active');
     els.kanjiDetailModal.querySelector('.modal-wrapper').classList.add('active');
 }
 
-function closeKanjiDetailModal() {
+export function closeKanjiDetailModal() {
     document.body.classList.remove('body-no-scroll');
     els.kanjiModalBackdrop.classList.remove('active');
     els.kanjiDetailModal.querySelector('.modal-wrapper').classList.remove('active');
@@ -209,8 +209,7 @@ function closeKanjiDetailModal() {
     }, 400); 
 }
 
-
-async function openNotesModal() {
+export async function openNotesModal() {
     const tabId = state.activeTab;
     if (!tabId || ['progress', 'external-search'].includes(tabId)) return;
 
@@ -365,7 +364,7 @@ function setupEventListeners() {
             e.preventDefault();
             import('./main.js').then(module => module.openKanjiDetailModal(actionTarget.dataset.id));
         }
-
+        
         if (action === 'close-kanji-modal') {
             e.preventDefault();
             import('./main.js').then(module => module.closeKanjiDetailModal());

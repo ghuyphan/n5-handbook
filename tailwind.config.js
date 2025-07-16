@@ -45,8 +45,28 @@ module.exports = {
       // 2. FONTS
       // Defining your project's fonts.
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        jp: ['Noto Sans JP', 'sans-serif'],
+        sans: [
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
+          '"Noto Sans"',
+          'sans-serif',
+        ],
+        jp: [
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
+          '"Noto Sans JP"',
+          'sans-serif',
+        ],
       },
       
       // 3. BORDER RADIUS
