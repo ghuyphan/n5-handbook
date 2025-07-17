@@ -10,6 +10,52 @@ import { debounce } from './utils.js';
 import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui.js';
 import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
 
+// --- PWA Installation ---
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent the mini-infobar from appearing on mobile
+  e.preventDefault();
+  // Stash the event so it can be triggered later.
+  deferredPrompt = e;
+  // Update UI to notify the user they can install the PWA
+  const installButton = document.getElementById('install-app-btn');
+  if (installButton) {
+    installButton.style.display = 'flex';
+  }
+});
+
+async function handleInstallClick() {
+    if (deferredPrompt) {
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        // We've used the prompt, and can't use it again, throw it away
+        deferredPrompt = null;
+        // Hide the install button
+        const installButton = document.getElementById('install-app-btn');
+        if (installButton) {
+            installButton.style.display = 'none';
+        }
+    }
+}
+
+// Listen for the appinstalled event
+window.addEventListener('appinstalled', () => {
+  // Hide the install button
+  const installButton = document.getElementById('install-app-btn');
+  if (installButton) {
+    installButton.style.display = 'none';
+  }
+  // Clear the deferredPrompt so it can be garbage collected
+  deferredPrompt = null;
+  // Optionally, send analytics event to indicate successful install
+  console.log('PWA was installed');
+});
+
+
 // Helper function to get UI text, now accessible throughout the module
 const getUIText = (key, replacements = {}) => {
     let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
@@ -181,6 +227,11 @@ function setupEventListeners() {
     window.addEventListener('popstate', (e) => {
         handleStateChange(e.state);
     });
+
+    const installButton = document.getElementById('install-app-btn');
+    if(installButton) {
+        installButton.addEventListener('click', handleInstallClick);
+    }
 }
 
 function populateAndBindControls() {
@@ -189,6 +240,10 @@ function populateAndBindControls() {
             <div class="sidebar-control-group"><label class="sidebar-control-label" data-lang-key="level">Level</label><div id="level-switcher-sidebar" class="level-switch"></div></div>
             <div class="sidebar-control-group md:hidden"><label class="sidebar-control-label" data-lang-key="language">Language</label><div id="sidebar-lang-switcher" class="lang-switch">${getLangSwitcherHTML()}</div></div>
             <div class="sidebar-control-group md:hidden"><label class="sidebar-control-label" data-lang-key="theme">Theme</label><div class="theme-switch-wrapper">${getThemeToggleHTML()}</div></div>
+            <button id="install-app-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button" style="display: none;">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1h4a1 1 0 001-1V2zm-1 5a1 1 0 011 1v10a1 1 0 11-2 0V8a1 1 0 011-1zm-4-4h2V2H5v2zM15 4h-2V2h2v2zm-2 4h-2v10h2V8z"/></svg>
+                <span class="pointer-events-none">Install App</span>
+            </button>
             <button id="sidebar-import-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg><span data-lang-key="importLevel" class="pointer-events-none">Import New Level</span></button>`;
     }
 
