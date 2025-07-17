@@ -36,11 +36,10 @@ export async function loadState() {
 
         state.currentLang = lang || 'en';
         state.currentLevel = level || config.defaultLevel;
-        state.levelSettings = levelSettings || {}; // MODIFIED: Populate the global state
 
-        const currentLevelSettings = state.levelSettings?.[state.currentLevel];
+        const currentLevelSettings = levelSettings?.[state.currentLevel];
         state.pinnedTab = currentLevelSettings?.pinnedTab || null;
-        
+        // MODIFIED: Load and correctly parse the accordion state
         state.openAccordions = new Map(
             (currentLevelSettings?.openAccordions || []).map(([tabId, keys]) => [tabId, new Set(keys)])
         );

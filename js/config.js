@@ -17,14 +17,13 @@ export const state = {
     currentLevel: config.defaultLevel,
     allAvailableLevels: [config.defaultLevel],
     pinnedTab: null,
-    levelSettings: {}, // ADDED: To hold all level-specific settings
     isSwitchingLevel: false,
     loadingStatus: 'idle',
     activeTab: 'progress',
     notes: {
         /** @type {Map<string, string>} */
-        data: new Map(),
-        originalContent: ''
+        data: new Map(), 
+        originalContent: '' 
     },
     fuseInstances: {},
     universalFuse: null,
@@ -32,7 +31,6 @@ export const state = {
     lastDictionaryQuery: '',
     tabScrollPositions: new Map(),
     renderedTabs: new Map(),
-    openAccordions: new Map(),
     externalDB: {
         vocab: [],
         kanji: [],

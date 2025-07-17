@@ -169,29 +169,7 @@ function setupEventListeners() {
             'jump-to-section': () => jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey),
             'delete-level': () => deleteLevel(actionTarget.dataset.levelName),
             'set-level': () => setLevel(actionTarget.dataset.levelName),
-            'toggle-accordion': () => {
-                const tabId = state.activeTab;
-                const key = actionTarget.dataset.sectionTitleKey;
-                const isOpen = actionTarget.classList.toggle('open');
-                
-                if (!state.openAccordions.has(tabId)) {
-                    state.openAccordions.set(tabId, new Set());
-                }
-                
-                const openSet = state.openAccordions.get(tabId);
-                if (isOpen) {
-                    openSet.add(key);
-                } else {
-                    openSet.delete(key);
-                }
-                
-                if (!state.levelSettings[state.currentLevel]) {
-                    state.levelSettings[state.currentLevel] = {};
-                }
-
-                state.levelSettings[state.currentLevel].openAccordions = Array.from(state.openAccordions.entries()).map(([tab, set]) => [tab, Array.from(set)]);
-                saveSetting('levelSettings', state.levelSettings);
-            }
+            'toggle-accordion': () => actionTarget.classList.toggle('open')
         };
 
         if (immediateActions[action]) {
@@ -348,7 +326,7 @@ async function init() {
         history.replaceState(initialState, '', initialUrl);
 
     } catch (error) {
-        console.error('Initialization failed.', error);
+        console.error('Deferred initialization failed.', error);
         if (els.loadingOverlay) {
             showCustomAlert(
                 getUIText('applicationErrorTitle', 'Application Error'),
