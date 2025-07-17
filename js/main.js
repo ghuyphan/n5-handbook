@@ -10,7 +10,26 @@ import { debounce } from './utils.js';
 import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui.js';
 import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
 
-// Helper function to get UI text, now accessible throughout the module
+let deferredPrompt; 
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('install-app-btn');
+    if (installBtn) {
+        installBtn.style.display = 'flex';
+    }
+});
+
+window.addEventListener('appinstalled', () => {
+    const installBtn = document.getElementById('install-app-btn');
+    if (installBtn) {
+        installBtn.style.display = 'none';
+    }
+    deferredPrompt = null;
+    console.log('PWA was installed');
+});
+
 const getUIText = (key, replacements = {}) => {
     let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
     if (key === 'lastSavedOn' && !state.appData.ui?.[state.currentLang]?.[key]) {
@@ -23,7 +42,7 @@ const getUIText = (key, replacements = {}) => {
 };
 
 async function loadRequiredDataForProgress() {
-    const requiredDataTypes = ['kanji', 'vocab']; // Add other types if needed for progress
+    const requiredDataTypes = ['kanji', 'vocab']; 
     const promises = [];
     for (const type of requiredDataTypes) {
         if (!state.appData[type]) {
@@ -99,7 +118,7 @@ function handleThemeButtonClick() {
 }
 
 function setupEventListeners() {
-    document.body.addEventListener('click', (e) => {
+    document.body.addEventListener('click', async (e) => {
         const actionTarget = e.target.closest('[data-action]');
         if (!actionTarget) return;
 
@@ -123,7 +142,6 @@ function setupEventListeners() {
             'jump-to-section': () => jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey),
             'delete-level': () => deleteLevel(actionTarget.dataset.levelName),
             'set-level': () => setLevel(actionTarget.dataset.levelName),
-            // MODIFIED: Make the handler async to save state
             'toggle-accordion': async () => {
                 actionTarget.classList.toggle('open');
                 const tabId = actionTarget.closest('.tab-content')?.id;
@@ -141,14 +159,12 @@ function setupEventListeners() {
                         openSections.delete(sectionKey);
                     }
                     
-                    // Save the updated state to IndexedDB
                     try {
                         const db = await dbPromise;
                         let levelSettings = await db.get('settings', 'levelSettings') || {};
                         if (!levelSettings[state.currentLevel]) {
                             levelSettings[state.currentLevel] = {};
                         }
-                        // Convert Map of Sets to Array of Arrays for storing
                         levelSettings[state.currentLevel].openAccordions = Array.from(state.openAccordions.entries()).map(([key, value]) => [key, Array.from(value)]);
                         await saveSetting('levelSettings', levelSettings);
                     } catch (error) {
@@ -160,10 +176,9 @@ function setupEventListeners() {
 
         if (immediateActions[action]) {
             e.preventDefault();
-            immediateActions[action]();
+            await immediateActions[action]();
         }
 
-        // Dynamically import modal logic on demand
         if (action === 'open-notes') {
             e.preventDefault();
             import('./modals.js').then(module => module.openNotesModal());
@@ -196,16 +211,10 @@ function setupEventListeners() {
     }, 100);
     window.addEventListener('resize', debouncedResize);
 
-    // Keyboard shortcuts for modals are now handled inside the modal logic if needed,
-    // or can be handled by a dynamically imported module.
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (!els.kanjiDetailModal.classList.contains('modal-hidden')) {
                 import('./modals.js').then(module => module.closeKanjiDetailModal());
-            } else if (!els.notesModal.classList.contains('modal-hidden')) {
-                // Since closeNotesModal is not exported, we can keep its event listener here
-                // or refactor to have it callable from the modals module. For now, let's assume
-                // the close button is the primary way and ESC is a nice-to-have.
             }
         }
     });
@@ -221,6 +230,10 @@ function populateAndBindControls() {
             <div class="sidebar-control-group"><label class="sidebar-control-label" data-lang-key="level">Level</label><div id="level-switcher-sidebar" class="level-switch"></div></div>
             <div class="sidebar-control-group md:hidden"><label class="sidebar-control-label" data-lang-key="language">Language</label><div id="sidebar-lang-switcher" class="lang-switch">${getLangSwitcherHTML()}</div></div>
             <div class="sidebar-control-group md:hidden"><label class="sidebar-control-label" data-lang-key="theme">Theme</label><div class="theme-switch-wrapper">${getThemeToggleHTML()}</div></div>
+            <button id="install-app-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button" style="display: none;">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1h4a1 1 0 001-1V2zm-1 5a1 1 0 011 1v10a1 1 0 11-2 0V8a1 1 0 011-1zm-4-4h2V2H5v2zM15 4h-2V2h2v2zm-2 4h-2v10h2V8z"/></svg>
+                <span class="pointer-events-none">Install App</span>
+            </button>
             <button id="sidebar-import-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg><span data-lang-key="importLevel" class="pointer-events-none">Import New Level</span></button>`;
     }
 
@@ -244,7 +257,6 @@ async function init() {
     setupEventListeners();
     setupTheme();
 
-    // Dynamically set up the import modal logic
     if (document.getElementById('sidebar-import-btn')) {
         import('./modals.js').then(module => module.setupImportModal());
     }

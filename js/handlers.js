@@ -228,8 +228,7 @@ function showLoader() {
     if (!els.loadingOverlay) return;
     const newOverlay = els.loadingOverlay.cloneNode(true);
     els.loadingOverlay.parentNode.replaceChild(newOverlay, els.loadingOverlay);
-    els.loadingOverlay = newOverlay;
-    els.loadingOverlay.innerHTML = `<div class="loader"></div>`;
+    els.loadingOverlay.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3000 3000" class="h-24 w-24 app-loader-logo"><rect width="3000" height="3000" rx="660" ry="660" fill="#2998ff" /><path d="M1326 2670 c-182 -76 -299 -241 -301 -422 0 -38 0 -68 0 -68 0 0 -27 9 -60 19 -96 30 -152 34 -235 17 -113 -24 -174 -58 -267 -151 l-82 -82 18 -48 19 -49 -46 -29 -45 -28 6 -73 c13 -145 73 -266 172 -347 46 -36 171 -99 198 -99 17 0 16 -3 -8 -31 -122 -146 -138 -388 -36 -574 l38 -70 60 2 60 3 12 -60 12 -59 64 -20 c135 -42 240 -36 362 19 68 31 183 132 211 185 l15 30 21 -29 c62 -87 145 -156 238 -198 94 -43 219 -46 343 -7 l64 19 6 48 c4 26 8 52 9 57 2 6 29 10 62 10 59 0 59 0 90 46 49 74 77 174 77 282 0 53 -7 113 -16 143 -19 63 -63 152 -90 182 -20 21 -20 22 -1 22 36 1 131 47 191 93 105 81 162 192 181 355 l8 73 -47 26 -47 27 15 44 c20 56 12 72 -78 156 -78 74 -146 110 -248 132 -81 16 -165 9 -250 -21 -55 -19 -52 -19 -46 8 11 41 -15 160 -50 235 -57 120 -166 212 -302 252 -40 12 -43 12 -83 -20 l-41 -33 -44 32 c-24 17 -47 31 -52 30 -4 0 -39 -13 -77 -29z m386 -63 c148 -86 239 -269 221 -440 l-6 -58 34 20 c91 52 244 69 351 37 71 -20 168 -86 221 -148 l39 -47 -16 -47 c-9 -26 -16 -51 -16 -56 0 -5 20 -18 45 -30 42 -21 45 -24 45 -62 0 -61 -27 -163 -57 -218 -54 -99 -180 -190 -305 -219 l-56 -13 39 -44 c69 -78 119 -211 119 -315 0 -67 -26 -161 -63 -232 l-32 -60 -65 0 -64 0 -11 -60 c-12 -70 -25 -80 -131 -97 -87 -15 -187 1 -268 41 -72 35 -172 131 -207 196 -13 25 -27 45 -30 45 -3 0 -22 -26 -42 -58 -117 -189 -340 -274 -540 -206 l-45 15 -9 62 -8 62 -64 0 c-61 0 -64 1 -87 35 -66 95 -92 263 -59 375 23 79 58 147 102 196 20 22 34 41 32 42 -2 2 -31 11 -64 21 -214 64 -345 230 -345 435 0 34 4 39 45 59 25 12 45 26 45 31 0 4 -7 28 -15 51 -8 24 -13 51 -10 61 11 32 128 132 191 161 135 63 246 59 427 -17 17 -7 18 -3 12 51 -20 175 84 362 245 443 78 38 96 39 146 2 l39 -29 45 33 c43 32 45 33 87 20 23 -7 62 -24 85 -38z" fill="none" stroke="#ffffff" stroke-width="75" stroke-linejoin="round" transform="translate(0, 3000) scale(1, -1)"></path><text x="1500" y="1450" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif" text-anchor="middle" fill="#ffffff"><tspan font-size="480" font-weight="bold" class="loader-text-jlpt">JLPT</tspan><tspan x="1500" dy="330" font-size="210" font-weight="500" letter-spacing="7.5" class="loader-text-handbook">HANDBOOK</tspan></text></svg>`;
     els.loadingOverlay.classList.remove('hidden');
     requestAnimationFrame(() => {
         els.loadingOverlay.style.opacity = '1';
@@ -302,15 +301,14 @@ async function renderLevelUI(level, fromHistory) {
     document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
     updateSidebarPinIcons();
 
-    // This now correctly handles which tabs to show or hide.
     await setupTabsForLevel(level);
 
-    const showKana = level === config.defaultLevel;
+    const isN4OrN5 = ['n4', 'n5'].includes(level);
     const isMobileView = window.innerWidth <= 768;
-    const defaultTab = isMobileView ? 'external-search' : (showKana ? 'hiragana' : 'keyPoints');
+    const defaultTab = isMobileView ? 'external-search' : (isN4OrN5 ? 'hiragana' : 'keyPoints');
 
     let targetTab = state.pinnedTab || defaultTab;
-    if (!showKana && (targetTab === 'hiragana' || targetTab === 'katakana')) {
+    if (!isN4OrN5 && (targetTab === 'hiragana' || targetTab === 'katakana')) {
         targetTab = 'keyPoints';
         state.pinnedTab = null;
         await savePinnedTab(null);
@@ -447,12 +445,8 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
     const isDataTab = !['external-search', 'progress'].includes(tabName);
     const hasData = state.appData[tabName];
 
-    // ▼▼▼ THIS IS THE FIX ▼▼▼
-    // Always re-render data tabs to ensure the UI reflects the latest state,
-    // including the accordion state. The stale cache is the problem.
     if (isDataTab) {
         if (hasData) {
-            // Always render from the latest state, don't use a cache.
             renderContent(tabName);
         } else {
             const db = await dbPromise;
