@@ -396,16 +396,6 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
     container.appendChild(wrapper);
 
     setupFuseForTab(category);
-
-    const openSections = state.openAccordions.get(containerId);
-    if (openSections) {
-        openSections.forEach(sectionKey => {
-            const button = container.querySelector(`.accordion-button[data-section-title-key="${sectionKey}"]`);
-            if (button) {
-                button.classList.add('open');
-            }
-        });
-    }
 }
 
 function findKanjiData(kanjiCharacter) {
@@ -623,8 +613,6 @@ export async function setupTabsForLevel(levelName) {
         }
     });
 
-    // ▼▼▼ THIS IS THE MODIFIED LOGIC ▼▼▼
-    // Instead of just checking for the default level, we now check if the level is either 'n5' or 'n4'.
     const showKana = ['n5', 'n4'].includes(levelName);
     const hiraganaTab = document.querySelector('[data-tab-name="hiragana"]')?.parentElement;
     const katakanaTab = document.querySelector('[data-tab-name="katakana"]')?.parentElement;
@@ -651,7 +639,7 @@ export async function renderContent(tabId = null) {
         }
     };
 
-    const tabsToRender = tabId ? [tabId] : Object.keys(state.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
+    const tabsToRender = tabId ? [tabId] : Object.keys(u.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
 
     const renderMap = {
         hiragana: () => renderSafely(() => {
@@ -701,15 +689,6 @@ export async function renderContent(tabId = null) {
             wrapper.appendChild(fragment);
             els.keyPointsTab.appendChild(wrapper);
             setupFuseForTab('keyPoints');
-            const openSections = state.openAccordions.get('keyPoints');
-            if (openSections) {
-                openSections.forEach(sectionKey => {
-                    const button = els.keyPointsTab.querySelector(`.accordion-button[data-section-title-key="${sectionKey}"]`);
-                    if (button) {
-                        button.classList.add('open');
-                    }
-                });
-            }
         }, 'keyPoints'),
         grammar: () => renderSafely(() => {
             if (!els.grammarTab || !state.appData.grammar) return;
@@ -748,15 +727,6 @@ export async function renderContent(tabId = null) {
             wrapper.appendChild(fragment);
             els.grammarTab.appendChild(wrapper);
             setupFuseForTab('grammar');
-            const openGrammarSections = state.openAccordions.get('grammar');
-            if (openGrammarSections) {
-                openGrammarSections.forEach(sectionKey => {
-                    const button = els.grammarTab.querySelector(`.accordion-button[data-section-title-key="${sectionKey}"]`);
-                    if (button) {
-                        button.classList.add('open');
-                    }
-                });
-            }
         }, 'grammar'),
         kanji: () => renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)'), 'kanji'),
         vocab: () => renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)'), 'vocab')
