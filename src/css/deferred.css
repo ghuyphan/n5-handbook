@@ -1267,6 +1267,9 @@ mark.search-highlight {
     .sidebar-pin-btn {
         display: flex;
     }
+    .md\:hidden {
+    display: none;
+  }
 }
 
 .nav-item-wrapper:hover .sidebar-pin-btn,
