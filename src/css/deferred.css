@@ -368,18 +368,62 @@ mark.search-highlight {
     background-color: rgba(107, 114, 128, 0.2);
 }
 
+/* === Polished Pin Toggle Button Styles === */
+
+/* Base style for the button */
 #pin-toggle {
     width: 2.5rem;
     height: 2.5rem;
     padding: 0.625rem;
-    position: static;
     background-color: var(--switch-bg);
     border-radius: var(--radius-lg);
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-    border: none;
-    box-shadow: none;
+    border: 1px solid transparent; /* Prevents layout shift on state change */
+    cursor: pointer;
+    position: relative;
+    /* Smoother transitions for specific properties */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+/* Style for the icon inside the button */
+#pin-toggle svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: var(--pin-unpinned);
+    transition: fill 0.2s ease;
+    pointer-events: none; /* Ensures clicks are registered on the button */
+}
+
+/* Hover and Focus states for visual feedback */
+#pin-toggle:hover,
+#pin-toggle:focus-visible {
+    background-color: var(--pin-hover-bg);
+    border-color: var(--pin-color);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+#pin-toggle:hover svg,
+#pin-toggle:focus-visible svg {
+    fill: var(--pin-color);
+}
+
+/* Active (pressed) state for tactile feedback */
+#pin-toggle:active {
+    transform: scale(0.95);
+    transition-duration: 0.1s;
+}
+
+/* Pinned state - now with consistent styling */
+#pin-toggle.pinned {
+    background-color: var(--pin-hover-bg);
+    border-color: var(--pin-color);
+}
+
+#pin-toggle.pinned svg {
+    fill: var(--pin-color);
+    animation: pin-icon-rotate 0.5s var(--ease-out-quint) forwards;
+}
+
 
 .learn-toggle {
     top: 10px;
@@ -421,39 +465,11 @@ mark.search-highlight {
     background-color: var(--nav-hover-bg);
 }
 
-#pin-toggle:hover,
-#pin-toggle:focus-visible {
-    background: var(--pin-hover-bg);
-    border-color: var(--pin-color);
-    box-shadow: 0 8px 24px var(--shadow-color);
-    transform: scale(1.05);
-}
-
-#pin-toggle svg,
 .notes-header-btn svg {
     width: 1.25rem;
     height: 1.25rem;
     fill: var(--pin-unpinned);
     transition: fill var(--transition-duration) var(--ease-out-quint);
-}
-
-#pin-toggle:hover svg,
-#pin-toggle:focus-visible svg {
-    fill: var(--pin-color);
-}
-
-#pin-toggle:active {
-    background-color: var(--pin-hover-bg);
-    transform: scale(0.95); 
-}
-
-#pin-toggle.pinned {
-    border-color: var(--pin-color);
-}
-
-#pin-toggle.pinned svg {
-    fill: var(--pin-color);
-    animation: pin-icon-rotate 0.5s var(--ease-out-quint) forwards;
 }
 
 .learn-toggle.learned {
