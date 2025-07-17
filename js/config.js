@@ -22,8 +22,8 @@ export const state = {
     activeTab: 'progress',
     notes: {
         /** @type {Map<string, string>} */
-        data: new Map(), 
-        originalContent: '' 
+        data: new Map(),
+        originalContent: ''
     },
     fuseInstances: {},
     universalFuse: null,

@@ -39,7 +39,7 @@ export async function loadState() {
 
         const currentLevelSettings = levelSettings?.[state.currentLevel];
         state.pinnedTab = currentLevelSettings?.pinnedTab || null;
-        
+
         // MODIFIED: Load and correctly parse the accordion state from the database
         state.openAccordions = new Map(
             (currentLevelSettings?.openAccordions || []).map(([tabId, keys]) => [tabId, new Set(keys)])
@@ -123,7 +123,7 @@ export async function loadAllData(level) {
     } else {
         state.appData = {};
     }
-    
+
     state.appData.ui = await uiPromise;
 }
 
@@ -131,7 +131,7 @@ export async function updateLevelData(level, newData) {
     try {
         const db = await dbPromise;
         const existingData = await db.get('levels', level);
-        
+
         // A simple merge, you might want more sophisticated logic here
         const mergedData = { ...existingData, ...newData };
 
