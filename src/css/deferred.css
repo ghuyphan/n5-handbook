@@ -443,7 +443,8 @@ mark.search-highlight {
 }
 
 #pin-toggle:active {
-    transform: scale(0.98);
+    background-color: var(--pin-hover-bg);
+    transform: scale(0.95); 
 }
 
 #pin-toggle.pinned {

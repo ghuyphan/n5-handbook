@@ -123,7 +123,24 @@ function setupEventListeners() {
             'jump-to-section': () => jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey),
             'delete-level': () => deleteLevel(actionTarget.dataset.levelName),
             'set-level': () => setLevel(actionTarget.dataset.levelName),
-            'toggle-accordion': () => actionTarget.classList.toggle('open')
+            'toggle-accordion': () => {
+                actionTarget.classList.toggle('open');
+                const tabId = actionTarget.closest('.tab-content')?.id;
+                const sectionKey = actionTarget.dataset.sectionTitleKey;
+
+                if (tabId && sectionKey) {
+                    if (!state.openAccordions.has(tabId)) {
+                        state.openAccordions.set(tabId, new Set());
+                    }
+                    
+                    const openSections = state.openAccordions.get(tabId);
+                    if (actionTarget.classList.contains('open')) {
+                        openSections.add(sectionKey);
+                    } else {
+                        openSections.delete(sectionKey);
+                    }
+                }
+            }
         };
 
         if (immediateActions[action]) {

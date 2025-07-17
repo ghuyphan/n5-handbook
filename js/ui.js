@@ -641,7 +641,7 @@ export async function renderContent(tabId = null) {
         }
     };
 
-    const tabsToRender = tabId ? [tabId] : Object.keys(u.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
+    const tabsToRender = tabId ? [tabId] : Object.keys(state.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
 
     const renderMap = {
         hiragana: () => renderSafely(() => {
@@ -691,6 +691,15 @@ export async function renderContent(tabId = null) {
             wrapper.appendChild(fragment);
             els.keyPointsTab.appendChild(wrapper);
             setupFuseForTab('keyPoints');
+            const openSections = state.openAccordions.get('keyPoints');
+            if (openSections) {
+                openSections.forEach(sectionKey => {
+                    const button = els.keyPointsTab.querySelector(`.accordion-button[data-section-title-key="${sectionKey}"]`);
+                    if (button) {
+                        button.classList.add('open');
+                    }
+                });
+            }
         }, 'keyPoints'),
         grammar: () => renderSafely(() => {
             if (!els.grammarTab || !state.appData.grammar) return;
@@ -729,6 +738,15 @@ export async function renderContent(tabId = null) {
             wrapper.appendChild(fragment);
             els.grammarTab.appendChild(wrapper);
             setupFuseForTab('grammar');
+            const openGrammarSections = state.openAccordions.get('grammar');
+            if (openGrammarSections) {
+                openGrammarSections.forEach(sectionKey => {
+                    const button = els.grammarTab.querySelector(`.accordion-button[data-section-title-key="${sectionKey}"]`);
+                    if (button) {
+                        button.classList.add('open');
+                    }
+                });
+            }
         }, 'grammar'),
         kanji: () => renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)'), 'kanji'),
         vocab: () => renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)'), 'vocab')
