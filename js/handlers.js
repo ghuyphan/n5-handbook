@@ -447,9 +447,12 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
     const isDataTab = !['external-search', 'progress'].includes(tabName);
     const hasData = state.appData[tabName];
 
+    // ▼▼▼ THIS IS THE FIX ▼▼▼
+    // Always re-render data tabs to ensure the UI reflects the latest state,
+    // including the accordion state. The stale cache is the problem.
     if (isDataTab) {
         if (hasData) {
-            // MODIFIED: Removed the caching logic to always render from the latest state.
+            // Always render from the latest state, don't use a cache.
             renderContent(tabName);
         } else {
             const db = await dbPromise;

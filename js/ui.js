@@ -396,6 +396,16 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
     container.appendChild(wrapper);
 
     setupFuseForTab(category);
+
+    const openSections = state.openAccordions.get(containerId);
+    if (openSections) {
+        openSections.forEach(sectionKey => {
+            const button = container.querySelector(`.accordion-button[data-section-title-key="${sectionKey}"]`);
+            if (button) {
+                button.classList.add('open');
+            }
+        });
+    }
 }
 
 function findKanjiData(kanjiCharacter) {
