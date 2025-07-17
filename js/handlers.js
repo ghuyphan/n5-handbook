@@ -165,6 +165,7 @@ export function setLanguage(lang, skipRender = false) {
     state.currentLang = lang;
     saveSetting('language', lang);
     
+    // MODIFIED: Clear the renderedTabs cache since it will be stale
     if (state.renderedTabs) state.renderedTabs.clear();
     searchCache.clear();
 
@@ -267,13 +268,20 @@ async function loadLevelData(level) {
     const [_, progressData, levelSettings] = await Promise.all(dataPromises);
 
     state.progress = progressData || { kanji: [], vocab: [] };
-    state.pinnedTab = levelSettings?.[state.currentLevel]?.pinnedTab || null;
+    
+    // MODIFIED: Also load the accordion state for the new level
+    const currentLevelSettings = levelSettings?.[state.currentLevel];
+    state.pinnedTab = currentLevelSettings?.pinnedTab || null;
+    state.openAccordions = new Map(
+        (currentLevelSettings?.openAccordions || []).map(([tabId, keys]) => [tabId, new Set(keys)])
+    );
     
     state.fuseInstances = {};
     state.lastDictionaryQuery = '';
     state.notes.data = new Map();
     state.notes.originalContent = '';
-    if (state.renderedTabs) state.renderedTabs.clear();
+    // MODIFIED: Clear the renderedTabs cache since it will be stale
+    if (state.renderedTabs) state.renderedTabs.clear(); 
     searchCache.clear();
 
     const db = await dbPromise;
@@ -285,6 +293,7 @@ async function loadLevelData(level) {
         }))).then(() => console.log(`Pre-loading for level ${level} complete.`));
     }
 }
+
 
 async function renderLevelUI(level, fromHistory) {
     document.querySelectorAll('.tab-content').forEach(c => { c.innerHTML = ''; });
@@ -440,26 +449,19 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 
     if (isDataTab) {
         if (hasData) {
-            if (forceRender || !state.renderedTabs.has(tabName)) {
-                renderContent(tabName);
-                state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
-            } else {
-                newTabContentEl.innerHTML = state.renderedTabs.get(tabName);
-                setupFuseForTab(tabName);
-            }
+            // MODIFIED: Removed the caching logic to always render from the latest state.
+            renderContent(tabName);
         } else {
             const db = await dbPromise;
             const isCustomLevel = await db.get('levels', state.currentLevel);
             if (isCustomLevel) {
                 renderContentNotAvailable(tabName);
-                state.renderedTabs.delete(tabName);
             } else {
                 const loaderTemplate = document.getElementById('content-loader-template');
                 newTabContentEl.innerHTML = loaderTemplate ? loaderTemplate.innerHTML : '<div class="loader"></div>';
                 try {
                     await loadTabData(state.currentLevel, tabName);
                     renderContent(tabName);
-                    state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
                 } catch (error) {
                     console.error(`Error loading data for tab ${tabName}:`, error);
                     const title = getUIText('errorLoadContentTitle');

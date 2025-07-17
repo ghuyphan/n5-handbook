@@ -123,7 +123,8 @@ function setupEventListeners() {
             'jump-to-section': () => jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey),
             'delete-level': () => deleteLevel(actionTarget.dataset.levelName),
             'set-level': () => setLevel(actionTarget.dataset.levelName),
-            'toggle-accordion': () => {
+            // MODIFIED: Make the handler async to save state
+            'toggle-accordion': async () => {
                 actionTarget.classList.toggle('open');
                 const tabId = actionTarget.closest('.tab-content')?.id;
                 const sectionKey = actionTarget.dataset.sectionTitleKey;
@@ -138,6 +139,20 @@ function setupEventListeners() {
                         openSections.add(sectionKey);
                     } else {
                         openSections.delete(sectionKey);
+                    }
+                    
+                    // Save the updated state to IndexedDB
+                    try {
+                        const db = await dbPromise;
+                        let levelSettings = await db.get('settings', 'levelSettings') || {};
+                        if (!levelSettings[state.currentLevel]) {
+                            levelSettings[state.currentLevel] = {};
+                        }
+                        // Convert Map of Sets to Array of Arrays for storing
+                        levelSettings[state.currentLevel].openAccordions = Array.from(state.openAccordions.entries()).map(([key, value]) => [key, Array.from(value)]);
+                        await saveSetting('levelSettings', levelSettings);
+                    } catch (error) {
+                        console.error("Error saving accordion state:", error);
                     }
                 }
             }

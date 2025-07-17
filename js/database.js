@@ -39,6 +39,11 @@ export async function loadState() {
 
         const currentLevelSettings = levelSettings?.[state.currentLevel];
         state.pinnedTab = currentLevelSettings?.pinnedTab || null;
+        
+        // MODIFIED: Load and correctly parse the accordion state from the database
+        state.openAccordions = new Map(
+            (currentLevelSettings?.openAccordions || []).map(([tabId, keys]) => [tabId, new Set(keys)])
+        );
 
         state.progress = (await db.get('progress', state.currentLevel)) || { kanji: [], vocab: [] };
     } catch (error) {
@@ -46,6 +51,7 @@ export async function loadState() {
         state.currentLang = 'en';
         state.currentLevel = config.defaultLevel;
         state.progress = { kanji: [], vocab: [] };
+        state.openAccordions = new Map(); // Initialize as empty map on error
     }
 }
 
