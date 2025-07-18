@@ -5,20 +5,17 @@
 
 import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
-import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting } from './database.js';
+import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting, loadGlobalUI } from './database.js';
 import { debounce } from './utils.js';
 import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui.js';
-import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel } from './handlers.js';
+import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion } from './handlers.js';
 
 // --- PWA Installation ---
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Prevent the mini-infobar from appearing on mobile
   e.preventDefault();
-  // Stash the event so it can be triggered later.
   deferredPrompt = e;
-  // Update UI to notify the user they can install the PWA
   const installButton = document.getElementById('install-app-btn');
   if (installButton) {
     installButton.style.display = 'flex';
@@ -27,14 +24,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 async function handleInstallClick() {
     if (deferredPrompt) {
-        // Show the install prompt
         deferredPrompt.prompt();
-        // Wait for the user to respond to the prompt
         const { outcome } = await deferredPrompt.userChoice;
         console.log(`User response to the install prompt: ${outcome}`);
-        // We've used the prompt, and can't use it again, throw it away
         deferredPrompt = null;
-        // Hide the install button
         const installButton = document.getElementById('install-app-btn');
         if (installButton) {
             installButton.style.display = 'none';
@@ -42,21 +35,15 @@ async function handleInstallClick() {
     }
 }
 
-// Listen for the appinstalled event
 window.addEventListener('appinstalled', () => {
-  // Hide the install button
   const installButton = document.getElementById('install-app-btn');
   if (installButton) {
     installButton.style.display = 'none';
   }
-  // Clear the deferredPrompt so it can be garbage collected
   deferredPrompt = null;
-  // Optionally, send analytics event to indicate successful install
   console.log('PWA was installed');
 });
 
-
-// Helper function to get UI text, now accessible throughout the module
 const getUIText = (key, replacements = {}) => {
     let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
     if (key === 'lastSavedOn' && !state.appData.ui?.[state.currentLang]?.[key]) {
@@ -69,15 +56,11 @@ const getUIText = (key, replacements = {}) => {
 };
 
 async function loadRequiredDataForProgress() {
-    const requiredDataTypes = ['kanji', 'vocab']; // Add other types if needed for progress
+    const requiredDataTypes = ['kanji', 'vocab'];
     const promises = [];
     for (const type of requiredDataTypes) {
         if (!state.appData[type]) {
-            const db = await dbPromise;
-            const isCustomLevel = await db.get('levels', state.currentLevel);
-            if (!isCustomLevel) {
-                promises.push(loadTabData(state.currentLevel, type));
-            }
+            promises.push(loadTabData(state.currentLevel, type));
         }
     }
     if (promises.length > 0) {
@@ -98,9 +81,10 @@ async function changeTab(tabName, ...args) {
     const notesButtons = document.querySelectorAll('.notes-header-btn');
     notesButtons.forEach(btn => {
         btn.style.display = isNoteableTab ? 'flex' : 'none';
-        btn.classList.remove('has-note');
     });
+
     if (isNoteableTab) {
+        // Check if a note exists and update the button style
         const note = await loadNote(state.currentLevel, tabName);
         const hasContent = (note && typeof note === 'object') ? !!note.content?.trim() : !!note?.trim();
         notesButtons.forEach(btn => {
@@ -159,37 +143,36 @@ function setupEventListeners() {
             },
             'toggle-theme': () => handleThemeButtonClick(),
             'toggle-pin': () => togglePin(),
-            'toggle-sidebar-pin': () => toggleSidebarPin(e, actionTarget.dataset.tabName),
+            'toggle-sidebar-pin': (e) => toggleSidebarPin(e, actionTarget.dataset.tabName),
             'flip-card': () => {
-                if (!e.target.closest('[data-action="show-kanji-details"]')) {
-                    actionTarget.closest('.card').classList.toggle('is-flipped');
-                }
+                // FIX: Removed the unnecessary conditional check.
+                // The event delegation already ensures this only fires for 'flip-card' actions.
+                actionTarget.closest('.card').classList.toggle('is-flipped');
             },
             'toggle-learned': () => toggleLearned(actionTarget.dataset.category, actionTarget.dataset.id, actionTarget),
             'jump-to-section': () => jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey),
             'delete-level': () => deleteLevel(actionTarget.dataset.levelName),
             'set-level': () => setLevel(actionTarget.dataset.levelName),
-            'toggle-accordion': () => actionTarget.classList.toggle('open')
+            'toggle-accordion': () => toggleAccordion(actionTarget)
         };
-
+        
         if (immediateActions[action]) {
-            e.preventDefault();
-            immediateActions[action]();
+            // Check if 'e' needs to be passed
+            if (action === 'toggle-sidebar-pin') {
+                immediateActions[action](e);
+            } else {
+                immediateActions[action]();
+            }
         }
 
         // Dynamically import modal logic on demand
         if (action === 'open-notes') {
-            e.preventDefault();
             import('./modals.js').then(module => module.openNotesModal());
         }
         if (action === 'show-kanji-details') {
-            e.preventDefault();
             import('./modals.js').then(module => module.openKanjiDetailModal(actionTarget.dataset.id));
         }
-        if (action === 'close-kanji-modal') {
-            e.preventDefault();
-            import('./modals.js').then(module => module.closeKanjiDetailModal());
-        }
+        // The modal close actions are now handled within modals.js
     });
 
     els.overlay?.addEventListener('click', closeSidebar);
@@ -210,20 +193,6 @@ function setupEventListeners() {
     }, 100);
     window.addEventListener('resize', debouncedResize);
 
-    // Keyboard shortcuts for modals are now handled inside the modal logic if needed,
-    // or can be handled by a dynamically imported module.
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            if (!els.kanjiDetailModal.classList.contains('modal-hidden')) {
-                import('./modals.js').then(module => module.closeKanjiDetailModal());
-            } else if (!els.notesModal.classList.contains('modal-hidden')) {
-                // Since closeNotesModal is not exported, we can keep its event listener here
-                // or refactor to have it callable from the modals module. For now, let's assume
-                // the close button is the primary way and ESC is a nice-to-have.
-            }
-        }
-    });
-    
     window.addEventListener('popstate', (e) => {
         handleStateChange(e.state);
     });
@@ -254,13 +223,15 @@ function populateAndBindControls() {
 
     document.querySelectorAll('.sidebar-control-group .theme-switch input').forEach(el => el.addEventListener('change', toggleThemeSlider));
     document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
-        e.preventDefault();
         setLanguage(e.currentTarget.dataset.lang);
     }));
 }
 
 async function init() {
     populateEls();
+
+    // **FIX**: Load critical UI data BEFORE any state or rendering.
+    await loadGlobalUI();
     await loadState();
 
     populateAndBindControls();
@@ -272,16 +243,18 @@ async function init() {
         import('./modals.js').then(module => module.setupImportModal());
     }
 
+    // Hide initial loader
     if (els.loadingOverlay) {
         els.loadingOverlay.style.opacity = '0';
         els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
     }
-
+    
+    // **FIX**: Set language now that UI data is guaranteed to be loaded.
     setLanguage(state.currentLang, true);
     document.querySelectorAll('.lang-switch').forEach(moveLangPill);
 
     const params = new URLSearchParams(window.location.search);
-    let initialTab = params.get('tab') || state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'external-search');
+    let initialTab = params.get('tab') || state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'hiragana');
 
     try {
         const db = await dbPromise;
@@ -303,6 +276,8 @@ async function init() {
         if (urlLevel && state.allAvailableLevels.includes(urlLevel)) {
             state.currentLevel = urlLevel;
         }
+
+        // This just prepares the state, doesn't fetch tab data yet.
         await loadAllData(state.currentLevel);
 
         buildLevelSwitcher(remoteLevels, customLevels);
@@ -313,13 +288,14 @@ async function init() {
         await loadRequiredDataForProgress();
         updateProgressDashboard();
         
+        // Final UI updates before showing content
         setLanguage(state.currentLang, true);
         updateSidebarPinIcons();
 
         await changeTab(initialTab, null, false, true);
 
         const versionElement = document.getElementById('app-version');
-        if(versionElement) versionElement.textContent = 'v1.0.0'; 
+        if(versionElement) versionElement.textContent = 'v1.0.1'; // Bump version
 
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;

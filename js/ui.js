@@ -86,8 +86,8 @@ export function renderContentNotAvailable(tabName) {
     `;
 }
 
-
-function createAccordion(title, contentNode, searchData, titleKey) {
+// MODIFIED: Added tabId parameter to know which tab we're rendering for.
+function createAccordion(title, contentNode, searchData, titleKey, tabId) {
     const template = document.getElementById('accordion-template');
     const clone = template.content.cloneNode(true);
 
@@ -95,6 +95,12 @@ function createAccordion(title, contentNode, searchData, titleKey) {
     const button = clone.querySelector('.accordion-button');
     const titleSpan = clone.querySelector('.accordion-title');
     const contentDiv = clone.querySelector('.accordion-content');
+
+    // MODIFIED: Use the passed tabId instead of state.activeTab
+    const tabAccordions = state.openAccordions.get(tabId);
+    if (tabAccordions && tabAccordions.has(titleKey)) {
+        button.classList.add('open');
+    }
 
     wrapper.dataset.search = searchData;
     button.dataset.sectionTitleKey = titleKey;
@@ -145,6 +151,13 @@ const createCard = (item, category, backGradient) => {
     const learnToggle = clone.querySelector('.learn-toggle');
     const cardFront = clone.querySelector('.card-face-front');
     const cardBack = clone.querySelector('.card-face-back');
+    
+    // FIX: Select the card element itself to add the data-action attribute
+    const cardElement = clone.querySelector('.card');
+    if (cardElement) {
+        cardElement.dataset.action = 'flip-card';
+    }
+
 
     if (category === 'kanji') {
         const detailsToggle = document.createElement('div');
@@ -186,7 +199,8 @@ const createCard = (item, category, backGradient) => {
     return clone;
 };
 
-const createCardSection = (title, data, category, backGradient, titleKey) => {
+// MODIFIED: Added tabId parameter to pass down to createAccordion
+const createCardSection = (title, data, category, backGradient, titleKey, tabId) => {
     if (!data || data.length === 0) return document.createDocumentFragment();
 
     const cardGrid = document.createElement('div');
@@ -201,7 +215,8 @@ const createCardSection = (title, data, category, backGradient, titleKey) => {
     accordionContentWrapper.appendChild(cardGrid);
 
     const searchTermsForSection = generateSearchTerms([title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]);
-    return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey);
+    // MODIFIED: Pass tabId to createAccordion
+    return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId);
 };
 
 const createStaticSection = (data, icon, color) => {
@@ -371,6 +386,7 @@ export function closeSidebar() {
     document.body.classList.remove('sidebar-open');
 }
 
+// MODIFIED: Pass containerId through to createCardSection
 async function renderCardBasedSection(containerId, data, category, gradient) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -387,7 +403,7 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
         if (!section.items) continue;
 
         const title = section[state.currentLang] || section.en;
-        fragment.appendChild(createCardSection(title, section.items, category, gradient, key));
+        fragment.appendChild(createCardSection(title, section.items, category, gradient, key, containerId));
     }
 
     const wrapper = document.createElement('div');
@@ -639,7 +655,7 @@ export async function renderContent(tabId = null) {
         }
     };
 
-    const tabsToRender = tabId ? [tabId] : Object.keys(u.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
+    const tabsToRender = tabId ? [tabId] : Object.keys(state.appData).filter(k => !['ui', 'progress', 'external-search'].includes(k));
 
     const renderMap = {
         hiragana: () => renderSafely(() => {
@@ -681,7 +697,8 @@ export async function renderContent(tabId = null) {
                     contentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
                     contentWrapper.appendChild(contentNode);
                     const searchTerms = generateSearchTerms([title, JSON.stringify(section.content)]);
-                    fragment.appendChild(createAccordion(title, contentWrapper, searchTerms, key));
+                    // MODIFIED: Pass 'keyPoints' as the tabId to createAccordion
+                    fragment.appendChild(createAccordion(title, contentWrapper, searchTerms, key, 'keyPoints'));
                 }
             }
             const wrapper = document.createElement('div');
@@ -720,7 +737,8 @@ export async function renderContent(tabId = null) {
                 contentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
                 contentWrapper.appendChild(grid);
                 const searchData = generateSearchTerms([sectionTitle, ...sectionData.items.flatMap(item => [item.en?.title, item.en?.content, item.vi?.title, item.vi?.content])]);
-                fragment.appendChild(createAccordion(sectionTitle, contentWrapper, searchData, sectionKey));
+                // MODIFIED: Pass 'grammar' as the tabId to createAccordion
+                fragment.appendChild(createAccordion(sectionTitle, contentWrapper, searchData, sectionKey, 'grammar'));
             }
             const wrapper = document.createElement('div');
             wrapper.className = 'space-y-4';

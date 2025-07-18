@@ -13,7 +13,7 @@
     <link rel="preload" href="./assets/siteIcon.png" as="image">
     <link rel="preload" href="/dist/main.min.css" as="style">
     <link rel="preload" href="/dist/deferred.min.css" as="style">
-    <link rel="preload" href="/dist/main.min.js" as="script">
+    <link rel="preload" href="/dist/main.js" as="script">
 
     <meta name="description"
         content="An interactive, multi-level web application to help you study Japanese. Start with the built-in JLPT N5 & N4 material or import your own custom study levels.">
@@ -348,7 +348,7 @@
 
     <div id="import-modal" class="modal-hidden">
         <div id="import-modal-backdrop" class="modal-backdrop"></div>
-        <div class="modal-wrapper">
+        <div id="import-modal-wrapper" class="modal-wrapper">
             <div class="modal-content-container">
                 <div class="modal-content glass-effect">
                     <div class="modal-header">
@@ -393,7 +393,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
             </div>
-            <div class="card h-full cursor-pointer" data-action="flip-card">
+            <div class="card h-full cursor-pointer" data-action="open-kanji-modal">
                 <div class="card-inner">
                     <div class="card-face card-face-front p-2"></div>
                     <div class="card-face card-face-back"></div>
@@ -446,15 +446,17 @@
         </div>
     </template>
 
-    <div id="kanji-detail-modal" class="fixed inset-0 z-[150] flex items-center justify-center p-4">
-        <div id="modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
-        <div id="modal-content-container" class="relative w-full max-w-md">
+    <div id="kanji-detail-modal" class="modal-hidden">
+        <div id="kanji-modal-backdrop" class="modal-backdrop"></div>
+        <div id="kanji-modal-wrapper" class="modal-wrapper">
+            <div id="modal-content-container" class="relative w-full max-w-md">
+            </div>
         </div>
     </div>
 
     <div id="notes-modal" class="modal-hidden">
         <div id="notes-modal-backdrop" class="modal-backdrop"></div>
-        <div class="modal-wrapper">
+        <div id="notes-modal-wrapper" class="modal-wrapper">
             <div class="modal-content-container">
                 <div class="modal-content glass-effect">
                     <div class="modal-header">
@@ -553,7 +555,7 @@
         </div>
     </template>
 
-    <script type="module" src="./dist/main.min.js"></script>
+    <script type="module" src="./dist/main.js"></script>
      <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

@@ -1,105 +1,78 @@
-// A more descriptive cache name
-const CACHE_NAME = 'jlpt-handbook-assets-v1';
-const FONT_CACHE_NAME = 'jlpt-handbook-fonts-v1';
-const DATA_CACHE_NAME = 'jlpt-handbook-data-v1';
+const CACHE_NAME = 'jlpt-handbook-cache-v1';
 
-
-const APP_SHELL_URLS = [
+// This list includes all the essential files your app needs to work offline.
+// The paths are based on your index.html file structure.
+const urlsToCache = [
   '/',
   '/index.html',
-  '/offline.html', // Added offline fallback page
   '/dist/main.min.css',
   '/dist/deferred.min.css',
-  '/dist/main.min.js',
+  '/dist/main.js',
+  '/assets/siteIcon.webp',
   '/assets/siteIcon.png',
-  '/assets/siteIcon.webp' // Added webp version
+  '/assets/og.png',
+  '/manifest.json'
 ];
 
-const FONT_URLS = [
-  '/assets/fonts/noto-sans-jp-v54-japanese_latin-700.woff2',
-  '/assets/fonts/noto-sans-jp-v54-japanese_latin-regular.woff2',
-  '/assets/fonts/inter-v19-latin_latin-ext_vietnamese-700.woff2',
-  '/assets/fonts/inter-v19-latin_latin-ext_vietnamese-600.woff2',
-  '/assets/fonts/inter-v19-latin_latin-ext_vietnamese-regular.woff2',
-  '/assets/fonts/klee-one-v12-latin-regular.woff2'
-];
-
-// Install: Cache all essential assets.
+// --- INSTALL: Caches the essential files for the PWA ---
 self.addEventListener('install', event => {
+  console.log('Service Worker: Installing...');
   event.waitUntil(
-    Promise.all([
-      caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL_URLS)),
-      caches.open(FONT_CACHE_NAME).then(cache => cache.addAll(FONT_URLS))
-    ]).then(() => self.skipWaiting()) // Force the new service worker to activate
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Service Worker: Caching app shell');
+        // We use individual add calls with error handling to debug which file is failing.
+        const promises = urlsToCache.map(url => {
+            return cache.add(url).catch(err => {
+                console.error(`Failed to cache ${url}:`, err);
+            });
+        });
+        return Promise.all(promises);
+      })
+      .then(() => {
+        console.log('Service Worker: Installation complete');
+        return self.skipWaiting();
+      })
   );
 });
 
-// Activate: Clean up old caches.
+// --- ACTIVATE: Cleans up old caches ---
 self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME, FONT_CACHE_NAME, DATA_CACHE_NAME];
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (!cacheWhitelist.includes(cacheName)) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim()) // Take control of all pages
-    );
+  console.log('Service Worker: Activating...');
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) {
+            console.log('Service Worker: Clearing old cache', cache);
+            return caches.delete(cache);
+          }
+        })
+      );
+    }).then(() => {
+        console.log('Service Worker: Activation complete');
+        return self.clients.claim();
+    })
+  );
 });
 
-
+// --- FETCH: Serves assets from cache first ---
 self.addEventListener('fetch', event => {
-    const { request } = event;
-    const url = new URL(request.url);
+  // We only want to cache GET requests.
+  if (event.request.method !== 'GET') {
+    return;
+  }
 
-    // Strategy for fonts: Cache First
-    if (url.pathname.startsWith('/assets/fonts/')) {
-        event.respondWith(caches.match(request).then(cachedResponse => {
-            return cachedResponse || fetch(request).then(networkResponse => {
-                const responseToCache = networkResponse.clone();
-                caches.open(FONT_CACHE_NAME).then(cache => cache.put(request, responseToCache));
-                return networkResponse;
-            });
-        }));
-        return;
-    }
-    
-    // Strategy for data from GitHub: Network first, then cache
-    if (url.hostname === 'raw.githubusercontent.com') {
-        event.respondWith(
-            fetch(request)
-            .then(networkResponse => {
-                const responseToCache = networkResponse.clone();
-                caches.open(DATA_CACHE_NAME).then(cache => {
-                    cache.put(request, responseToCache);
-                });
-                return networkResponse;
-            })
-            .catch(() => caches.match(request))
-        );
-        return;
-    }
-    
-    // Strategy for App Shell: Stale-While-Revalidate
-    event.respondWith(
-        caches.match(request).then(cachedResponse => {
-            const fetchPromise = fetch(request).then(networkResponse => {
-                if (request.url.startsWith('chrome-extension://')) {
-                    return networkResponse;
-                }
-                const responseToCache = networkResponse.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                    cache.put(request, responseToCache);
-                });
-                return networkResponse;
-            }).catch(() => {
-                // If the network fails, and the item is not in the cache, show the offline page.
-                return caches.match('/offline.html');
-            });
-            return cachedResponse || fetchPromise;
-        })
-    );
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // If the file is in the cache, serve it.
+        if (response) {
+          return response;
+        }
+
+        // If not, fetch it from the network.
+        return fetch(event.request);
+      })
+  );
 });

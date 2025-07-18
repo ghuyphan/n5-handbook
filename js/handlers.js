@@ -2,7 +2,7 @@ import Fuse from 'fuse.js';
 import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
-import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote } from './database.js';
+import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote, saveAccordionState } from './database.js';
 import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm, setupTabsForLevel } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
@@ -87,6 +87,35 @@ export function toggleLearned(category, id, element) {
         element.classList.add('learned');
     }
     saveProgress();
+}
+
+/**
+ * ADDED: Toggles an accordion's visibility and saves its state.
+ * @param {HTMLElement} buttonElement The accordion button that was clicked.
+ */
+export function toggleAccordion(buttonElement) {
+    const tabId = state.activeTab;
+    const sectionKey = buttonElement.dataset.sectionTitleKey;
+
+    if (!tabId || !sectionKey) return;
+
+    // Update the visual state immediately
+    const isOpen = buttonElement.classList.toggle('open');
+
+    // Update the application state
+    if (!state.openAccordions.has(tabId)) {
+        state.openAccordions.set(tabId, new Set());
+    }
+
+    const tabAccordions = state.openAccordions.get(tabId);
+    if (isOpen) {
+        tabAccordions.add(sectionKey);
+    } else {
+        tabAccordions.delete(sectionKey);
+    }
+
+    // Persist the new state to the database
+    saveAccordionState();
 }
 
 export function setupFuseForTab(tabId) {
@@ -397,6 +426,7 @@ function updateTabUI(tabName) {
     updateSearchPlaceholders(tabName);
 }
 
+// MODIFIED: Restructured the logic to always show a loader when rendering a new tab.
 export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false, forceRender = false) {
     const activeTabEl = document.querySelector('.tab-content.active');
     if (activeTabEl?.id === tabName && !forceRender) {
@@ -429,57 +459,49 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
     }
 
     const isDataTab = !['external-search', 'progress'].includes(tabName);
-    const hasData = state.appData[tabName];
 
     if (isDataTab) {
-        if (hasData) {
-            if (forceRender || !state.renderedTabs.has(tabName)) {
-                renderContent(tabName);
+        if (forceRender || !state.renderedTabs.has(tabName)) {
+            // Show loader while we prepare the content
+            const loaderTemplate = document.getElementById('content-loader-template');
+            newTabContentEl.innerHTML = loaderTemplate ? loaderTemplate.innerHTML : '<div class="loader"></div>';
+            
+            try {
+                // Load data if it's not already in the state
+                if (!state.appData[tabName]) {
+                    await loadTabData(state.currentLevel, tabName);
+                }
+                
+                // Render the content from the data
+                await renderContent(tabName);
                 state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
-            } else {
-                newTabContentEl.innerHTML = state.renderedTabs.get(tabName);
-                setupFuseForTab(tabName);
-            }
-        } else {
-            const db = await dbPromise;
-            const isCustomLevel = await db.get('levels', state.currentLevel);
-            if (isCustomLevel) {
+            } catch (error) {
+                console.error(`Error loading or rendering data for tab ${tabName}:`, error);
                 renderContentNotAvailable(tabName);
                 state.renderedTabs.delete(tabName);
-            } else {
-                const loaderTemplate = document.getElementById('content-loader-template');
-                newTabContentEl.innerHTML = loaderTemplate ? loaderTemplate.innerHTML : '<div class="loader"></div>';
-                try {
-                    await loadTabData(state.currentLevel, tabName);
-                    renderContent(tabName);
-                    state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
-                } catch (error) {
-                    console.error(`Error loading data for tab ${tabName}:`, error);
-                    const title = getUIText('errorLoadContentTitle');
-                    const body = getUIText('errorLoadContentBody');
-                    showCustomAlert(title, `${error.message}\n\n${body}`);
-                }
             }
+        } else {
+            // Restore from cache if already rendered
+            newTabContentEl.innerHTML = state.renderedTabs.get(tabName);
+            setupFuseForTab(tabName);
         }
-    }
-
-    if (tabName === 'external-search') {
+    } else if (tabName === 'external-search') {
         getActiveSearchInput().value = state.lastDictionaryQuery;
-        handleExternalSearch(state.lastDictionaryQuery, false, false);
+        handleExternalSearch(state.lastDictionaryQuery, false, true);
     } else if (tabName === 'progress') {
         updateProgressDashboard();
-    } else {
-        const searchInput = getActiveSearchInput();
-        if(searchInput.value) {
-            searchInput.value = '';
-            handleSearch();
-        }
+    }
+
+    if (isDataTab && getActiveSearchInput().value) {
+        getActiveSearchInput().value = '';
+        handleSearch();
     }
 
     if (!suppressScroll) {
         window.scrollTo({ top: state.tabScrollPositions.get(tabName) || 0, behavior: 'instant' });
     }
 }
+
 
 export function jumpToSection(tabName, sectionTitleKey) {
     const activeTab = document.querySelector('.tab-content.active');

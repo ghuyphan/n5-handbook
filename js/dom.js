@@ -76,8 +76,11 @@ export function populateEls() {
 
     // Kanji Modal
     els.kanjiDetailModal = document.getElementById('kanji-detail-modal');
-    els.kanjiModalBackdrop = document.querySelector('#kanji-detail-modal #modal-backdrop');
+    els.kanjiModalBackdrop = document.querySelector('#kanji-detail-modal #kanji-modal-backdrop');
     els.kanjiModalContentContainer = document.querySelector('#kanji-detail-modal #modal-content-container');
+    // ========= START: MODIFICATION =========
+    els.kanjiModalWrapper = document.querySelector('#kanji-detail-modal .modal-wrapper');
+    // ========= END: MODIFICATION =========
 
     // NEW: Custom Dialog Elements
     els.customDialogContainer = document.getElementById('custom-dialog-container');

@@ -17,8 +17,18 @@ const getUIText = (key, replacements = {}) => {
     return text;
 };
 
+
 // --- Kanji Detail Modal ---
+
+// Store the cleanup function to remove event listeners
+let closeKanjiModalWithListeners;
+
 export function openKanjiDetailModal(kanjiId) {
+    if (!els.kanjiDetailModal) {
+        console.error("Kanji detail modal element not found.");
+        return;
+    }
+    
     let kanjiItem = null;
     for (const key in state.appData.kanji) {
         const found = state.appData.kanji[key].items.find(item => item.id === kanjiId);
@@ -94,6 +104,7 @@ export function openKanjiDetailModal(kanjiId) {
         }
     }
 
+
     els.kanjiModalContentContainer.innerHTML = '';
     els.kanjiModalContentContainer.appendChild(clone);
 
@@ -107,25 +118,72 @@ export function openKanjiDetailModal(kanjiId) {
         scrollContent.addEventListener('scroll', checkScroll);
         setTimeout(checkScroll, 50);
     }
+
+    const handleClose = () => closeKanjiDetailModal();
+    const handleBackdropClick = (e) => {
+        // FIX: Check if the click target is the wrapper itself.
+        if (e.target === els.kanjiModalWrapper) {
+            handleClose();
+        }
+    };
+    const handleEscKey = (e) => {
+        if (e.key === 'Escape') {
+            handleClose();
+        }
+    };
     
+    const closeButton = els.kanjiModalContentContainer.querySelector('[data-action="close-kanji-modal"]');
+    if(closeButton) {
+        closeButton.addEventListener('click', handleClose);
+    }
+
+    // FIX: Attach the listener to the wrapper.
+    els.kanjiModalWrapper.addEventListener('click', handleBackdropClick);
+    document.addEventListener('keydown', handleEscKey);
+
+    closeKanjiModalWithListeners = () => {
+        // FIX: Ensure the correct listener is removed.
+        els.kanjiModalWrapper.removeEventListener('click', handleBackdropClick);
+        document.removeEventListener('keydown', handleEscKey);
+        if (closeButton) {
+            closeButton.removeEventListener('click', handleClose);
+        }
+        closeKanjiModalWithListeners = null; 
+    };
+
     document.body.classList.add('body-no-scroll');
     els.kanjiDetailModal.classList.remove('modal-hidden');
-    els.kanjiModalBackdrop.classList.add('active');
-    els.kanjiDetailModal.querySelector('.modal-wrapper').classList.add('active');
+    requestAnimationFrame(() => {
+        els.kanjiDetailModal.classList.add('active');
+        els.kanjiModalBackdrop.classList.add('active');
+        if (els.kanjiModalWrapper) {
+            els.kanjiModalWrapper.classList.add('active');
+        }
+    });
 }
 
 export function closeKanjiDetailModal() {
-    document.body.classList.remove('body-no-scroll');
+    if (closeKanjiModalWithListeners) {
+        closeKanjiModalWithListeners();
+    }
+    
+    els.kanjiDetailModal.classList.remove('active');
     els.kanjiModalBackdrop.classList.remove('active');
-    els.kanjiDetailModal.querySelector('.modal-wrapper').classList.remove('active');
+    if (els.kanjiModalWrapper) {
+        els.kanjiModalWrapper.classList.remove('active');
+    }
 
-    setTimeout(() => {
+    document.body.classList.remove('body-no-scroll');
+    
+    els.kanjiModalWrapper.addEventListener('transitionend', () => {
         els.kanjiDetailModal.classList.add('modal-hidden');
-    }, 400); 
+    }, { once: true });
 }
 
 
 // --- Notes Modal ---
+let closeNotesModalWithListeners;
+
 export async function openNotesModal() {
     const tabId = state.activeTab;
     if (!tabId || ['progress', 'external-search'].includes(tabId)) return;
@@ -162,11 +220,44 @@ export async function openNotesModal() {
     els.notesTextarea.value = initialContent;
     state.notes.originalContent = initialContent;
 
+    const handleClose = () => closeNotesModal();
+    const handleSave = () => saveAndCloseNotesModal();
+
+    const handleBackdropClick = (e) => {
+        // FIX: Check if the click target is the wrapper itself.
+        if (e.target === els.notesModalWrapper) {
+            handleClose();
+        }
+    };
+    const handleEscKey = (e) => {
+        if (e.key === 'Escape') {
+            handleClose();
+        }
+    };
+
+    els.closeNotesModalBtn.addEventListener('click', handleClose);
+    els.notesSaveBtn.addEventListener('click', handleSave);
+    // FIX: Attach the listener to the wrapper.
+    els.notesModalWrapper.addEventListener('click', handleBackdropClick);
+    document.addEventListener('keydown', handleEscKey);
+
+    closeNotesModalWithListeners = () => {
+        els.closeNotesModalBtn.removeEventListener('click', handleClose);
+        els.notesSaveBtn.removeEventListener('click', handleSave);
+        // FIX: Ensure the correct listener is removed.
+        els.notesModalWrapper.removeEventListener('click', handleBackdropClick);
+        document.removeEventListener('keydown', handleEscKey);
+        closeNotesModalWithListeners = null;
+    };
+
     document.body.classList.add('body-no-scroll');
     els.notesModal.classList.remove('modal-hidden');
-    els.notesModalBackdrop.classList.add('active');
-    els.notesModalWrapper.classList.add('active');
-    els.notesTextarea.focus();
+    
+    requestAnimationFrame(() => {
+        els.notesModalBackdrop.classList.add('active');
+        els.notesModalWrapper.classList.add('active');
+        els.notesTextarea.focus();
+    });
 }
 
 function closeNotesModal() {
@@ -174,10 +265,17 @@ function closeNotesModal() {
     const originalContent = state.notes.originalContent;
 
     const doClose = () => {
+        if (closeNotesModalWithListeners) {
+            closeNotesModalWithListeners();
+        }
         document.body.classList.remove('body-no-scroll');
         els.notesModalBackdrop.classList.remove('active');
         els.notesModalWrapper.classList.remove('active');
-        setTimeout(() => els.notesModal.classList.add('modal-hidden'), 300);
+        
+        els.notesModalWrapper.addEventListener('transitionend', () => {
+            els.notesModal.classList.add('modal-hidden');
+        }, { once: true });
+
         state.notes.originalContent = '';
     };
 
@@ -205,7 +303,9 @@ async function saveAndCloseNotesModal() {
         btn.classList.toggle('has-note', !!content.trim());
     });
 
+    els.notesStatus.textContent = getUIText('savedStatus', 'Saved!');
     els.notesStatus.style.opacity = '1';
+    
     setTimeout(() => {
         closeNotesModal(); 
         setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
@@ -231,15 +331,21 @@ export function setupImportModal() {
         resetModal();
         updateModalLocale();
         els.importModal.classList.remove('modal-hidden');
-        els.importModalBackdrop.classList.add('active');
-        els.modalWrapper.classList.add('active');
+        
+        requestAnimationFrame(() => {
+            els.importModalBackdrop.classList.add('active');
+            els.modalWrapper.classList.add('active');
+        });
     };
 
     const closeModal = () => {
         document.body.classList.remove('body-no-scroll');
         els.importModalBackdrop.classList.remove('active');
-        els.modalWrapper.classList.remove('active');
-        setTimeout(() => els.importModal.classList.add('modal-hidden'), 300);
+        els.modalWrapper.classList.remove('active'); 
+        
+        els.modalWrapper.addEventListener('transitionend', () => {
+            els.importModal.classList.add('modal-hidden');
+        }, { once: true });
     };
 
     const updateImportButtonState = () => {
@@ -457,7 +563,10 @@ export function setupImportModal() {
     }
 
     els.closeModalBtn?.addEventListener('click', closeModal);
-    els.modalWrapper?.addEventListener('click', (e) => { if (e.target === els.modalWrapper) closeModal(); });
+    // FIX: Attach listener to wrapper and check target.
+    els.modalWrapper?.addEventListener('click', (e) => { 
+        if (e.target === els.modalWrapper) closeModal(); 
+    });
     els.levelNameInput?.addEventListener('input', updateImportButtonState);
     els.importBtn?.addEventListener('click', handleConfirm);
     els.fileImportArea?.addEventListener('click', () => { if (!els.fileImportArea.classList.contains('state-preview')) els.fileInput.click(); });
