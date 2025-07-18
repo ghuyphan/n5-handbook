@@ -25,6 +25,25 @@ export const dbPromise = openDB('HandbookDB', 3, {
     },
 });
 
+/**
+ * ADDED: Loads the essential global UI translations.
+ * This should be called once at startup before any rendering occurs.
+ */
+export async function loadGlobalUI() {
+    try {
+        const response = await fetch(`./data/${config.defaultLevel}/ui.json`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch UI data: ${response.status}`);
+        }
+        state.appData.ui = await response.json();
+    } catch (error) {
+        console.error("Fatal: Could not load the global ui.json file.", error);
+        // Set a fallback UI object to prevent the app from crashing.
+        state.appData.ui = { en: { error: "UI failed to load" } };
+    }
+}
+
+
 export async function loadState() {
     try {
         const db = await dbPromise;
@@ -74,7 +93,29 @@ export async function saveSetting(key, value) {
     }
 }
 
+/**
+ * ADDED: Saves the current state of open accordions for the current level.
+ */
+export async function saveAccordionState() {
+    try {
+        const db = await dbPromise;
+        const levelSettings = (await db.get('settings', 'levelSettings')) || {};
+
+        if (!levelSettings[state.currentLevel]) {
+            levelSettings[state.currentLevel] = {};
+        }
+
+        const serializableAccordions = Array.from(state.openAccordions.entries()).map(([tabId, keySet]) => [tabId, Array.from(keySet)]);
+
+        levelSettings[state.currentLevel].openAccordions = serializableAccordions;
+        await db.put('settings', levelSettings, 'levelSettings');
+    } catch (error) {
+        console.error("Error saving accordion state:", error);
+    }
+}
+
 export async function loadTabData(level, tabId) {
+    // Data is already present, no need to fetch.
     if (state.appData[tabId]) {
         return;
     }
@@ -85,52 +126,33 @@ export async function loadTabData(level, tabId) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        state.appData[tabId] = data;
+        state.appData[tabId] = data; // Store fetched data
     } catch (error) {
         console.error(`Error loading data for tab ${tabId}:`, error);
-        const tabElement = document.getElementById(tabId);
-        if (tabElement) {
-            const getUIText = (key, replacements = {}) => {
-                let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
-                for (const [placeholder, value] of Object.entries(replacements)) {
-                    text = text.replace(`{${placeholder}}`, value);
-                }
-                return text;
-            };
-            const errorText = getUIText('errorFailedToLoadContent', { tabId: tabId });
-            tabElement.innerHTML = `<p class="p-4 text-center text-red-400">${errorText}</p>`;
-        }
+        // We will render an error message in the UI, so re-throw to be caught by the caller.
         throw error;
     }
 }
 
 export async function loadAllData(level) {
-    const uiPromise = fetch(`./data/${config.defaultLevel}/ui.json`)
-        .then(res => {
-            if (!res.ok) throw new Error(`Failed to fetch UI data: ${res.status}`);
-            return res.json();
-        })
-        .catch(err => {
-            console.error("Fatal: Could not load the global ui.json file.", err);
-            return {};
-        });
-
+    // The global UI is loaded separately now, so this function only handles level-specific data.
     const db = await dbPromise;
     const savedData = await db.get('levels', level);
+    
+    // Clear old data except for the UI
+    const uiData = state.appData.ui;
+    state.appData = { ui: uiData };
 
     if (savedData) {
-        state.appData = savedData;
-    } else {
-        state.appData = {};
+        // Merge custom level data
+        Object.assign(state.appData, savedData);
     }
-    
-    state.appData.ui = await uiPromise;
 }
 
 export async function updateLevelData(level, newData) {
     try {
         const db = await dbPromise;
-        const existingData = await db.get('levels', level);
+        const existingData = await db.get('levels', level) || {};
         
         // A simple merge, you might want more sophisticated logic here
         const mergedData = { ...existingData, ...newData };
