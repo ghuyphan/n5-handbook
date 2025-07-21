@@ -444,14 +444,6 @@ width: clamp(2.5rem, 10vw, 3.5rem);
 .dark-mode .notes-header-btn {
     background-color: #374151;
 }
-.notes-header-btn svg {
-    fill: #A0A0A0; /* Change this to your desired default gray or any other color */
-}
-
-/* Icon color for the notes button in dark mode */
-.dark-mode .notes-header-btn svg {
-    fill: #8E8E8E; /* Change this to your desired dark mode color */
-}
 
 .lang-switch {
     position: relative;
