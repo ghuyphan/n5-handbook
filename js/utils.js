@@ -3,8 +3,8 @@
  * @description Provides utility functions for the application.
  */
 
-// To this:
 import * as wanakana from 'wanakana';
+import { state } from './config.js';
 
 /**
  * Creates a debounced function that delays invoking `func` until after `wait` milliseconds.
@@ -46,4 +46,22 @@ export const generateSearchTerms = (texts = []) => {
         }
     });
     return Array.from(termsSet).join(' ');
+};
+
+/**
+ * Retrieves a UI string for the current language, with fallbacks.
+ * @param {string} key - The key of the UI string.
+ * @param {object} [replacements={}] - An object of placeholder values.
+ * @returns {string} The localized and formatted UI string.
+ */
+export const getUIText = (key, replacements = {}) => {
+    let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
+    // Specific fallback for a commonly used key
+    if (key === 'lastSavedOn' && !state.appData.ui?.[state.currentLang]?.[key]) {
+        text = `Last saved: {date}`;
+    }
+    for (const [placeholder, value] of Object.entries(replacements)) {
+        text = text.replace(`{${placeholder}}`, value);
+    }
+    return text;
 };

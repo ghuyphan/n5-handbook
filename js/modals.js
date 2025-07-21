@@ -4,23 +4,10 @@ import { dbPromise, saveNote, loadNote } from './database.js';
 import { buildLevelSwitcher, showCustomAlert, showCustomConfirm } from './ui.js';
 import { setLevel } from './handlers.js';
 import { closeSidebar } from './ui.js';
-
-// Helper function to get UI text
-const getUIText = (key, replacements = {}) => {
-    let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
-    if (key === 'lastSavedOn' && !state.appData.ui?.[state.currentLang]?.[key]) {
-        text = `Last saved: {date}`;
-    }
-    for (const [placeholder, value] of Object.entries(replacements)) {
-        text = text.replace(`{${placeholder}}`, value);
-    }
-    return text;
-};
-
+import { getUIText } from './utils.js';
 
 // --- Kanji Detail Modal ---
 
-// Store the cleanup function to remove event listeners
 let closeKanjiModalWithListeners;
 
 export function openKanjiDetailModal(kanjiId) {
@@ -121,7 +108,6 @@ export function openKanjiDetailModal(kanjiId) {
 
     const handleClose = () => closeKanjiDetailModal();
     const handleBackdropClick = (e) => {
-        // FIX: Check if the click target is the wrapper itself.
         if (e.target === els.kanjiModalWrapper) {
             handleClose();
         }
@@ -137,12 +123,10 @@ export function openKanjiDetailModal(kanjiId) {
         closeButton.addEventListener('click', handleClose);
     }
 
-    // FIX: Attach the listener to the wrapper.
     els.kanjiModalWrapper.addEventListener('click', handleBackdropClick);
     document.addEventListener('keydown', handleEscKey);
 
     closeKanjiModalWithListeners = () => {
-        // FIX: Ensure the correct listener is removed.
         els.kanjiModalWrapper.removeEventListener('click', handleBackdropClick);
         document.removeEventListener('keydown', handleEscKey);
         if (closeButton) {
@@ -224,7 +208,6 @@ export async function openNotesModal() {
     const handleSave = () => saveAndCloseNotesModal();
 
     const handleBackdropClick = (e) => {
-        // FIX: Check if the click target is the wrapper itself.
         if (e.target === els.notesModalWrapper) {
             handleClose();
         }
@@ -237,14 +220,12 @@ export async function openNotesModal() {
 
     els.closeNotesModalBtn.addEventListener('click', handleClose);
     els.notesSaveBtn.addEventListener('click', handleSave);
-    // FIX: Attach the listener to the wrapper.
     els.notesModalWrapper.addEventListener('click', handleBackdropClick);
     document.addEventListener('keydown', handleEscKey);
 
     closeNotesModalWithListeners = () => {
         els.closeNotesModalBtn.removeEventListener('click', handleClose);
         els.notesSaveBtn.removeEventListener('click', handleSave);
-        // FIX: Ensure the correct listener is removed.
         els.notesModalWrapper.removeEventListener('click', handleBackdropClick);
         document.removeEventListener('keydown', handleEscKey);
         closeNotesModalWithListeners = null;
@@ -563,7 +544,6 @@ export function setupImportModal() {
     }
 
     els.closeModalBtn?.addEventListener('click', closeModal);
-    // FIX: Attach listener to wrapper and check target.
     els.modalWrapper?.addEventListener('click', (e) => { 
         if (e.target === els.modalWrapper) closeModal(); 
     });

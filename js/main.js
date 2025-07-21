@@ -6,7 +6,7 @@
 import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting, loadGlobalUI } from './database.js';
-import { debounce } from './utils.js';
+import { debounce, getUIText } from './utils.js';
 import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui.js';
 import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion } from './handlers.js';
 
@@ -16,9 +16,8 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  const installButton = document.getElementById('install-app-btn');
-  if (installButton) {
-    installButton.style.display = 'flex';
+  if (els.installAppBtn) {
+    els.installAppBtn.style.display = 'flex';
   }
 });
 
@@ -28,32 +27,19 @@ async function handleInstallClick() {
         const { outcome } = await deferredPrompt.userChoice;
         console.log(`User response to the install prompt: ${outcome}`);
         deferredPrompt = null;
-        const installButton = document.getElementById('install-app-btn');
-        if (installButton) {
-            installButton.style.display = 'none';
+        if (els.installAppBtn) {
+            els.installAppBtn.style.display = 'none';
         }
     }
 }
 
 window.addEventListener('appinstalled', () => {
-  const installButton = document.getElementById('install-app-btn');
-  if (installButton) {
-    installButton.style.display = 'none';
+  if (els.installAppBtn) {
+    els.installAppBtn.style.display = 'none';
   }
   deferredPrompt = null;
   console.log('PWA was installed');
 });
-
-const getUIText = (key, replacements = {}) => {
-    let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
-    if (key === 'lastSavedOn' && !state.appData.ui?.[state.currentLang]?.[key]) {
-        text = `Last saved: {date}`;
-    }
-    for (const [placeholder, value] of Object.entries(replacements)) {
-        text = text.replace(`{${placeholder}}`, value);
-    }
-    return text;
-};
 
 async function loadRequiredDataForProgress() {
     const requiredDataTypes = ['kanji', 'vocab'];
@@ -84,7 +70,6 @@ async function changeTab(tabName, ...args) {
     });
 
     if (isNoteableTab) {
-        // Check if a note exists and update the button style
         const note = await loadNote(state.currentLevel, tabName);
         const hasContent = (note && typeof note === 'object') ? !!note.content?.trim() : !!note?.trim();
         notesButtons.forEach(btn => {
@@ -145,19 +130,26 @@ function setupEventListeners() {
             'toggle-pin': () => togglePin(),
             'toggle-sidebar-pin': (e) => toggleSidebarPin(e, actionTarget.dataset.tabName),
             'flip-card': () => {
-                // FIX: Removed the unnecessary conditional check.
-                // The event delegation already ensures this only fires for 'flip-card' actions.
                 actionTarget.closest('.card').classList.toggle('is-flipped');
             },
             'toggle-learned': () => toggleLearned(actionTarget.dataset.category, actionTarget.dataset.id, actionTarget),
             'jump-to-section': () => jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey),
             'delete-level': () => deleteLevel(actionTarget.dataset.levelName),
             'set-level': () => setLevel(actionTarget.dataset.levelName),
-            'toggle-accordion': () => toggleAccordion(actionTarget)
+            'toggle-accordion': () => toggleAccordion(actionTarget),
+            'clear-search': () => {
+                const targetSelector = actionTarget.dataset.target;
+                if (targetSelector) {
+                    const inputElement = document.querySelector(targetSelector);
+                    if (inputElement) {
+                        inputElement.value = '';
+                        inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+            }
         };
         
         if (immediateActions[action]) {
-            // Check if 'e' needs to be passed
             if (action === 'toggle-sidebar-pin') {
                 immediateActions[action](e);
             } else {
@@ -165,14 +157,12 @@ function setupEventListeners() {
             }
         }
 
-        // Dynamically import modal logic on demand
         if (action === 'open-notes') {
             import('./modals.js').then(module => module.openNotesModal());
         }
         if (action === 'show-kanji-details') {
             import('./modals.js').then(module => module.openKanjiDetailModal(actionTarget.dataset.id));
         }
-        // The modal close actions are now handled within modals.js
     });
 
     els.overlay?.addEventListener('click', closeSidebar);
@@ -197,9 +187,8 @@ function setupEventListeners() {
         handleStateChange(e.state);
     });
 
-    const installButton = document.getElementById('install-app-btn');
-    if(installButton) {
-        installButton.addEventListener('click', handleInstallClick);
+    if(els.installAppBtn) {
+        els.installAppBtn.addEventListener('click', handleInstallClick);
     }
 }
 
@@ -229,8 +218,6 @@ function populateAndBindControls() {
 
 async function init() {
     populateEls();
-
-    // **FIX**: Load critical UI data BEFORE any state or rendering.
     await loadGlobalUI();
     await loadState();
 
@@ -238,18 +225,15 @@ async function init() {
     setupEventListeners();
     setupTheme();
 
-    // Dynamically set up the import modal logic
     if (document.getElementById('sidebar-import-btn')) {
         import('./modals.js').then(module => module.setupImportModal());
     }
 
-    // Hide initial loader
     if (els.loadingOverlay) {
         els.loadingOverlay.style.opacity = '0';
         els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
     }
     
-    // **FIX**: Set language now that UI data is guaranteed to be loaded.
     setLanguage(state.currentLang, true);
     document.querySelectorAll('.lang-switch').forEach(moveLangPill);
 
@@ -277,7 +261,6 @@ async function init() {
             state.currentLevel = urlLevel;
         }
 
-        // This just prepares the state, doesn't fetch tab data yet.
         await loadAllData(state.currentLevel);
 
         buildLevelSwitcher(remoteLevels, customLevels);
@@ -288,14 +271,13 @@ async function init() {
         await loadRequiredDataForProgress();
         updateProgressDashboard();
         
-        // Final UI updates before showing content
         setLanguage(state.currentLang, true);
         updateSidebarPinIcons();
 
         await changeTab(initialTab, null, false, true);
 
         const versionElement = document.getElementById('app-version');
-        if(versionElement) versionElement.textContent = 'v1.0.1'; // Bump version
+        if(versionElement) versionElement.textContent = 'v1.0.1';
 
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;

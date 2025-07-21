@@ -1,21 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  // Tell Tailwind where to look for classes
   content: [
     './index.html',
-    './js/**/*.js', // Scans all JS files in the js folder and subfolders
+    './js/**/*.js',
   ],
-
-  // Enable class-based dark mode (matches your setup)
   darkMode: 'class',
-
   theme: {
     extend: {
-      // 1. COLORS
-      // We are mapping your CSS variables to Tailwind color names.
-      // This lets you use classes like `bg-main`, `text-primary`, `border-accent-blue`, etc.
-      // The actual color value is still controlled by the variables in your CSS,
-      // which is perfect for your theme switcher.
       colors: {
         'main': 'var(--bg-main)',
         'primary': 'var(--text-primary)',
@@ -41,36 +32,10 @@ module.exports = {
           'yellow': 'var(--accent-yellow)',
         },
       },
-
-      // 2. FONTS
-      // Defining your project's fonts.
       fontFamily: {
-        sans: [
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          '"Segoe UI"',
-          'Roboto',
-          '"Helvetica Neue"',
-          'Arial',
-          '"Noto Sans"',
-          'sans-serif',
-        ],
-        jp: [
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          '"Segoe UI"',
-          'Roboto',
-          '"Helvetica Neue"',
-          'Arial',
-          '"Noto Sans JP"',
-          'sans-serif',
-        ],
+        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif'],
+        jp: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans JP"', 'sans-serif'],
       },
-      
-      // 3. BORDER RADIUS
-      // Mapping your custom radius variables to Tailwind's scale.
       borderRadius: {
         sm: 'var(--radius-sm)',
         md: 'var(--radius-md)',
@@ -78,10 +43,10 @@ module.exports = {
         xl: 'var(--radius-xl)',
         full: 'var(--radius-full)',
       },
-
-      // 4. ANIMATIONS & KEYFRAMES
-      // Defining all your custom keyframes and animations.
-      // Now you can use classes like `animate-fade-in` or `animate-pin-pop`.
+      backgroundImage: {
+        'main-gradient': 'radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 50%), radial-gradient(at 97% 21%, hsla(340, 96%, 76%, 0.1) 0px, transparent 50%), radial-gradient(at 75% 88%, hsla(240, 96%, 76%, 0.1) 0px, transparent 50%)',
+        'modal-gradient': 'radial-gradient(at 5% 5%, hsla(215, 98%, 70%, 0.15) 0px, transparent 50%), radial-gradient(at 95% 95%, hsla(280, 96%, 76%, 0.15) 0px, transparent 50%)',
+      },
       keyframes: {
         fadeIn: {
           'from': { opacity: 0, transform: 'translateY(10px)' },
@@ -123,7 +88,6 @@ module.exports = {
           '0%': { backgroundColor: 'var(--nav-hover-bg)', transform: 'scale(1.03)' },
           '100%': { backgroundColor: 'transparent', transform: 'scale(1)' },
         },
-        // REMOVED modalSlideUp keyframe as it's now handled by CSS transitions
       },
       animation: {
         'fade-in': 'fadeIn 0.5s var(--ease-out-quint) forwards',
@@ -135,18 +99,14 @@ module.exports = {
         'pulse-in': 'pulsIn 1.8s ease-in-out infinite',
         'pulse-out': 'pulsOut 1.8s ease-in-out infinite',
         'highlight-progress': 'highlightProgress 1.5s var(--ease-out-quint)',
-        // REMOVED 'modal-slide-up' animation as it's now handled by CSS transitions
       },
-
-      // 5. TRANSITION TIMING
-      // Adding your custom easing curves.
       transitionTimingFunction: {
         'out-quint': 'cubic-bezier(0.23, 1, 0.32, 1)',
         'in-out-quad': 'cubic-bezier(0.455, 0.03, 0.515, 0.955)',
       },
     },
   },
- plugins: [
+  plugins: [
     function ({ addUtilities }) {
       addUtilities({
         '.sr-only': {

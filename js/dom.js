@@ -32,7 +32,8 @@ export function populateEls() {
     // Controls
     els.menuToggle = document.getElementById('menu-toggle');
     els.pinToggle = document.getElementById('pin-toggle');
-    els.themeEmoji = document.getElementById('theme-emoji'); // Added this line
+    els.themeEmoji = document.getElementById('theme-emoji');
+    els.installAppBtn = document.getElementById('install-app-btn'); // Added install button
 
     // Content containers
     els.progressOverview = document.getElementById('progress-overview');
@@ -78,13 +79,10 @@ export function populateEls() {
     els.kanjiDetailModal = document.getElementById('kanji-detail-modal');
     els.kanjiModalBackdrop = document.querySelector('#kanji-detail-modal #kanji-modal-backdrop');
     els.kanjiModalContentContainer = document.querySelector('#kanji-detail-modal #modal-content-container');
-    // ========= START: MODIFICATION =========
     els.kanjiModalWrapper = document.querySelector('#kanji-detail-modal .modal-wrapper');
-    // ========= END: MODIFICATION =========
-
-    // NEW: Custom Dialog Elements
+    
+    // Custom Dialog Elements
     els.customDialogContainer = document.getElementById('custom-dialog-container');
     els.customDialogBackdrop = document.getElementById('custom-dialog-backdrop');
     els.customDialogWrapper = document.querySelector('#custom-dialog-container .modal-wrapper');
-    // Note: The title, message, and actions will be injected directly into the cloned template
 }

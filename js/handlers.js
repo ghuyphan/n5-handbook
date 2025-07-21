@@ -6,9 +6,6 @@ import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteN
 import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm, setupTabsForLevel } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
 
-// --- OPTIMIZATION: Cache for searchable items and their original state ---
-const searchCache = new Map();
-
 // --- HELPER FUNCTIONS ---
 
 function getUIText(key, replacements = {}) {
@@ -23,27 +20,8 @@ function getActiveSearchInput() {
     return window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
 }
 
-// --- OPTIMIZED DOM MANIPULATION -- -
-
-function clearAllHighlights(activeTabId) {
-    if (!searchCache.has(activeTabId)) return;
-
-    const cachedItems = searchCache.get(activeTabId);
-    for (const item of cachedItems) {
-        if (item.originalHTML) {
-            item.element.innerHTML = item.originalHTML;
-            delete item.originalHTML; // Clean up cache
-        }
-    }
-}
-
 function highlightMatches(element, query) {
     if (!query) return;
-
-    const cacheEntry = searchCache.get(state.activeTab)?.find(item => item.element === element);
-    if (cacheEntry && !cacheEntry.originalHTML) {
-        cacheEntry.originalHTML = element.innerHTML; // Store original state only once
-    }
 
     const regex = new RegExp(`(${query.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1")})`, 'gi');
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
@@ -89,20 +67,14 @@ export function toggleLearned(category, id, element) {
     saveProgress();
 }
 
-/**
- * ADDED: Toggles an accordion's visibility and saves its state.
- * @param {HTMLElement} buttonElement The accordion button that was clicked.
- */
 export function toggleAccordion(buttonElement) {
     const tabId = state.activeTab;
     const sectionKey = buttonElement.dataset.sectionTitleKey;
 
     if (!tabId || !sectionKey) return;
 
-    // Update the visual state immediately
     const isOpen = buttonElement.classList.toggle('open');
 
-    // Update the application state
     if (!state.openAccordions.has(tabId)) {
         state.openAccordions.set(tabId, new Set());
     }
@@ -113,8 +85,6 @@ export function toggleAccordion(buttonElement) {
     } else {
         tabAccordions.delete(sectionKey);
     }
-
-    // Persist the new state to the database
     saveAccordionState();
 }
 
@@ -123,16 +93,17 @@ export function setupFuseForTab(tabId) {
 
     const container = document.getElementById(tabId);
     if (!container) return;
-
-    // OPTIMIZATION: Cache searchable elements to avoid re-querying the DOM
-    const searchableElements = Array.from(container.querySelectorAll('[data-search-item], [data-search]'));
-    searchCache.set(tabId, searchableElements.map(el => ({ element: el })));
-
-    const fuseCollection = searchableElements.map((el, index) => ({
-        id: el.dataset.itemId || `${tabId}-${index}`,
-        element: el,
-        searchData: el.dataset.searchItem || el.dataset.search
-    }));
+    
+    const searchableElements = Array.from(container.querySelectorAll('[data-search-item]'));
+    
+    const fuseCollection = searchableElements.map((el) => {
+        const itemId = el.dataset.itemId || el.closest('[data-item-id]')?.dataset.itemId || el.textContent.trim();
+        return {
+            id: itemId,
+            element: el,
+            searchData: el.dataset.searchItem
+        }
+    });
 
     if (fuseCollection.length > 0) {
         state.fuseInstances[tabId] = new Fuse(fuseCollection, {
@@ -140,13 +111,13 @@ export function setupFuseForTab(tabId) {
             includeScore: true,
             threshold: 0.3,
             ignoreLocation: true,
+            useExtendedSearch: true,
         });
     }
 }
 
-
 export const handleSearch = debounce(() => {
-    const query = getActiveSearchInput().value.trim();
+    const query = getActiveSearchInput().value.trim().toLowerCase();
     const activeTab = document.querySelector('.tab-content.active');
     if (!activeTab) return;
 
@@ -155,37 +126,67 @@ export const handleSearch = debounce(() => {
         handleExternalSearch(query);
         return;
     }
-    
-    const allItems = searchCache.get(activeTabId)?.map(item => item.element) || [];
-    const allWrappers = activeTab.querySelectorAll('.search-wrapper');
 
-    clearAllHighlights(activeTabId);
+    const allWrappers = activeTab.querySelectorAll('.search-wrapper');
+    const allItems = activeTab.querySelectorAll('[data-search-item]');
+    
+    // First, reset everything to its default state
+    allItems.forEach(item => {
+        item.classList.remove('search-hidden');
+        const originalHTML = item.dataset.originalHtml;
+        if (originalHTML) {
+            item.innerHTML = originalHTML;
+            item.removeAttribute('data-original-html');
+        }
+    });
+
+    allWrappers.forEach(wrapper => {
+        wrapper.style.display = '';
+        const accordionButton = wrapper.querySelector('.accordion-button');
+        const tabAccordions = state.openAccordions.get(activeTabId);
+        const sectionKey = accordionButton?.dataset.sectionTitleKey;
+        if (accordionButton && sectionKey) {
+            accordionButton.classList.toggle('open', tabAccordions?.has(sectionKey));
+        }
+    });
 
     if (!query) {
-        allItems.forEach(item => { item.style.display = ''; });
-        allWrappers.forEach(wrapper => { wrapper.style.display = ''; });
-        return;
+        return; // If query is empty, we are done after resetting.
     }
 
     const fuse = state.fuseInstances[activeTabId];
     if (!fuse) return;
     
-    allItems.forEach(item => { item.style.display = 'none'; });
-    allWrappers.forEach(wrapper => { wrapper.style.display = 'none'; });
-    
     const results = fuse.search(query);
-    results.forEach(result => {
-        const itemElement = result.item.element;
-        itemElement.style.display = '';
-        highlightMatches(itemElement, query);
-        
-        const parentWrapper = itemElement.closest('.search-wrapper');
-        if (parentWrapper) parentWrapper.style.display = '';
+    const matchedItemElements = new Set(results.map(result => result.item.element));
+    const matchedWrapperElements = new Set();
 
-        const accordion = itemElement.closest('.accordion-wrapper');
-        if (accordion) {
-            const button = accordion.querySelector('.accordion-button');
-            if (button && !button.classList.contains('open')) button.classList.add('open');
+    // Hide non-matching items and highlight matching ones
+    allItems.forEach(item => {
+        if (!matchedItemElements.has(item)) {
+            item.classList.add('search-hidden');
+        } else {
+            if (!item.dataset.originalHtml) {
+                item.dataset.originalHtml = item.innerHTML;
+            }
+            highlightMatches(item, query);
+            const parentWrapper = item.closest('.search-wrapper');
+            if (parentWrapper) {
+                matchedWrapperElements.add(parentWrapper);
+            }
+        }
+    });
+
+    // Hide entire wrappers if they contain no matched items
+    allWrappers.forEach(wrapper => {
+        if (!matchedWrapperElements.has(wrapper)) {
+            wrapper.style.display = 'none';
+        } else {
+            // If a wrapper has matches, ensure its accordion is open
+            const accordionButton = wrapper.querySelector('.accordion-button');
+            if (accordionButton && !accordionButton.classList.contains('open')) {
+                accordionButton.classList.add('open');
+            }
         }
     });
 }, 300);
@@ -195,7 +196,6 @@ export function setLanguage(lang, skipRender = false) {
     saveSetting('language', lang);
     
     if (state.renderedTabs) state.renderedTabs.clear();
-    searchCache.clear();
 
     const uiStrings = state.appData.ui;
     const processText = (textKey) => {
@@ -296,7 +296,6 @@ async function loadLevelData(level) {
     state.notes.data = new Map();
     state.notes.originalContent = '';
     if (state.renderedTabs) state.renderedTabs.clear();
-    searchCache.clear();
 
     const db = await dbPromise;
     const isCustomLevel = !!(await db.get('levels', level));
@@ -315,15 +314,14 @@ async function renderLevelUI(level, fromHistory) {
     document.querySelectorAll('.level-switch-button').forEach(btn => btn.classList.toggle('active', btn.dataset.levelName === level));
     updateSidebarPinIcons();
 
-    // This now correctly handles which tabs to show or hide.
     await setupTabsForLevel(level);
 
-    const showKana = level === config.defaultLevel;
+    const isDefaultLevel = ['n5', 'n4'].includes(level);
     const isMobileView = window.innerWidth <= 768;
-    const defaultTab = isMobileView ? 'external-search' : (showKana ? 'hiragana' : 'keyPoints');
+    const defaultTab = isMobileView ? 'external-search' : (isDefaultLevel ? 'hiragana' : 'keyPoints');
 
     let targetTab = state.pinnedTab || defaultTab;
-    if (!showKana && (targetTab === 'hiragana' || targetTab === 'katakana')) {
+    if (!isDefaultLevel && (targetTab === 'hiragana' || targetTab === 'katakana')) {
         targetTab = 'keyPoints';
         state.pinnedTab = null;
         await savePinnedTab(null);
@@ -426,7 +424,6 @@ function updateTabUI(tabName) {
     updateSearchPlaceholders(tabName);
 }
 
-// MODIFIED: Restructured the logic to always show a loader when rendering a new tab.
 export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false, forceRender = false) {
     const activeTabEl = document.querySelector('.tab-content.active');
     if (activeTabEl?.id === tabName && !forceRender) {
@@ -462,17 +459,14 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 
     if (isDataTab) {
         if (forceRender || !state.renderedTabs.has(tabName)) {
-            // Show loader while we prepare the content
             const loaderTemplate = document.getElementById('content-loader-template');
             newTabContentEl.innerHTML = loaderTemplate ? loaderTemplate.innerHTML : '<div class="loader"></div>';
             
             try {
-                // Load data if it's not already in the state
                 if (!state.appData[tabName]) {
                     await loadTabData(state.currentLevel, tabName);
                 }
                 
-                // Render the content from the data
                 await renderContent(tabName);
                 state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
             } catch (error) {
@@ -481,7 +475,6 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
                 state.renderedTabs.delete(tabName);
             }
         } else {
-            // Restore from cache if already rendered
             newTabContentEl.innerHTML = state.renderedTabs.get(tabName);
             setupFuseForTab(tabName);
         }
@@ -494,7 +487,8 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 
     if (isDataTab && getActiveSearchInput().value) {
         getActiveSearchInput().value = '';
-        handleSearch();
+        handleSearch.cancel(); 
+        handleSearch(); 
     }
 
     if (!suppressScroll) {

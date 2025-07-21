@@ -3,57 +3,6 @@
    Load this file asynchronously.
    ========================================================================== */
 
-/* --- NEW: UNIFIED CONTROL BUTTON STYLES --- */
-
-/* Base class for icon-only control buttons in headers */
-.control-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: relative;
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 0.625rem;
-    border-radius: var(--radius-lg);
-    background-color: var(--switch-bg);
-    border: 1px solid transparent; /* Prevents layout shift */
-    box-shadow: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Consistent icon styling within the button */
-.control-btn svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    fill: var(--pin-unpinned);
-    transition: fill 0.2s ease, transform 0.2s ease;
-    pointer-events: none;
-}
-
-/* Unified hover and focus-visible states */
-.control-btn:hover,
-.control-btn:focus-visible {
-    background-color: var(--nav-hover-bg);
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px var(--shadow-color);
-}
-
-/* Change icon color on hover/focus */
-.control-btn:hover svg,
-.control-btn:focus-visible svg {
-    fill: var(--pin-color);
-}
-
-/* A subtle press-down effect */
-.control-btn:active {
-    transform: scale(0.98);
-    transition-duration: 0.1s;
-}
-
-/* --- END OF NEW SECTION --- */
-
-
 /* --- GLOBAL HELPER STYLES --- */
 .font-jp {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
@@ -78,6 +27,11 @@ mark.search-highlight {
 .handbook-content {
     overflow-wrap: break-word;
     word-break: break-word;
+}
+
+/* ADDED: Class to hide non-matching search items */
+.search-hidden {
+    display: none !important;
 }
 
 /* --- ACTIVE OVERLAYS & MODALS --- */
@@ -419,9 +373,6 @@ mark.search-highlight {
     background-color: rgba(107, 114, 128, 0.2);
 }
 
-/* === REFACTORED: Pin Toggle Button Styles === */
-/* Base styles are now handled by .control-btn */
-/* We only need to define the "pinned" state */
 #pin-toggle.pinned {
     background-color: var(--pin-hover-bg);
     border-color: var(--pin-color);
@@ -443,7 +394,6 @@ mark.search-highlight {
     left: 10px;
 }
 
-/* REFACTORED: notes button hover is now handled by .control-btn */
 .notes-header-btn.has-note {
     animation: note-pulse 1.5s infinite;
     border: 1px solid var(--accent-orange);
@@ -493,7 +443,6 @@ mark.search-highlight {
     color: var(--text-primary);
 }
 
-/* --- ALL MODAL STYLES (continued) --- */
 #notes-modal .modal-content {
     background-color: rgba(254, 244, 167, 0.85);
     backdrop-filter: blur(8px);
@@ -699,7 +648,7 @@ mark.search-highlight {
 #file-import-area.state-preview {
     border-style: solid;
     border-color: var(--glass-border);
-    background-color: rgba(255, 255, 0.2);
+    background-color: rgba(255, 255, 0, 0.2);
     cursor: default;
     padding: 1.25rem;
     text-align: left;
