@@ -374,7 +374,7 @@ mark.search-highlight {
 }
 
 #pin-toggle.pinned {
-    background-color: var(--pin-hover-bg);
+    /* background-color: var(--pin-hover-bg); */
     border-color: var(--pin-color);
 }
 
