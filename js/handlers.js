@@ -229,21 +229,28 @@ export function setLanguage(lang, skipRender = false) {
     updateSearchPlaceholders(state.activeTab);
 }
 
-export function toggleTheme(event) {
-    const isChecked = event.target.checked;
-    const theme = isChecked ? 'dark' : 'light';
-    document.documentElement.classList.toggle('dark-mode', isChecked);
-    saveSetting('theme', theme);
+export function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark-mode');
+    const newTheme = isDark ? 'dark' : 'light';
 
-    document.querySelectorAll('.theme-switch input').forEach(input => {
-        if (input !== event.target) input.checked = isChecked;
-    });
-
-    const desktopEmojiSpan = document.getElementById('theme-emoji');
-    if (desktopEmojiSpan) {
-        desktopEmojiSpan.textContent = isChecked ? '🌙' : '☀️';
+    saveSetting('theme', newTheme);
+    try {
+        localStorage.setItem('theme', newTheme);
+    } catch (e) {
+        console.warn("Could not save theme to localStorage.", e);
     }
+    
+    // Sync emoji button
+    if (els.themeEmoji) {
+        els.themeEmoji.textContent = isDark ? '🌙' : '☀️';
+    }
+
+    // Sync all toggle switches
+    document.querySelectorAll('.theme-switch input').forEach(input => {
+        input.checked = isDark;
+    });
 }
+
 
 function showLoader() {
     if (!els.loadingOverlay) return;

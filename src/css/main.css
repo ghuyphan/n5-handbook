@@ -441,10 +441,6 @@ width: clamp(2.5rem, 10vw, 3.5rem);
     border-radius: var(--radius-full);
 }
 
-.theme-btn {
-    border-radius: var(--radius-full);
-}
-
 .dark-mode .notes-header-btn {
     background-color: #374151;
 }

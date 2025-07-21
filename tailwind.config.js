@@ -31,6 +31,8 @@ module.exports = {
           'orange': 'var(--accent-orange)',
           'yellow': 'var(--accent-yellow)',
         },
+        'switch-bg': 'var(--switch-bg)',
+        'nav-hover-bg': 'var(--nav-hover-bg)', // Added this line
       },
       fontFamily: {
         sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif'],

@@ -8,7 +8,7 @@ import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting, loadGlobalUI } from './database.js';
 import { debounce, getUIText } from './utils.js';
 import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui.js';
-import { setLanguage, toggleTheme as toggleThemeSlider, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion } from './handlers.js';
+import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion } from './handlers.js';
 
 // --- PWA Installation ---
 let deferredPrompt;
@@ -95,24 +95,6 @@ function handleStateChange(stateObj) {
     }
 }
 
-function handleThemeButtonClick() {
-    const isDark = document.documentElement.classList.toggle('dark-mode');
-    const newTheme = isDark ? 'dark' : 'light';
-    if (els.themeEmoji) {
-        els.themeEmoji.textContent = isDark ? '🌙' : '☀️';
-    }
-    const mobileThemeInput = document.querySelector('#sidebar-controls .theme-switch input');
-    if (mobileThemeInput) {
-        mobileThemeInput.checked = isDark;
-    }
-    saveSetting('theme', newTheme);
-    try {
-        localStorage.setItem('theme', newTheme);
-    } catch (e) {
-        console.warn("Could not save theme to localStorage.", e);
-    }
-}
-
 function setupEventListeners() {
     document.body.addEventListener('click', (e) => {
         const actionTarget = e.target.closest('[data-action]');
@@ -126,7 +108,7 @@ function setupEventListeners() {
                 els.overlay?.classList.add('active');
                 document.body.classList.add('sidebar-open');
             },
-            'toggle-theme': () => handleThemeButtonClick(),
+            'toggle-theme': () => toggleTheme(),
             'toggle-pin': () => togglePin(),
             'toggle-sidebar-pin': (e) => toggleSidebarPin(e, actionTarget.dataset.tabName),
             'flip-card': () => {
@@ -210,7 +192,7 @@ function populateAndBindControls() {
         headerLangSwitcher.innerHTML = getLangSwitcherHTML();
     }
 
-    document.querySelectorAll('.sidebar-control-group .theme-switch input').forEach(el => el.addEventListener('change', toggleThemeSlider));
+    document.querySelectorAll('.sidebar-control-group .theme-switch input').forEach(el => el.addEventListener('change', toggleTheme));
     document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
         setLanguage(e.currentTarget.dataset.lang);
     }));
