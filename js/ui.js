@@ -558,6 +558,8 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
 
         const placeholderBox = placeholderContainer.querySelector('.search-placeholder-box');
         if (placeholderBox) {
+            // FIX: Explicitly clear the container first
+            placeholderBox.innerHTML = '';
             placeholderBox.innerHTML = getSearchPlaceholderInnerContent(type, query);
 
             if (!isInitialLoad) {

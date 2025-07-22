@@ -235,7 +235,7 @@ async function performSearch(query, isJP, signal) {
     return await searchJotoba(query, isJP, signal);
 }
 
-// **THE FIX IS HERE**: Added the 'isTabSwitch' parameter.
+// MODIFIED: Added the 'isTabSwitch' parameter.
 async function handleExternalSearchInternal(query, forceRefresh = false, isTabSwitch = false) {
     const searchId = ++currentSearchId;
     const controller = new AbortController();
@@ -248,7 +248,8 @@ async function handleExternalSearchInternal(query, forceRefresh = false, isTabSw
     const normalizedQuery = query.trim();
 
     if (normalizedQuery.length === 0) {
-        updateExternalSearchTab('prompt', {}, true);
+        // Pass 'isTabSwitch' to avoid animation on initial prompt rendering.
+        updateExternalSearchTab('prompt', {}, isTabSwitch);
         return;
     }
     
@@ -276,7 +277,7 @@ async function handleExternalSearchInternal(query, forceRefresh = false, isTabSw
 
         if (searchId === currentSearchId) {
             await cacheResult(db, normalizedQuery, results);
-            // And here.
+            // Pass the 'isTabSwitch' flag here as well.
             updateExternalSearchTab('results', { results: results, query: normalizedQuery }, isTabSwitch);
         }
 

@@ -250,6 +250,12 @@ mark.search-highlight {
     margin-left: 0.5rem;
 }
 
+/* FIX: Add this rule to standardize icon sizes in the mobile header */
+.notes-header-btn svg,
+#pin-toggle svg {
+    width: 1.25rem; /* 20px */
+    height: 1.25rem; /* 20px */
+}
 
 .card {
     perspective: 1500px;
