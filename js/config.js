@@ -31,6 +31,7 @@ export const state = {
     lastDictionaryQuery: '',
     tabScrollPositions: new Map(),
     renderedTabs: new Map(),
+    openAccordions: new Map(),
     externalDB: {
         vocab: [],
         kanji: [],

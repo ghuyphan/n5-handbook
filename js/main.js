@@ -66,7 +66,7 @@ async function changeTab(tabName, ...args) {
     const isNoteableTab = !['progress', 'external-search'].includes(tabName);
     const notesButtons = document.querySelectorAll('.notes-header-btn');
     notesButtons.forEach(btn => {
-        btn.style.display = isNoteableTab ? 'flex' : 'none';
+        btn.classList.toggle('visible', isNoteableTab);
     });
 
     if (isNoteableTab) {

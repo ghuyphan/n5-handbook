@@ -1,3 +1,5 @@
+// js/handlers.js
+
 import Fuse from 'fuse.js';
 import { els } from './dom.js';
 import { state, config } from './config.js';

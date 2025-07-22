@@ -797,6 +797,7 @@ export function updateSearchPlaceholders(activeTabId) {
     const getUIText = (key, fallback = '') => state.appData.ui?.[state.currentLang]?.[key] || fallback;
 
     const isDictionaryTab = activeTabId === 'external-search';
+    const isProgressTab = activeTabId === 'progress';
 
     const placeholderText = isDictionaryTab
         ? getUIText('dictionaryPrompt', 'Search for words...')
@@ -807,7 +808,8 @@ export function updateSearchPlaceholders(activeTabId) {
         : getUIText('searchTabPlaceholder', 'Search in this tab...');
 
     if (els.searchInput) {
-        els.searchInput.placeholder = placeholderText;
+        els.searchInput.placeholder = isProgressTab ? "Search not available in Progress tab" : placeholderText;
+        els.searchInput.disabled = isProgressTab;
     }
     if (els.mobileSearchInput) {
         els.mobileSearchInput.placeholder = mobilePlaceholderText;

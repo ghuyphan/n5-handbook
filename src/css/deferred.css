@@ -77,6 +77,13 @@ mark.search-highlight {
     box-shadow: 0 12px 22px -6px var(--shadow-color);
 }
 
+/* NEW: Added a transition for the search input wrapper */
+.search-input-wrapper {
+    flex-grow: 1;
+    min-width: 0;
+    transition: all 0.4s var(--ease-out-quint);
+}
+
 /* Search Clear Button */
 .clear-btn {
     position: absolute;
@@ -213,6 +220,31 @@ mark.search-highlight {
     color: var(--text-primary);
     background-color: var(--nav-hover-bg);
     transform: scale(1.1);
+}
+
+/* MODIFIED: Notes button animation now includes width and margin to affect layout */
+.notes-header-btn {
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+    width: 0;
+    margin-left: 0;
+    overflow: hidden;
+    /* This defines the order and easing of the animation */
+    transition: 
+        width 0.4s var(--ease-out-quint), 
+        margin-left 0.4s var(--ease-out-quint),
+        opacity 0.3s var(--ease-out-quint), 
+        transform 0.3s var(--ease-out-quint);
+}
+
+.notes-header-btn.visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+    /* Set the final width and margin when visible */
+    width: 44px; /* A standard size for an icon button */
+    margin-left: 0.5rem; /* The gap between the search bar and the button */
 }
 
 .card {
@@ -1182,6 +1214,12 @@ mark.search-highlight {
     opacity: 0;
     pointer-events: none;
     transition: all 0.2s var(--ease-out-quint);
+}
+
+@media (min-width: 1201px) {
+    #nav-progress-tab {
+        display: none;
+    }
 }
 
 @media (min-width: 769px) {
