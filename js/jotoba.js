@@ -235,7 +235,6 @@ async function performSearch(query, isJP, signal) {
     return await searchJotoba(query, isJP, signal);
 }
 
-// MODIFIED: Added the 'isTabSwitch' parameter.
 async function handleExternalSearchInternal(query, forceRefresh = false, isTabSwitch = false) {
     const searchId = ++currentSearchId;
     const controller = new AbortController();
@@ -248,7 +247,6 @@ async function handleExternalSearchInternal(query, forceRefresh = false, isTabSw
     const normalizedQuery = query.trim();
 
     if (normalizedQuery.length === 0) {
-        // Pass 'isTabSwitch' to avoid animation on initial prompt rendering.
         updateExternalSearchTab('prompt', {}, isTabSwitch);
         return;
     }
@@ -259,14 +257,12 @@ async function handleExternalSearchInternal(query, forceRefresh = false, isTabSw
         const cachedResult = await getCachedResult(db, normalizedQuery);
         if (cachedResult && cachedResult.lang === state.currentLang) {
             if (searchId === currentSearchId) {
-                // Pass the 'isTabSwitch' flag to the UI function.
                 updateExternalSearchTab('results', { results: cachedResult.data, query: normalizedQuery }, isTabSwitch);
             }
             return;
         }
     }
     
-    // Only show the searching state if it's an actual search, not just a tab switch.
     if (!isTabSwitch) {
         updateExternalSearchTab('searching', { query: normalizedQuery }, false);
     }
@@ -277,7 +273,6 @@ async function handleExternalSearchInternal(query, forceRefresh = false, isTabSw
 
         if (searchId === currentSearchId) {
             await cacheResult(db, normalizedQuery, results);
-            // Pass the 'isTabSwitch' flag here as well.
             updateExternalSearchTab('results', { results: results, query: normalizedQuery }, isTabSwitch);
         }
 
@@ -293,5 +288,11 @@ async function handleExternalSearchInternal(query, forceRefresh = false, isTabSw
     }
 }
 
-window.handleExternalSearch = debounce(handleExternalSearchInternal, 300);
-export const handleExternalSearch = window.handleExternalSearch;
+// Make the immediate function available on the window object for the inline `onclick` retry button.
+window.handleExternalSearch = handleExternalSearchInternal;
+
+// Create and export a debounced version specifically for the search input event listener.
+export const debouncedSearch = debounce(handleExternalSearchInternal, 300);
+
+// Export the immediate function for direct calls (like tab switching).
+export const handleExternalSearch = handleExternalSearchInternal;

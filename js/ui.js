@@ -437,6 +437,14 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
     const { results, query } = data;
     const getUIText = (key, fallback) => state.appData.ui?.[state.currentLang]?.[key] || fallback;
 
+    // --- FIX IS HERE ---
+    // If we're updating to a new state, first clear any manually inserted loader
+    // that might have been added by the changeTab handler.
+    const manualLoader = els.externalSearchTab.querySelector(':scope > .flex.justify-center.items-center');
+    if (manualLoader) {
+        manualLoader.remove();
+    }
+
     let resultsContainer = els.externalSearchTab.querySelector('.results-container');
     if (!resultsContainer) {
         resultsContainer = document.createElement('div');
@@ -451,6 +459,14 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
         placeholderContainer.innerHTML = `<div class="search-placeholder-box"></div>`;
         els.externalSearchTab.appendChild(placeholderContainer);
     }
+    
+    // --- And ensure the main container is cleared ---
+    if(type === 'results') {
+         els.externalSearchTab.innerHTML = '';
+         els.externalSearchTab.appendChild(resultsContainer);
+         els.externalSearchTab.appendChild(placeholderContainer);
+    }
+
 
     if (type === 'results') {
         placeholderContainer.style.display = 'none';
