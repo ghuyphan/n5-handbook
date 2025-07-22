@@ -1,5 +1,3 @@
-// js/handlers.js
-
 import Fuse from 'fuse.js';
 import { els } from './dom.js';
 import { state, config } from './config.js';
@@ -488,6 +486,10 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
             setupFuseForTab(tabName);
         }
     } else if (tabName === 'external-search') {
+        // --- FIX IS HERE ---
+        // This line clears any old content (like a stuck loader) and resets the tab.
+        newTabContentEl.innerHTML = ''; 
+        
         getActiveSearchInput().value = state.lastDictionaryQuery;
         handleExternalSearch(state.lastDictionaryQuery, false, true);
     } else if (tabName === 'progress') {
