@@ -486,11 +486,13 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
             setupFuseForTab(tabName);
         }
     } else if (tabName === 'external-search') {
-        // --- CORRECTED FIX ---
-        // Clear the tab to ensure it's fresh for the search UI.
-        newTabContentEl.innerHTML = ''; 
+        // --- FINAL FIX ---
+        // 1. Clear the container. This makes it a blank slate.
+        newTabContentEl.innerHTML = '';
         
-        // Let handleExternalSearch manage its own content, including the loading state.
+        // 2. Immediately call handleExternalSearch. This function will now be responsible
+        //    for showing its own loader via updateExternalSearchTab('searching', ...),
+        //    and then replacing it with results or an error message.
         getActiveSearchInput().value = state.lastDictionaryQuery;
         handleExternalSearch(state.lastDictionaryQuery, false, true);
     } else if (tabName === 'progress') {
