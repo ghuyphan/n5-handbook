@@ -30,6 +30,7 @@ mark.search-highlight {
 }
 
 /* ADDED: Class to hide non-matching search items */
+/* Using !important here is acceptable for a utility class that needs to override other styles. */
 .search-hidden {
     display: none !important;
 }
@@ -77,11 +78,11 @@ mark.search-highlight {
     box-shadow: 0 12px 22px -6px var(--shadow-color);
 }
 
-/* NEW: Added a transition for the search input wrapper */
+/* REFINED: Explicitly define transition property instead of 'all' for better performance. */
 .search-input-wrapper {
     flex-grow: 1;
     min-width: 0;
-    transition: all 0.4s var(--ease-out-quint);
+    transition: flex-grow 0.4s var(--ease-out-quint); /* Be specific about what you're animating */
 }
 
 /* Search Clear Button */
@@ -222,30 +223,33 @@ mark.search-highlight {
     transform: scale(1.1);
 }
 
-/* MODIFIED: Notes button animation now includes width and margin to affect layout */
+/* REFINED: Notes button animation for smoother appearance and performance */
 .notes-header-btn {
     opacity: 0;
-    transform: scale(0.8);
+    transform: scale(0.9);
     pointer-events: none;
-    width: 0;
+    max-width: 0;
     margin-left: 0;
     overflow: hidden;
-    /* This defines the order and easing of the animation */
-    transition: 
-        width 0.4s var(--ease-out-quint), 
+    /* Using will-change hints the browser to optimize these animations */
+    will-change: max-width, margin-left, opacity, transform;
+    /* Delay opacity to fade in after space is made */
+    transition:
+        max-width 0.4s var(--ease-out-quint),
         margin-left 0.4s var(--ease-out-quint),
-        opacity 0.3s var(--ease-out-quint), 
-        transform 0.3s var(--ease-out-quint);
+        opacity 0.3s var(--ease-out-quint) 0.1s,
+        transform 0.3s var(--ease-out-quint) 0.1s;
 }
 
 .notes-header-btn.visible {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
-    /* Set the final width and margin when visible */
-    width: 44px; /* A standard size for an icon button */
-    margin-left: 0.5rem; /* The gap between the search bar and the button */
+    /* Set max-width to the button's actual width */
+    max-width: 44px;
+    margin-left: 0.5rem;
 }
+
 
 .card {
     perspective: 1500px;
