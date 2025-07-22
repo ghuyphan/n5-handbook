@@ -1,6 +1,6 @@
 {
   "name": "n5-handbook",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "An interactive, multi-level web application to help you study Japanese.",
   "main": "index.js",
   "scripts": {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jlpt-handbook-cache-v2';
+const CACHE_NAME = 'jlpt-handbook-cache-v3';
 
 // This list includes all the essential files your app needs to work offline.
 // The paths are based on your index.html file structure.
