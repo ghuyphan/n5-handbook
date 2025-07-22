@@ -14,11 +14,11 @@ import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab,
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (els.installAppBtn) {
-    els.installAppBtn.style.display = 'flex';
-  }
+    e.preventDefault();
+    deferredPrompt = e;
+    if (els.installAppBtn) {
+        els.installAppBtn.style.display = 'flex';
+    }
 });
 
 async function handleInstallClick() {
@@ -34,11 +34,11 @@ async function handleInstallClick() {
 }
 
 window.addEventListener('appinstalled', () => {
-  if (els.installAppBtn) {
-    els.installAppBtn.style.display = 'none';
-  }
-  deferredPrompt = null;
-  console.log('PWA was installed');
+    if (els.installAppBtn) {
+        els.installAppBtn.style.display = 'none';
+    }
+    deferredPrompt = null;
+    console.log('PWA was installed');
 });
 
 async function loadRequiredDataForProgress() {
@@ -130,7 +130,7 @@ function setupEventListeners() {
                 }
             }
         };
-        
+
         if (immediateActions[action]) {
             if (action === 'toggle-sidebar-pin') {
                 immediateActions[action](e);
@@ -169,7 +169,7 @@ function setupEventListeners() {
         handleStateChange(e.state);
     });
 
-    if(els.installAppBtn) {
+    if (els.installAppBtn) {
         els.installAppBtn.addEventListener('click', handleInstallClick);
     }
 }
@@ -203,26 +203,36 @@ async function init() {
     await loadGlobalUI();
     await loadState();
 
-    populateAndBindControls();
-    setupEventListeners();
-    setupTheme();
+    const params = new URLSearchParams(window.location.search);
+    let initialTab = params.get('tab') || state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'hiragana');
+    const urlLevel = params.get('level');
+    if (urlLevel) {
+        state.currentLevel = urlLevel;
+    }
 
-    if (document.getElementById('sidebar-import-btn')) {
-        import('./modals.js').then(module => module.setupImportModal());
+    const initialTabEl = document.getElementById(initialTab);
+    const loaderTemplate = document.getElementById('content-loader-template');
+
+    if (initialTabEl && loaderTemplate) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        initialTabEl.classList.add('active');
+        initialTabEl.innerHTML = loaderTemplate.innerHTML;
     }
 
     if (els.loadingOverlay) {
         els.loadingOverlay.style.opacity = '0';
         els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
     }
-    
-    setLanguage(state.currentLang, true);
-    document.querySelectorAll('.lang-switch').forEach(moveLangPill);
-
-    const params = new URLSearchParams(window.location.search);
-    let initialTab = params.get('tab') || state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'hiragana');
 
     try {
+        populateAndBindControls();
+        setupEventListeners();
+        setupTheme();
+
+        if (document.getElementById('sidebar-import-btn')) {
+            import('./modals.js').then(module => module.setupImportModal());
+        }
+
         const db = await dbPromise;
         const remoteLevelsPromise = fetch(`${config.dataPath}/levels.json`)
             .then(res => res.ok ? res.json() : { levels: [] })
@@ -230,17 +240,17 @@ async function init() {
                 console.warn("Could not fetch remote levels list. Falling back to default.", err);
                 return { levels: [config.defaultLevel] };
             });
-        
+
         const customLevelsPromise = db.getAllKeys('levels');
 
         const [remoteData, customLevels] = await Promise.all([remoteLevelsPromise, customLevelsPromise]);
-        
+
         const remoteLevels = remoteData.levels || [config.defaultLevel];
         state.allAvailableLevels = [...new Set([...remoteLevels, ...customLevels])];
 
-        const urlLevel = params.get('level');
-        if (urlLevel && state.allAvailableLevels.includes(urlLevel)) {
-            state.currentLevel = urlLevel;
+        if (!state.allAvailableLevels.includes(state.currentLevel)) {
+            state.currentLevel = config.defaultLevel;
+            initialTab = state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'hiragana');
         }
 
         await loadAllData(state.currentLevel);
@@ -251,16 +261,17 @@ async function init() {
 
         await setupTabsForLevel(state.currentLevel);
         await loadRequiredDataForProgress();
-        updateProgressDashboard();
-        
-        setLanguage(state.currentLang, true);
-        updateSidebarPinIcons();
 
-        await changeTab(initialTab, null, false, true);
+        await changeTab(initialTab, null, false, true, true);
+        
+        updateProgressDashboard();
+        setLanguage(state.currentLang, true);
 
         const versionElement = document.getElementById('app-version');
-        if(versionElement) versionElement.textContent = 'v1.0.1';
-
+        if (versionElement) {
+            versionElement.textContent = `v${process.env.APP_VERSION}`;
+        }
+        
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;
         history.replaceState(initialState, '', initialUrl);
@@ -269,8 +280,8 @@ async function init() {
         console.error('Deferred initialization failed.', error);
         if (els.loadingOverlay) {
             showCustomAlert(
-                getUIText('applicationErrorTitle', 'Application Error'),
-                getUIText('applicationErrorBody', 'Something went wrong during startup. Please try refreshing the page.') + `\n\nError: ${error.message}`
+                getUIText('applicationErrorTitle'),
+                getUIText('applicationErrorBody') + `\n\nError: ${error.message}`
             );
         }
     }
