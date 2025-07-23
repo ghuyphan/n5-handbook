@@ -1,0 +1,33 @@
+{
+  "name": "n5-handbook",
+  "version": "1.0.2",
+  "description": "An interactive, multi-level web application to help you study Japanese.",
+  "main": "index.js",
+"scripts": {
+    "build:css:main": "tailwindcss -i ./src/css/main.css -o ./dist/main.min.css --minify",
+    "build:css:deferred": "tailwindcss -i ./src/css/deferred.css -o ./dist/deferred.min.css --minify",
+    "build:js": "node build.js",
+    "build:jekyll": "docker run --rm -v \"${PWD}:/srv/jekyll\" jekyll/builder:latest jekyll build --future",
+    "build": "npm run build:js && npm run build:jekyll",
+    "watch": "tailwindcss -i ./src/css/deferred.css -o ./dist/deferred.min.css --watch"
+  },
+  "keywords": [
+    "japanese",
+    "jlpt",
+    "n5",
+    "learn"
+  ],
+  "author": "ghuyphan",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "esbuild": "^0.25.6",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "fuse.js": "^7.1.0",
+    "idb": "^8.0.3",
+    "wanakana": "^5.3.1"
+  }
+}

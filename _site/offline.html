@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JLPT Handbook - Offline</title>
+    <link rel="icon" type="image/webp" href="./assets/siteIcon.webp">
+    <link rel="stylesheet" href="./dist/main.min.css">
+    <script>
+        // This script is crucial for applying the correct theme on load, preventing a flash of the wrong theme.
+        try {
+            const theme = localStorage.getItem("theme");
+            const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            document.documentElement.classList.toggle("dark-mode", theme ? theme === "dark" : isDarkMode);
+        } catch (e) {
+            console.error("Theme error", e);
+        }
+    </script>
+    <style>
+        /* Additional styles to center content perfectly */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 1rem;
+        }
+        .offline-container {
+            text-align: center;
+            max-width: 450px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="offline-container">
+        <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo" class="logo">
+        <h1>You're Currently Offline</h1>
+        <p>It seems you're not connected to the internet. Please check your connection to access all features of the JLPT Handbook.</p>
+    </div>
+</body>
+</html>
