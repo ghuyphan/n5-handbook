@@ -65,17 +65,44 @@ mark.search-highlight {
     border-radius: var(--radius-lg);
 }
 
-.progress-item-wrapper:hover {
-    transform: translateY(-5px) scale(1.02);
-    background-color: var(--nav-hover-bg);
-    box-shadow: 0 10px 20px -5px var(--shadow-color);
-}
+@media (hover: hover) and (pointer: fine) {
+    .progress-item-wrapper:hover {
+        transform: translateY(-5px) scale(1.02);
+        background-color: var(--nav-hover-bg);
+        box-shadow: 0 10px 20px -5px var(--shadow-color);
+    }
 
-.cell-bg:hover,
-.grammar-card:hover,
-.dict-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 22px -6px var(--shadow-color);
+    .cell-bg:hover,
+    .grammar-card:hover,
+    .dict-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 22px -6px var(--shadow-color);
+    }
+    
+    .nav-item:hover:not(.active) {
+        background-color: var(--nav-hover-bg);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px var(--shadow-color);
+    }
+
+    .theme-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .learn-toggle:hover,
+    .details-toggle:hover {
+        transform: scale(1.15);
+    }
+
+    .details-toggle:hover {
+        background-color: var(--nav-hover-bg);
+    }
+    
+    #close-sidebar-btn:hover {
+        color: var(--text-primary);
+        background-color: var(--nav-hover-bg);
+        transform: scale(1.1);
+    }
 }
 
 /* REFINED: Explicitly define transition property instead of 'all' for better performance. */
@@ -206,21 +233,9 @@ mark.search-highlight {
     animation: fadeIn 0.5s var(--ease-out-quint) forwards;
 }
 
-.nav-item:hover:not(.active) {
-    background-color: var(--nav-hover-bg);
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px var(--shadow-color);
-}
-
 .nav-item:focus-visible:not(.active) {
     outline: 2px solid var(--accent-blue);
     outline-offset: 2px;
-}
-
-#close-sidebar-btn:hover {
-    color: var(--text-primary);
-    background-color: var(--nav-hover-bg);
-    transform: scale(1.1);
 }
 
 /* REFINED: Notes button animation for smoother appearance and performance */
@@ -447,19 +462,6 @@ mark.search-highlight {
 
 .notes-header-btn.has-note svg {
     fill: var(--accent-orange);
-}
-
-.theme-btn:hover {
-    transform: scale(1.1);
-}
-
-.learn-toggle:hover,
-.details-toggle:hover {
-    transform: scale(1.15);
-}
-
-.details-toggle:hover {
-    background-color: var(--nav-hover-bg);
 }
 
 .learn-toggle.learned {
