@@ -2,15 +2,9 @@
 // The build script will read this file, fill in the placeholders,
 // and create the final 'service-worker.js' file.
 
-// ▼ Placeholder for the cache name. The build script will replace this.
-// Example: 'jlpt-handbook-cache-v1.0.2'
 const CACHE_NAME = '%%CACHE_NAME%%';
-
-// ▼ Placeholder for the list of files to cache. The build script will replace this
-// with an array of all your newly built CSS and JS files.
 const urlsToCache = '%%URLS_TO_CACHE%%';
 
-// --- INSTALL: Caches the essential files for the PWA ---
 self.addEventListener('install', event => {
   console.log('Service Worker: Installing...');
   event.waitUntil(
@@ -24,13 +18,11 @@ self.addEventListener('install', event => {
         return self.skipWaiting();
       })
       .catch(err => {
-        // This is important for debugging. If caching fails, this will log the error.
         console.error('Service Worker: Caching failed', err);
       })
   );
 });
 
-// --- ACTIVATE: Cleans up old caches ---
 self.addEventListener('activate', event => {
   console.log('Service Worker: Activating...');
   event.waitUntil(
@@ -50,13 +42,24 @@ self.addEventListener('activate', event => {
   );
 });
 
-// --- FETCH: Serves assets from cache first ---
 self.addEventListener('fetch', event => {
   // We only want to cache GET requests.
   if (event.request.method !== 'GET') {
     return;
   }
 
+  // For navigation requests (i.e., for HTML pages), use a network-first strategy.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // If the network fails, serve the offline page from the cache.
+        return caches.match('/offline.html');
+      })
+    );
+    return;
+  }
+
+  // For all other requests (CSS, JS, images), use a cache-first strategy.
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -64,7 +67,6 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-
         // If not, fetch it from the network.
         return fetch(event.request);
       })
