@@ -7,6 +7,14 @@ const path = require('path');
 const isDev = process.argv.includes('--dev');
 const outdir = 'dist';
 
+// --- Step 0: Clean the output directory ---
+console.log(`🧹 Cleaning up the '${outdir}' directory...`);
+// This command removes the entire 'dist' folder and its contents.
+// The build tools below will recreate it with the new files.
+fs.rmSync(outdir, { recursive: true, force: true });
+console.log('✅ Directory cleaned.');
+
+
 // --- Step 1: Build CSS ---
 console.log('Building CSS...');
 try {
@@ -56,7 +64,6 @@ function generateHtml(metafile) {
   // Assuming your template is in a 'src' folder
   let htmlTemplate = fs.readFileSync('src/index.html', 'utf-8');
 
-  // Find the main JS entry point from the esbuild metafile
   const mainJsPath = Object.keys(metafile.outputs).find(
     (key) => metafile.outputs[key].entryPoint === 'js/main.js'
   );
@@ -66,17 +73,15 @@ function generateHtml(metafile) {
     process.exit(1);
   }
   
-  // Construct the correct script tags with absolute paths for the root index.html
   const mainJsUrl = `/${mainJsPath.replace(/\\/g, '/')}`;
   const scriptTags = `
     <link rel="preload" href="${mainJsUrl}" as="script" crossOrigin="anonymous">
     <script type="module" src="${mainJsUrl}"></script>
   `;
 
-  // **FIXED LINE**: Replace the placeholder comment with the actual script tags
+  // **FIXED LINE**: Replaces the specific placeholder in your HTML template.
   const finalHtml = htmlTemplate.replace('', scriptTags);
 
-  // Write the final, production-ready HTML file to the root directory
   fs.writeFileSync('index.html', finalHtml);
 }
 
