@@ -111,8 +111,9 @@ function setupEventListeners() {
             'toggle-theme': () => toggleTheme(),
             'toggle-pin': () => togglePin(),
             'toggle-sidebar-pin': (e) => toggleSidebarPin(e, actionTarget.dataset.tabName),
+            /* MODIFIED: This line is updated for the icon visibility fix */
             'flip-card': () => {
-                actionTarget.closest('.card').classList.toggle('is-flipped');
+                actionTarget.closest('.relative').classList.toggle('is-flipped');
             },
             'toggle-learned': () => toggleLearned(actionTarget.dataset.category, actionTarget.dataset.id, actionTarget),
             'jump-to-section': () => jumpToSection(actionTarget.dataset.tabName, actionTarget.dataset.sectionKey),

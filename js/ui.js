@@ -9,34 +9,18 @@ import { generateSearchTerms } from './utils.js';
 import { setupFuseForTab } from './handlers.js';
 import { dbPromise } from './database.js';
 
-// UPDATED: Centralized helper function to get localized text safely.
-/**
- * A robust helper to get localized text from a data object.
- * @param {object} source - The object containing the translations (e.g., a section or an item).
- * @param {string} [key] - The property key for the text (e.g., 'title', 'usage'). If omitted, source is assumed to be the translation object itself.
- * @returns {string} The localized string.
- */
+// Centralized helper function to get localized text safely.
 function getLangText(source, key) {
     if (!source) return '';
     const target = key ? source[key] : source;
     if (target && typeof target === 'object' && !Array.isArray(target)) {
-        // Handles structures like { en: 'Text', vi: 'Văn bản' }
         return target[state.currentLang] || target.en || '';
     }
-    // Fallback for non-translated strings or other data types
     return target || '';
 }
 
 
-/**
- * REFINED: Now includes a new 'error' state for better user feedback.
- * Generates the inner HTML for the search placeholder based on its state.
- * @param {string} type - The state of the placeholder ('searching', 'no-results', 'prompt', 'error').
- * @param {string} [query=''] - The search query for 'no-results' or error states.
- * @returns {string} The inner HTML for the placeholder box.
- */
 function getSearchPlaceholderInnerContent(type, query = '') {
-    // This function uses its own getUIText which is fine as it targets a specific 'ui' key in the data.
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
     let innerContent = '';
 
@@ -54,7 +38,7 @@ function getSearchPlaceholderInnerContent(type, query = '') {
                 <p class="text-secondary text-base mt-1 max-w-md">${noResultsSubtitle}</p>
             `;
             break;
-        case 'error': // NEW: Error state for failed API calls
+        case 'error':
             const errorIcon = `<svg class="w-16 h-16 text-accent-red opacity-60 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>`;
             const errorTitle = getUIText('searchErrorTitle');
             const errorSubtitle = getUIText('searchError');
@@ -106,7 +90,6 @@ export function renderContentNotAvailable(tabName) {
     `;
 }
 
-// MODIFIED: Added tabId parameter to know which tab we're rendering for.
 function createAccordion(title, contentNode, searchData, titleKey, tabId) {
     const template = document.getElementById('accordion-template');
     const clone = template.content.cloneNode(true);
@@ -116,7 +99,6 @@ function createAccordion(title, contentNode, searchData, titleKey, tabId) {
     const titleSpan = clone.querySelector('.accordion-title');
     const contentDiv = clone.querySelector('.accordion-content');
 
-    // MODIFIED: Use the passed tabId instead of state.activeTab
     const tabAccordions = state.openAccordions.get(tabId);
     if (tabAccordions && tabAccordions.has(titleKey)) {
         button.classList.add('open');
@@ -131,37 +113,56 @@ function createAccordion(title, contentNode, searchData, titleKey, tabId) {
     return clone;
 }
 
-// UPDATED: New function to render tables for the "Key Points" cheat sheets.
-function createCheatSheetTable(headers, content) {
-    const table = document.createElement('table');
-    table.className = 'key-points-table w-full border-collapse text-sm';
+/**
+ * UPDATED: Creates a list of responsive cards for the "Key Points" cheat sheets,
+ * replacing the old rigid table structure.
+ * @param {object} headers - The localized headers for the data.
+ * @param {object[]} content - The array of cheat sheet items.
+ * @returns {DocumentFragment} A document fragment containing the styled list of cards.
+ */
+function createCheatSheetList(headers, content) {
+    const fragment = document.createDocumentFragment();
 
-    const headerRow = table.createTHead().insertRow();
-    for (const key in headers) {
-        const th = document.createElement('th');
-        th.className = 'p-2 border-b border-b-white/10 font-semibold text-left text-primary';
-        th.textContent = getLangText(headers, key);
-        headerRow.appendChild(th);
-    }
-
-    const tbody = table.createTBody();
     content.forEach(item => {
-        const row = tbody.insertRow();
-        for (const key in headers) { // Iterate in header order
-            const cell = row.insertCell();
-            cell.className = 'p-2 border-b border-b-white/5 align-top text-secondary';
-            // Use getLangText for consistent access
-            cell.innerHTML = getLangText(item, key).replace(/\n/g, '<br>');
-        }
+        const card = document.createElement('div');
+        card.className = 'cheatsheet-card';
+
+        const searchTermsForRow = Object.keys(headers).map(key => getLangText(item, key));
+        card.dataset.searchItem = generateSearchTerms(searchTermsForRow);
+        
+        const mainContent = document.createElement('div');
+        mainContent.className = 'cheatsheet-main';
+
+        const particles = document.createElement('h4');
+        particles.className = 'cheatsheet-particles';
+        particles.textContent = getLangText(item, Object.keys(headers)[0]);
+        
+        const usage = document.createElement('p');
+        usage.className = 'cheatsheet-usage';
+        usage.textContent = getLangText(item, Object.keys(headers)[1]);
+
+        mainContent.appendChild(particles);
+        mainContent.appendChild(usage);
+
+        const exampleContent = document.createElement('div');
+        exampleContent.className = 'cheatsheet-example';
+        exampleContent.innerHTML = getLangText(item, Object.keys(headers)[2]).replace(/\n/g, '<br>');
+
+        card.appendChild(mainContent);
+        card.appendChild(exampleContent);
+        fragment.appendChild(card);
     });
 
-    return table;
+    return fragment;
 }
 
-// UPDATED: New function to render the "Kosoado" grid layout.
+
+// UPDATED: This function is now smarter and can render any table-grid data.
 function createKosoadoGrid(content, headers) {
     const container = document.createElement('div');
     container.className = 'space-y-6';
+
+    const headerKeys = Object.keys(headers);
 
     content.forEach(group => {
         const groupEl = document.createElement('div');
@@ -172,16 +173,30 @@ function createKosoadoGrid(content, headers) {
 
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+        
         group.data.forEach(item => {
             const cell = document.createElement('div');
             cell.className = 'cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24';
-            const searchData = generateSearchTerms([getLangText(item, 'category'), item.reading, getLangText(item, 'meaning')]);
+            
+            let primaryText = '';
+            let secondaryText = '';
+
+            // This logic makes it generic.
+            // It prioritizes 'reading' for Kosoado, but uses the first two headers for everything else.
+            if (item.reading) { // Special case for Kosoado Words
+                primaryText = item.reading;
+                secondaryText = getLangText(item, 'meaning');
+            } else { // Generic case for all other grids (like N4 Affixes)
+                primaryText = getLangText(item, headerKeys[0]);
+                secondaryText = getLangText(item, headerKeys[1]);
+            }
+            
+            const searchData = generateSearchTerms([primaryText, secondaryText]);
             cell.dataset.searchItem = searchData;
 
             cell.innerHTML = `
-                <div class="font-bold text-primary text-base sm:text-lg noto-sans">${item.reading}</div>
-                <div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1">${getLangText(item, 'category')}</div>
-                <div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1" style="color: var(--accent-yellow)">${getLangText(item, 'meaning')}</div>
+                <div class="font-bold text-primary text-base sm:text-lg noto-sans">${primaryText}</div>
+                <div class="text-secondary text-xs sm:text-sm leading-relaxed mt-1" style="color: var(--accent-yellow)">${secondaryText}</div>
             `;
             grid.appendChild(cell);
         });
@@ -218,7 +233,6 @@ const createCard = (item, category, backGradient) => {
     }
 
     const isLearned = state.progress[category]?.includes(item.id);
-    // UPDATED: Use the getLangText helper for consistency
     const meaningText = getLangText(item, 'meaning');
 
     const frontContent = category === 'kanji'
@@ -249,7 +263,6 @@ const createCard = (item, category, backGradient) => {
     return clone;
 };
 
-// MODIFIED: Added tabId parameter to pass down to createAccordion
 const createCardSection = (title, data, category, backGradient, titleKey, tabId) => {
     if (!data || data.length === 0) return document.createDocumentFragment();
 
@@ -265,7 +278,6 @@ const createCardSection = (title, data, category, backGradient, titleKey, tabId)
     accordionContentWrapper.appendChild(cardGrid);
 
     const searchTermsForSection = generateSearchTerms([title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]);
-    // MODIFIED: Pass tabId to createAccordion
     return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId);
 };
 
@@ -276,7 +288,6 @@ const createStaticSection = (data, icon, color) => {
     Object.entries(data).forEach(([sectionKey, sectionData]) => {
         if (!sectionData.items) return;
         const items = sectionData.items;
-        // UPDATED: Get the title using the new data structure.
         const title = getLangText(sectionData);
         const searchTerms = generateSearchTerms([title, ...items.flatMap(i => i.isPlaceholder ? [] : [i.kana, i.romaji])]);
 
@@ -347,7 +358,6 @@ export function updateProgressDashboard() {
 
             const total = category.items.length;
             const learned = state.progress[categoryName]?.filter(id => category.items.some(item => item.id === id)).length || 0;
-            // UPDATED: Use getLangText to get the localized title for the progress item.
             const title = getLangText(category);
             const newItemFragment = createProgressItem(categoryName, title, learned, total, color, key);
             progressItemsFragment.appendChild(newItemFragment);
@@ -379,9 +389,6 @@ export function updateProgressDashboard() {
         }
     });
 }
-
-// ... (The rest of the file from moveLangPill onwards can remain the same) ...
-// ... I'll include the full file for completeness as requested.
 
 export function moveLangPill(langSwitchElement) {
     const activeBtn = langSwitchElement.querySelector('button.active');
@@ -442,7 +449,6 @@ export function closeSidebar() {
     document.body.classList.remove('sidebar-open');
 }
 
-// MODIFIED: Pass containerId through to createCardSection
 async function renderCardBasedSection(containerId, data, category, gradient) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -458,7 +464,6 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
         const section = data[key];
         if (!section.items) continue;
 
-        // UPDATED: Use getLangText for the section title
         const title = getLangText(section);
         fragment.appendChild(createCardSection(title, section.items, category, gradient, key, containerId));
     }
@@ -482,12 +487,6 @@ function findKanjiData(kanjiCharacter) {
     return null;
 }
 
-/**
- * REFINED: Manages dictionary search tab content with consistent animations.
- * @param {string} type - The state to render: 'prompt', 'searching', 'no-results', 'results', or 'error'.
- * @param {object} data - An object containing data for the view.
- * @param {boolean} [isInitialLoad=false] - Flag to prevent animation on the first load.
- */
 export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) {
     if (!els.externalSearchTab) return;
 
@@ -638,16 +637,9 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
     }
 }
 
-/**
- * Prepares kana data by organizing items into standard grid layouts.
- * This function handles gojuon, dakuten, handakuten, and youon charts,
- * ensuring they are displayed in a consistent and orderly fashion.
- * @param {object} originalData - The original kana data object for hiragana or katakana.
- * @returns {object} A new data object with items sorted and padded for grid layout.
- */
 function prepareKanaData(originalData) {
     if (!originalData) return {};
-    const data = JSON.parse(JSON.stringify(originalData)); // Deep clone to avoid side effects
+    const data = JSON.parse(JSON.stringify(originalData));
 
     const LAYOUTS = {
         gojuon: ['a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so', 'ta', 'chi', 'tsu', 'te', 'to', 'na', 'ni', 'nu', 'ne', 'no', 'ha', 'hi', 'fu', 'he', 'ho', 'ma', 'mi', 'mu', 'me', 'mo', 'ya', null, 'yu', null, 'yo', 'ra', 'ri', 'ru', 're', 'ro', 'wa', null, null, null, 'wo', 'n', null, null, null, null],
@@ -704,7 +696,6 @@ export async function setupTabsForLevel(levelName) {
     if (katakanaTab) katakanaTab.style.display = showKana ? '' : 'none';
 }
 
-// UPDATED: Major rewrite of renderContent to use new data structures and helper functions.
 export async function renderContent(tabId = null) {
     const renderSafely = async (renderFn, tabName) => {
         try {
@@ -740,7 +731,6 @@ export async function renderContent(tabId = null) {
                 setupFuseForTab('katakana');
             }
         }, 'katakana'),
-        // UPDATED: Completely new rendering logic for keyPoints tab.
         keyPoints: () => renderSafely(() => {
             if (!els.keyPointsTab || !state.appData.keyPoints) return;
             els.keyPointsTab.innerHTML = '';
@@ -751,16 +741,15 @@ export async function renderContent(tabId = null) {
                 const title = getLangText(section);
                 let contentNode;
 
-                // Choose the correct rendering function based on the 'type' in the data.
                 if (section.type === 'table') {
-                    contentNode = createCheatSheetTable(section.headers, section.content);
+                    contentNode = createCheatSheetList(section.headers, section.content);
                 } else if (section.type === 'table-grid') {
                     contentNode = createKosoadoGrid(section.content, section.headers);
                 }
 
                 if (contentNode) {
                     const contentWrapper = document.createElement('div');
-                    contentWrapper.className = 'p-4 sm:p-5 sm:pt-0 overflow-x-auto';
+                    contentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
                     contentWrapper.appendChild(contentNode);
                     const searchTerms = generateSearchTerms([title, JSON.stringify(section.content)]);
                     fragment.appendChild(createAccordion(title, contentWrapper, searchTerms, key, 'keyPoints'));
@@ -779,11 +768,11 @@ export async function renderContent(tabId = null) {
             const fragment = document.createDocumentFragment();
             for (const sectionKey in state.appData.grammar) {
                 const sectionData = state.appData.grammar[sectionKey];
-                const sectionTitle = getLangText(sectionData); // UPDATED: Use helper
+                const sectionTitle = getLangText(sectionData);
                 const grid = document.createElement('div');
                 grid.className = 'grammar-grid';
                 sectionData.items.forEach(item => {
-                    const langItem = item[state.currentLang] || item.en; // This structure is correct for grammar
+                    const langItem = item[state.currentLang] || item.en;
                     const itemSearchData = generateSearchTerms([langItem.title, langItem.content]);
                     const exampleMarkerRegex = /(<br>)?<b>(Example|Ví dụ).*?<\/b>/i;
                     const match = langItem.content.match(exampleMarkerRegex);
@@ -980,7 +969,7 @@ export function showCustomConfirm(title, message) {
 
 export function closeCustomDialog() {
     if (!els.customDialogContainer || els.customDialogContainer.classList.contains('modal-hidden')) {
-        return; // Already closed or not present
+        return;
     }
 
     const backdrop = els.customDialogBackdrop;
@@ -991,9 +980,7 @@ export function closeCustomDialog() {
     if (backdrop) backdrop.classList.remove('active');
     if (wrapper) wrapper.classList.remove('active');
 
-    // Use a transitionend event listener for cleanup to be more robust.
     const onTransitionEnd = (e) => {
-        // Ensure we are listening to the end of the wrapper's transition
         if (e.target !== wrapper) return;
 
         container.classList.add('modal-hidden');
@@ -1004,11 +991,9 @@ export function closeCustomDialog() {
         wrapper.removeEventListener('transitionend', onTransitionEnd);
     };
 
-    // If the wrapper has a transition, listen for it. Otherwise, clean up immediately.
     if (wrapper && getComputedStyle(wrapper).transitionDuration !== '0s') {
         wrapper.addEventListener('transitionend', onTransitionEnd, { once: true });
     } else {
-        // Fallback for when there's no transition (e.g., prefers-reduced-motion)
         container.classList.add('modal-hidden');
         const contentContainer = container.querySelector('.modal-content-container');
         if (contentContainer) {
