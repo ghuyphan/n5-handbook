@@ -13,9 +13,9 @@ const urlsToCache = [
   "/assets/siteIcon.png",
   "/assets/og.png",
   "/manifest.json",
-  "/dist/main-OGVRAUJY.js",
-  "/dist/modals-AJ6R5UMA.js",
-  "/dist/chunk-F7OFINK2.js"
+  "/dist/main-WCH5BHIB.js",
+  "/dist/modals-ZZIZDEEP.js",
+  "/dist/chunk-E4H4PFGS.js"
 ];
 
 self.addEventListener('install', event => {

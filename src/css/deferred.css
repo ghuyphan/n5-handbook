@@ -1418,3 +1418,7 @@ input:checked+.slider:before {
     display: none;
   }
 }
+
+.accordion-content {
+  content-visibility: auto;
+}

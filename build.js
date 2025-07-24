@@ -53,6 +53,7 @@ esbuild.build({
 });
 
 function generateHtml(metafile) {
+  // Assuming your template is in a 'src' folder
   let htmlTemplate = fs.readFileSync('src/index.html', 'utf-8');
 
   // Find the main JS entry point from the esbuild metafile
@@ -64,24 +65,26 @@ function generateHtml(metafile) {
     console.error('❌ Could not find main JS entry point in metafile.');
     process.exit(1);
   }
-
+  
+  // Construct the correct script tags with absolute paths for the root index.html
+  const mainJsUrl = `/${mainJsPath.replace(/\\/g, '/')}`;
   const scriptTags = `
-    <link rel="preload" href="/${mainJsPath.replace(/\\/g, '/')}" as="script" crossOrigin="anonymous">
-    <script type="module" src="/${mainJsPath.replace(/\\/g, '/')}"></script>
+    <link rel="preload" href="${mainJsUrl}" as="script" crossOrigin="anonymous">
+    <script type="module" src="${mainJsUrl}"></script>
   `;
 
+  // **FIXED LINE**: Replace the placeholder comment with the actual script tags
   const finalHtml = htmlTemplate.replace('', scriptTags);
 
   // Write the final, production-ready HTML file to the root directory
-  // This is often simpler for deployment with services like GitHub Pages.
   fs.writeFileSync('index.html', finalHtml);
 }
 
 function generateServiceWorker(metafile) {
   const staticAssets = [
     '/',
-    '/index.html', // The dynamically generated index.html
-    '/offline.html', // Your offline fallback page
+    '/index.html', 
+    '/offline.html',
     '/dist/main.min.css',
     '/dist/deferred.min.css',
     '/assets/siteIcon.webp',
@@ -90,7 +93,6 @@ function generateServiceWorker(metafile) {
     '/manifest.json'
   ];
 
-  // Extract the generated JS output paths from the metafile
   const dynamicAssets = Object.keys(metafile.outputs)
     .filter(p => p.startsWith(outdir) && !p.endsWith('.map'))
     .map(p => `/${p.replace(/\\/g, '/')}`);
@@ -103,6 +105,5 @@ function generateServiceWorker(metafile) {
     .replace('\'%%CACHE_NAME%%\'', `'jlpt-handbook-cache-v${version}'`)
     .replace('\'%%URLS_TO_CACHE%%\'', JSON.stringify(allCacheUrls, null, 2));
 
-  // Write the final service worker to the root directory.
   fs.writeFileSync('service-worker.js', swContent);
 }

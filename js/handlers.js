@@ -20,6 +20,18 @@ function getActiveSearchInput() {
     return window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
 }
 
+/**
+ * Checks if the given level is considered advanced (N3, N2, N1).
+ * @param {string} level The level identifier (e.g., 'n3').
+ * @returns {boolean} True if the level is N3 or higher.
+ */
+function isAdvancedLevel(level) {
+    if (!level || !level.startsWith('n')) return false; // Not a standard JLPT level
+    const levelNum = parseInt(level.substring(1), 10);
+    return !isNaN(levelNum) && levelNum <= 3;
+}
+
+
 function highlightMatches(element, query) {
     if (!query) return;
 
@@ -307,10 +319,19 @@ async function loadLevelData(level) {
     const db = await dbPromise;
     const isCustomLevel = !!(await db.get('levels', level));
     if (!isCustomLevel) {
-        const allTabs = ['kanji', 'vocab', 'hiragana', 'katakana', 'grammar', 'keyPoints'];
-        Promise.all(allTabs.map(tabId => loadTabData(level, tabId).catch(err => {
+        // --- MODIFICATION START ---
+        // Base tabs for all levels
+        const tabsToPreload = ['kanji', 'vocab', 'grammar', 'keyPoints'];
+
+        // Add hiragana and katakana only for non-advanced levels (e.g., N4, N5)
+        if (!isAdvancedLevel(level)) {
+            tabsToPreload.push('hiragana', 'katakana');
+        }
+
+        Promise.all(tabsToPreload.map(tabId => loadTabData(level, tabId).catch(err => {
             console.warn(`Non-critical preload of tab '${tabId}' failed.`, err);
         }))).then(() => console.log(`Pre-loading for level ${level} complete.`));
+        // --- MODIFICATION END ---
     }
 }
 
@@ -323,12 +344,13 @@ async function renderLevelUI(level, fromHistory) {
 
     await setupTabsForLevel(level);
 
-    const isDefaultLevel = ['n5', 'n4'].includes(level);
+    const isFoundationLevel = !isAdvancedLevel(level); // True for N4, N5, custom levels
     const isMobileView = window.innerWidth <= 768;
-    const defaultTab = isMobileView ? 'external-search' : (isDefaultLevel ? 'hiragana' : 'keyPoints');
+    const defaultTab = isMobileView ? 'external-search' : (isFoundationLevel ? 'hiragana' : 'keyPoints');
 
     let targetTab = state.pinnedTab || defaultTab;
-    if (!isDefaultLevel && (targetTab === 'hiragana' || targetTab === 'katakana')) {
+    // If a high level is loaded but an old 'hiragana' tab pin exists, reset it.
+    if (isAdvancedLevel(level) && (targetTab === 'hiragana' || targetTab === 'katakana')) {
         targetTab = 'keyPoints';
         state.pinnedTab = null;
         await savePinnedTab(null);
@@ -486,13 +508,7 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
             setupFuseForTab(tabName);
         }
     } else if (tabName === 'external-search') {
-        // --- FINAL FIX ---
-        // 1. Clear the container. This makes it a blank slate.
         newTabContentEl.innerHTML = '';
-        
-        // 2. Immediately call handleExternalSearch. This function will now be responsible
-        //    for showing its own loader via updateExternalSearchTab('searching', ...),
-        //    and then replacing it with results or an error message.
         getActiveSearchInput().value = state.lastDictionaryQuery;
         handleExternalSearch(state.lastDictionaryQuery, false, true);
     } else if (tabName === 'progress') {
