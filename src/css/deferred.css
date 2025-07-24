@@ -604,6 +604,37 @@ mark.search-highlight {
     font-weight: 600;
 }
 
+.key-points-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-size: 0.9rem; /* Added for better readability */
+}
+
+.key-points-table th,
+.key-points-table td {
+  border-bottom: none; /* Remove the old border */
+  background-image: linear-gradient(to right, transparent, var(--progress-track-color), transparent);
+  background-repeat: no-repeat;
+  background-size: 100% 1px; /* 100% width, 1px height */
+  background-position: bottom;
+}
+
+.key-points-table th {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.key-points-table td {
+    color: var(--text-secondary);
+    line-height: 1.6; 
+}
+
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+
 .sidebar-control-group {
     display: flex;
     flex-direction: row;
