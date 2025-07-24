@@ -2,16 +2,27 @@
  * @module jotoba
  * @description Handles searching via the Jotoba and JDict APIs with fallback mechanisms.
  */
-import { els } from './dom.js';
-import { state } from './config.js';
-import { updateExternalSearchTab } from './ui.js';
+import {
+    els
+} from './dom.js';
+import {
+    state
+} from './config.js';
+import {
+    updateExternalSearchTab
+} from './ui.js';
 
-import { dbPromise } from './database.js';
-import { debounce } from './utils.js';
+import {
+    dbPromise
+} from './database.js';
+import {
+    debounce
+} from './utils.js';
 
 // --- Constants ---
 const JAPANESE_REGEX = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
-const JDICT_BASE_URL = 'https://jdict.net/api/v1/search';
+// UPDATE: Corrected the JDict API endpoint to the new, working URL.
+const JDICT_BASE_URL = 'https://jdict-backend-dev.up.railway.app/api/v1/search';
 const JOTOBA_BASE_URL = 'https://jotoba.de/api/search/words';
 const REQUEST_TIMEOUT = 10000;
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -21,7 +32,7 @@ const RETRY_DELAY = 1000;
 
 // --- State Management ---
 let lastRequestTime = 0;
-let currentSearchId = 0; // Used to prevent race conditions
+let currentSearchId = 0; // Used to prevent race conditions by tracking the latest search request.
 
 // --- Core Fetch Logic ---
 
@@ -41,6 +52,7 @@ function shouldRetry(error) {
     return retryableErrors.some(errorType => error.message.includes(errorType));
 }
 
+// A robust fetch implementation with rate-limiting, retries, and timeout.
 async function fetchWithTimeoutAndRetry(url, options = {}, signal, retries = MAX_RETRIES) {
     const now = Date.now();
     if (now - lastRequestTime < RATE_LIMIT_WINDOW) {
@@ -54,7 +66,10 @@ async function fetchWithTimeoutAndRetry(url, options = {}, signal, retries = MAX
 
     try {
         const response = await Promise.race([
-            fetch(url, { ...options, signal }),
+            fetch(url, {
+                ...options,
+                signal
+            }),
             createTimeout(REQUEST_TIMEOUT)
         ]);
 
@@ -79,6 +94,7 @@ async function fetchWithTimeoutAndRetry(url, options = {}, signal, retries = MAX
 
 // --- API Specific Logic (JDict & Jotoba) ---
 
+// Parses the "suggest_mean" string from JDict into a more usable format.
 function parseSuggestMean(suggestMean) {
     if (!suggestMean || typeof suggestMean !== 'string') return [];
     try {
@@ -88,9 +104,15 @@ function parseSuggestMean(suggestMean) {
             if (match) {
                 const kana = match[1];
                 const kanji = entry.replace(readingRegex, '').trim();
-                return { kanji: kanji || kana, kana };
+                return {
+                    kanji: kanji || kana,
+                    kana
+                };
             }
-            return { kanji: entry, kana: entry };
+            return {
+                kanji: entry,
+                kana: entry
+            };
         });
     } catch (error) {
         console.warn('Error parsing suggest_mean:', error);
@@ -98,54 +120,84 @@ function parseSuggestMean(suggestMean) {
     }
 }
 
+// Transforms the response from JDict to match the structure of the Jotoba response.
 function transformJDictData(jdictData, isJP) {
     if (!jdictData?.list?.length) return null;
 
     try {
-        const words = isJP
-            ? jdictData.list.map(item => {
+        const words = isJP ?
+            jdictData.list.map(item => {
                 const meanings = (item.suggest_mean || '').split(';').map(s => s.trim()).filter(Boolean);
                 const kanaMatch = (item.word || '').match(/「(.*?)」/);
                 const kanji = (item.word || '').replace(/「(.*?)」/, '').trim();
                 return {
-                    reading: { kanji: kanji || (kanaMatch ? kanaMatch[1] : ''), kana: kanaMatch ? kanaMatch[1] : '' },
-                    senses: [{ glosses: meanings }]
+                    reading: {
+                        kanji: kanji || (kanaMatch ? kanaMatch[1] : ''),
+                        kana: kanaMatch ? kanaMatch[1] : ''
+                    },
+                    senses: [{
+                        glosses: meanings
+                    }]
                 };
-            })
-            : jdictData.list.map(item => ({
-                reading: { kanji: item.word || '', kana: '' },
+            }) :
+            jdictData.list.map(item => ({
+                reading: {
+                    kanji: item.word || '',
+                    kana: ''
+                },
                 senses: parseSuggestMean(item.suggest_mean).map(meaning => ({
                     glosses: [meaning.kanji],
                     reading: meaning.kana
                 }))
             }));
-        return { words, kanji: [] };
+        return {
+            words,
+            kanji: []
+        };
     } catch (error) {
         console.warn('Error transforming JDict data:', error);
         return null;
     }
 }
 
+// UPDATE: Refined function to use the new JDict API endpoint and parameter structure.
 async function searchJDict(query, isJP, signal) {
-    const dictType = isJP ? 'jp_vi' : 'vi_jp';
-    const url = `${JDICT_BASE_URL}?keyword=${encodeURIComponent(query.trim())}&dict=${dictType}`;
+    const url = new URL(JDICT_BASE_URL);
+    url.search = new URLSearchParams({
+        keyword: query.trim(),
+        keyword_position: 'start',
+        page: 1,
+        type: 'word' // New API uses a 'type' parameter
+    }).toString();
+
     const response = await fetchWithTimeoutAndRetry(url, {}, signal);
     const data = await response.json();
     return transformJDictData(data, isJP);
 }
 
+
 async function searchJotoba(query, isJP, signal) {
     const response = await fetchWithTimeoutAndRetry(JOTOBA_BASE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ query: query.trim(), language: isJP ? 'Japanese' : 'English', no_english: false }),
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            query: query.trim(),
+            language: isJP ? 'Japanese' : 'English',
+            no_english: false
+        }),
     }, signal);
     const data = await response.json();
 
     if (!data || (!data.words?.length && !data.kanji?.length)) {
         throw new Error('No results found');
     }
-    return { words: data.words || [], kanji: data.kanji || [] };
+    return {
+        words: data.words || [],
+        kanji: data.kanji || []
+    };
 }
 
 
@@ -165,7 +217,11 @@ async function getCachedResult(db, query) {
 
 async function cacheResult(db, query, data) {
     try {
-        await db.put('dictionary_cache', { data, lang: state.currentLang, timestamp: Date.now() }, query);
+        await db.put('dictionary_cache', {
+            data,
+            lang: state.currentLang,
+            timestamp: Date.now()
+        }, query);
     } catch (error) {
         console.warn('Cache storage failed:', error);
     }
@@ -190,7 +246,9 @@ function renderErrorState(error, query) {
     const errorKey = Object.keys(errorMessages).find(key => error.message.includes(key)) || 'default';
 
     if (errorKey === 'noResults') {
-        updateExternalSearchTab('no-results', { query });
+        updateExternalSearchTab('no-results', {
+            query
+        });
         return;
     }
 
@@ -210,8 +268,8 @@ function renderErrorState(error, query) {
 
     const placeholderContainer = els.externalSearchTab.querySelector('.placeholder-container');
     const resultsContainer = els.externalSearchTab.querySelector('.results-container');
-    
-    if(resultsContainer) resultsContainer.style.display = 'none';
+
+    if (resultsContainer) resultsContainer.style.display = 'none';
 
     if (placeholderContainer) {
         placeholderContainer.style.display = 'flex';
@@ -221,6 +279,7 @@ function renderErrorState(error, query) {
 
 // --- Main Search Logic ---
 
+// Implements the fallback strategy: try JDict first (if applicable), then fall back to Jotoba.
 async function performSearch(query, isJP, signal) {
     if (state.currentLang === 'vi') {
         try {
@@ -235,45 +294,60 @@ async function performSearch(query, isJP, signal) {
     return await searchJotoba(query, isJP, signal);
 }
 
+// This is the core function that orchestrates the search.
 async function handleExternalSearchInternal(query, forceRefresh = false, isTabSwitch = false) {
     const searchId = ++currentSearchId;
     const controller = new AbortController();
 
+    // Abort any previously active search to prevent race conditions.
     if (window.activeSearchController) {
         window.activeSearchController.abort();
     }
     window.activeSearchController = controller;
-    const { signal } = controller;
+    const {
+        signal
+    } = controller;
     const normalizedQuery = query.trim();
 
     if (normalizedQuery.length === 0) {
         updateExternalSearchTab('prompt', {}, isTabSwitch);
         return;
     }
-    
+
     const db = await dbPromise;
 
+    // Use cached results unless a refresh is forced.
     if (!forceRefresh) {
         const cachedResult = await getCachedResult(db, normalizedQuery);
         if (cachedResult && cachedResult.lang === state.currentLang) {
             if (searchId === currentSearchId) {
-                updateExternalSearchTab('results', { results: cachedResult.data, query: normalizedQuery }, isTabSwitch);
+                updateExternalSearchTab('results', {
+                    results: cachedResult.data,
+                    query: normalizedQuery
+                }, isTabSwitch);
             }
             return;
         }
     }
-    
+
+    // Show a "searching" state in the UI immediately.
     if (!isTabSwitch) {
-        updateExternalSearchTab('searching', { query: normalizedQuery }, false);
+        updateExternalSearchTab('searching', {
+            query: normalizedQuery
+        }, false);
     }
 
     try {
         const isJP = JAPANESE_REGEX.test(normalizedQuery);
         const results = await performSearch(normalizedQuery, isJP, signal);
 
+        // Only update the UI if this is the most recent search.
         if (searchId === currentSearchId) {
             await cacheResult(db, normalizedQuery, results);
-            updateExternalSearchTab('results', { results: results, query: normalizedQuery }, isTabSwitch);
+            updateExternalSearchTab('results', {
+                results: results,
+                query: normalizedQuery
+            }, isTabSwitch);
         }
 
     } catch (error) {
@@ -288,11 +362,9 @@ async function handleExternalSearchInternal(query, forceRefresh = false, isTabSw
     }
 }
 
-// Make the immediate function available on the window object for the inline `onclick` retry button.
+// --- Exports ---
 window.handleExternalSearch = handleExternalSearchInternal;
 
-// Create and export a debounced version specifically for the search input event listener.
 export const debouncedSearch = debounce(handleExternalSearchInternal, 300);
 
-// Export the immediate function for direct calls (like tab switching).
 export const handleExternalSearch = handleExternalSearchInternal;
