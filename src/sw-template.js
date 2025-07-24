@@ -1,26 +1,14 @@
-const CACHE_NAME = 'jlpt-handbook-cache-v3';
+// This is the template for your service worker.
+// The build script will read this file, fill in the placeholders,
+// and create the final 'service-worker.js' file.
 
-const urlsToCache = [
-  "./dist/chunk-4CGZ5WDD.js",
-  "./dist/chunk-ATHAWTLM.js",
-  "./dist/chunk-FZYIKAE3.js",
-  "./dist/chunk-LQN5OSAE.js",
-  "./dist/chunk-S4H5PJ4G.js",
-  "./dist/deferred.min.css",
-  "./dist/main.js",
-  "./dist/main.min.css",
-  "./dist/modals-3QE2C4QP.js",
-  "./dist/modals-6GNQV2OG.js",
-  "./dist/modals-P6MXTHXE.js",
-  "./dist/modals-RB6KAC4I.js",
-  "./dist/modals-YXX75WZ2.js",
-  "./",
-  "./index.html",
-  "./assets/siteIcon.webp",
-  "./assets/siteIcon.png",
-  "./assets/og.png",
-  "./manifest.json"
-]; // This will be replaced by the build script
+// ▼ Placeholder for the cache name. The build script will replace this.
+// Example: 'jlpt-handbook-cache-v1.0.2'
+const CACHE_NAME = '%%CACHE_NAME%%';
+
+// ▼ Placeholder for the list of files to cache. The build script will replace this
+// with an array of all your newly built CSS and JS files.
+const urlsToCache = '%%URLS_TO_CACHE%%';
 
 // --- INSTALL: Caches the essential files for the PWA ---
 self.addEventListener('install', event => {
@@ -29,17 +17,15 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Service Worker: Caching app shell');
-        // We use individual add calls with error handling to debug which file is failing.
-        const promises = urlsToCache.map(url => {
-            return cache.add(url).catch(err => {
-                console.error(`Failed to cache ${url}:`, err);
-            });
-        });
-        return Promise.all(promises);
+        return cache.addAll(urlsToCache);
       })
       .then(() => {
         console.log('Service Worker: Installation complete');
         return self.skipWaiting();
+      })
+      .catch(err => {
+        // This is important for debugging. If caching fails, this will log the error.
+        console.error('Service Worker: Caching failed', err);
       })
   );
 });
