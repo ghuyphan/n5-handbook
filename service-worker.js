@@ -13,7 +13,7 @@ const urlsToCache = [
   "/assets/siteIcon.png",
   "/assets/og.png",
   "/manifest.json",
-  "/dist/main-T54FPVZJ.js",
+  "/dist/main-FFDNUWRS.js",
   "/dist/modals-5T6N72XV.js",
   "/dist/chunk-N5JQ5VEO.js"
 ];
