@@ -538,6 +538,46 @@ width: clamp(2.5rem, 10vw, 3.5rem);
     object-fit: contain;
 }
 
+/* ✅ ADDED: Reusable component classes */
+@layer components {
+    .btn {
+        @apply inline-flex items-center justify-center relative cursor-pointer;
+        /* ✅ This is the key change: No more 'transition-all' */
+        transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .btn-primary {
+        @apply bg-accent-blue text-white font-semibold rounded-md shadow-lg shadow-blue-500/20;
+        padding: 0.875rem 1.5rem;
+    }
+    
+    .btn-primary:hover {
+        @apply bg-blue-600 shadow-blue-500/30;
+        transform: translateY(-2px);
+    }
+    
+    .btn-primary:disabled {
+        @apply opacity-50 cursor-not-allowed transform-none shadow-none;
+    }
+
+    .btn-icon {
+        @apply w-10 h-10 p-2.5 rounded-full bg-switch-bg border border-transparent;
+    }
+
+    .btn-icon:hover {
+        @apply bg-nav-hover-bg scale-110 shadow-lg;
+    }
+    
+    .btn-icon:focus-visible {
+        @apply bg-nav-hover-bg scale-110 shadow-lg;
+    }
+    
+    .btn-icon:active {
+        @apply scale-95 duration-100;
+    }
+}
+
+
 @media (max-width: 768px) {
     .mobile-header h1,
     .modal-title {

@@ -29,8 +29,6 @@ mark.search-highlight {
     word-break: break-word;
 }
 
-/* ADDED: Class to hide non-matching search items */
-/* Using !important here is acceptable for a utility class that needs to override other styles. */
 .search-hidden {
     display: none !important;
 }
@@ -84,19 +82,6 @@ mark.search-highlight {
         transform: translateY(-3px);
         box-shadow: 0 4px 12px var(--shadow-color);
     }
-
-    .theme-btn:hover {
-        transform: scale(1.1);
-    }
-
-    .learn-toggle:hover,
-    .details-toggle:hover {
-        transform: scale(1.15);
-    }
-
-    .details-toggle:hover {
-        background-color: var(--nav-hover-bg);
-    }
     
     #close-sidebar-btn:hover {
         color: var(--text-primary);
@@ -105,11 +90,10 @@ mark.search-highlight {
     }
 }
 
-/* REFINED: Explicitly define transition property instead of 'all' for better performance. */
 .search-input-wrapper {
     flex-grow: 1;
     min-width: 0;
-    transition: flex-grow 0.4s var(--ease-out-quint); /* Be specific about what you're animating */
+    transition: flex-grow 0.4s var(--ease-out-quint);
 }
 
 /* Search Clear Button */
@@ -238,38 +222,35 @@ mark.search-highlight {
     outline-offset: 2px;
 }
 
-/* REFINED: Notes button animation for smoother appearance and performance */
+/* ✅ FIXED: Notes button animation - only handles animation properties */
 .notes-header-btn {
     opacity: 0;
-    transform: scale(0.9);
-    pointer-events: none;
     max-width: 0;
-    margin-left: 0;
+    margin-left: 0 !important;
+    padding: 0 !important;
+    border-width: 0 !important;
     overflow: hidden;
-    /* Using will-change hints the browser to optimize these animations */
-    will-change: max-width, margin-left, opacity, transform;
-    /* Delay opacity to fade in after space is made */
+    will-change: max-width, margin-left, opacity;
     transition:
         max-width 0.4s var(--ease-out-quint),
         margin-left 0.4s var(--ease-out-quint),
-        opacity 0.3s var(--ease-out-quint) 0.1s,
-        transform 0.3s var(--ease-out-quint) 0.1s;
+        padding 0.4s var(--ease-out-quint),
+        border-width 0.4s var(--ease-out-quint),
+        opacity 0.3s var(--ease-out-quint) 0.1s;
 }
 
 .notes-header-btn.visible {
     opacity: 1;
-    transform: scale(1);
     pointer-events: auto;
-    /* Set max-width to the button's actual width */
-    max-width: 44px;
-    margin-left: 0.5rem;
+    max-width: 40px; /* w-10 */
+    margin-left: 0.5rem !important;
+    padding: 0.625rem !important; /* p-2.5 */
+    border-width: 1px !important;
 }
 
-/* FIX: Add this rule to standardize icon sizes in the mobile header */
-.notes-header-btn svg,
-#pin-toggle svg {
-    width: 1.25rem; /* 20px */
-    height: 1.25rem; /* 20px */
+.notes-header-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 .card {
@@ -359,32 +340,6 @@ mark.search-highlight {
     max-width: 420px;
     width: 100%;
     line-height: 1.6;
-}
-
-.search-placeholder-box button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.875rem 1.5rem;
-    font-weight: 600;
-    border-radius: var(--radius-md);
-    border: none;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    background-color: var(--accent-blue);
-    color: white;
-    box-shadow: 0 4px 14px -3px rgba(59, 130, 246, 0.4);
-    margin-top: 1.5rem;
-}
-
-.search-placeholder-box button:hover {
-    background-color: #2563EB;
-    box-shadow: 0 6px 16px -3px rgba(59, 130, 246, 0.5);
-    transform: translateY(-2px);
-}
-
-.search-placeholder-box button:active {
-    transform: translateY(0);
 }
 
 .kana-grid {
@@ -676,25 +631,14 @@ mark.search-highlight {
 }
 
 .import-button {
-    background-color: transparent;
     border: 1px solid var(--accent-blue);
+    background-color: transparent;
     color: var(--accent-blue);
-    font-weight: 600;
-    box-shadow: none;
-    transition: all 0.4s var(--ease-out-quint);
-    will-change: transform, box-shadow, background-color, color;
-    width: auto;
-    padding: 0.625rem 1.5rem;
-    border-radius: var(--radius-md);
-    text-align: center;
-    align-self: center;
 }
 
 .import-button:hover {
     background-color: var(--accent-blue);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px -3px rgba(59, 130, 246, 0.5);
 }
 
 .modal-input {
@@ -770,48 +714,6 @@ mark.search-highlight {
 
 .preview-item+.preview-item {
     margin-top: 0.75rem;
-}
-
-.modal-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.875rem 1.5rem;
-    font-weight: 600;
-    border-radius: var(--radius-md);
-    border: 1px solid transparent;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-}
-
-.modal-button-secondary {
-    background-color: var(--card-front-bg);
-    border-color: var(--glass-border);
-    color: var(--text-primary);
-}
-
-.modal-button-secondary:hover {
-    border-color: var(--text-secondary);
-    background-color: var(--nav-hover-bg);
-}
-
-.modal-button-primary {
-    background-color: var(--accent-blue);
-    color: white;
-    box-shadow: 0 4px 14px -3px rgba(59, 130, 246, 0.4);
-}
-
-.modal-button-primary:hover {
-    background-color: #2563eb;
-    box-shadow: 0 6px 16px -3px rgba(59, 130, 246, 0.5);
-    transform: translateY(-2px);
-}
-
-.modal-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
 }
 
 @media (max-width: 480px) {
