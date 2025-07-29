@@ -27,6 +27,7 @@
   "dependencies": {
     "fuse.js": "^7.1.0",
     "idb": "^8.0.3",
+    "preact": "^10.26.9",
     "wanakana": "^5.3.1"
   }
 }
