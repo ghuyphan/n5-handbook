@@ -61,12 +61,23 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // For navigation requests (i.e., for HTML pages), use a network-first strategy.
+  // For navigation requests, use a stale-while-revalidate strategy.
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        // If the network fails, serve the offline page from the cache.
-        return caches.match('/offline.html');
+      caches.open(CACHE_NAME).then(cache => {
+        // 1. Return the cached version immediately if it exists.
+        return cache.match(event.request).then(cachedResponse => {
+          // 2. In the background, fetch a fresh version from the network.
+          const networkFetch = fetch(event.request).then(networkResponse => {
+            // If the fetch is successful, update the cache with the new version.
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+
+          // Return the cached response if we have one, otherwise wait for the network.
+          // If the network also fails (e.g., first visit offline), fallback to the offline page.
+          return cachedResponse || networkFetch.catch(() => cache.match('/offline.html'));
+        });
       })
     );
     return;
