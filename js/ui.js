@@ -1,3 +1,5 @@
+// js/ui.js
+
 /**
  * @module ui
  * @description Handles all HTML rendering and UI updates using template elements.
@@ -8,6 +10,30 @@ import { state, config } from './config.js';
 import { generateSearchTerms } from './utils.js';
 import { setupFuseForTab } from './handlers.js';
 import { dbPromise } from './database.js';
+
+// NEW: Helper function to process items in non-blocking batches.
+function batchProcess(items, processFn, container, batchSize = 50) {
+    return new Promise(resolve => {
+        let index = 0;
+        function processBatch() {
+            const fragment = document.createDocumentFragment();
+            const batchEnd = Math.min(index + batchSize, items.length);
+            for (; index < batchEnd; index++) {
+                fragment.appendChild(processFn(items[index]));
+            }
+            container.appendChild(fragment); // Append the processed batch to the DOM
+
+            if (index < items.length) {
+                // Schedule the next batch on the next animation frame
+                requestAnimationFrame(processBatch);
+            } else {
+                resolve();
+            }
+        }
+        processBatch();
+    });
+}
+
 
 // Centralized helper function to get localized text safely.
 function getLangText(source, key) {
@@ -263,15 +289,15 @@ const createCard = (item, category, backGradient) => {
     return clone;
 };
 
-const createCardSection = (title, data, category, backGradient, titleKey, tabId) => {
+// UPDATED: Now async and uses batchProcess to create cards without blocking the UI.
+const createCardSection = async (title, data, category, backGradient, titleKey, tabId) => {
     if (!data || data.length === 0) return document.createDocumentFragment();
 
     const cardGrid = document.createElement('div');
     cardGrid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4';
 
-    const fragment = document.createDocumentFragment();
-    data.forEach(item => fragment.appendChild(createCard(item, category, backGradient)));
-    cardGrid.appendChild(fragment);
+    // Asynchronously create and append cards in batches.
+    await batchProcess(data, (item) => createCard(item, category, backGradient), cardGrid);
 
     const accordionContentWrapper = document.createElement('div');
     accordionContentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
@@ -280,6 +306,7 @@ const createCardSection = (title, data, category, backGradient, titleKey, tabId)
     const searchTermsForSection = generateSearchTerms([title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]);
     return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId);
 };
+
 
 const createStaticSection = (data, icon, color) => {
     const fragment = document.createDocumentFragment();
@@ -449,6 +476,7 @@ export function closeSidebar() {
     document.body.classList.remove('sidebar-open');
 }
 
+// UPDATED: Now async to handle progressive rendering of its contents.
 async function renderCardBasedSection(containerId, data, category, gradient) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -459,22 +487,23 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
         return;
     };
 
-    const fragment = document.createDocumentFragment();
+    const wrapper = document.createElement('div');
+    wrapper.className = 'space-y-4';
+    container.appendChild(wrapper); // Append wrapper immediately for instant UI feedback.
+
+    // Process and append each section. The cards inside will be rendered in batches.
     for (const key in data) {
         const section = data[key];
         if (!section.items) continue;
 
         const title = getLangText(section);
-        fragment.appendChild(createCardSection(title, section.items, category, gradient, key, containerId));
+        const accordionFragment = await createCardSection(title, section.items, category, gradient, key, containerId);
+        wrapper.appendChild(accordionFragment);
     }
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'space-y-4';
-    wrapper.appendChild(fragment);
-    container.appendChild(wrapper);
 
     setupFuseForTab(category);
 }
+
 
 function findKanjiData(kanjiCharacter) {
     if (!state.appData.kanji) return null;
