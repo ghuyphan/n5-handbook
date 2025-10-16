@@ -266,6 +266,9 @@ async function init() {
         
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
+        
+        // THIS IS THE FIX: Explicitly update the sidebar pin icons after all state is loaded.
+        updateSidebarPinIcons();
 
         const versionElement = document.getElementById('app-version');
         if (versionElement) {
@@ -292,7 +295,6 @@ document.addEventListener('DOMContentLoaded', init);
 // --- SERVICE WORKER REGISTRATION ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        // CORRECTED: Use the correct filename 'service-worker.js'
         const swUrl = `/service-worker.js?v=${process.env.APP_VERSION}`;
         navigator.serviceWorker.register(swUrl).then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
