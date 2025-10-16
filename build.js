@@ -9,8 +9,6 @@ const outdir = 'dist';
 
 // --- Step 0: Clean the output directory ---
 console.log(`🧹 Cleaning up the '${outdir}' directory...`);
-// This command removes the entire 'dist' folder and its contents.
-// The build tools below will recreate it with the new files.
 fs.rmSync(outdir, { recursive: true, force: true });
 console.log('✅ Directory cleaned.');
 
@@ -36,7 +34,7 @@ esbuild.build({
   outdir: outdir,
   format: 'esm',
   sourcemap: isDev,
-  metafile: true, 
+  metafile: true,
   entryNames: '[dir]/[name]-[hash]',
   chunkNames: '[dir]/[name]-[hash]',
   define: {
@@ -61,7 +59,6 @@ esbuild.build({
 });
 
 function generateHtml(metafile) {
-  // Assuming your template is in a 'src' folder
   let htmlTemplate = fs.readFileSync('src/index.html', 'utf-8');
 
   const mainJsPath = Object.keys(metafile.outputs).find(
@@ -79,7 +76,7 @@ function generateHtml(metafile) {
     <script type="module" src="${mainJsUrl}"></script>
   `;
 
-  // **FIXED LINE**: Replaces the specific placeholder in your HTML template.
+  // This is the corrected line:
   const finalHtml = htmlTemplate.replace('', scriptTags);
 
   fs.writeFileSync('index.html', finalHtml);
@@ -88,7 +85,7 @@ function generateHtml(metafile) {
 function generateServiceWorker(metafile) {
   const staticAssets = [
     '/',
-    '/index.html', 
+    '/index.html',
     '/offline.html',
     '/dist/main.min.css',
     '/dist/deferred.min.css',

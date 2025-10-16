@@ -222,7 +222,6 @@ mark.search-highlight {
     outline-offset: 2px;
 }
 
-/* ✅ FIXED: Notes button animation - only handles animation properties */
 .notes-header-btn {
     opacity: 0;
     max-width: 0;
@@ -1282,7 +1281,6 @@ mark.search-highlight {
     background-color: rgba(107, 114, 128, 0.4);
 }
 
-/* Old Theme Switcher Styles (keep for compatibility if needed) */
 .theme-switch-wrapper {
     display: flex;
     align-items: center;
@@ -1336,7 +1334,6 @@ input:checked+.slider:before {
 }
 
 
-/* NEW: Mobile-specific component adjustments for smaller screens */
 @media (max-width: 768px) {
     .search-placeholder-box {
         padding: 1.5rem;
@@ -1378,4 +1375,8 @@ input:checked+.slider:before {
 
 .accordion-content {
   content-visibility: auto;
+}
+
+.sentinel {
+    height: 1px;
 }

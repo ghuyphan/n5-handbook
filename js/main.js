@@ -292,9 +292,8 @@ document.addEventListener('DOMContentLoaded', init);
 // --- SERVICE WORKER REGISTRATION ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        // By adding the version as a query parameter, we ensure the browser
-        // fetches the new service worker file whenever the app version changes.
-        const swUrl = `/sw.js?v=${process.env.APP_VERSION}`;
+        // CORRECTED: Use the correct filename 'service-worker.js'
+        const swUrl = `/service-worker.js?v=${process.env.APP_VERSION}`;
         navigator.serviceWorker.register(swUrl).then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
         }, err => {

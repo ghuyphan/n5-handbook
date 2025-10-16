@@ -11,26 +11,36 @@ import { generateSearchTerms } from './utils.js';
 import { setupFuseForTab } from './handlers.js';
 import { dbPromise } from './database.js';
 
-// NEW: Helper function to process items in non-blocking batches.
-function batchProcess(items, processFn, container, batchSize = 50) {
-    return new Promise(resolve => {
-        let index = 0;
-        function processBatch() {
-            const fragment = document.createDocumentFragment();
-            const batchEnd = Math.min(index + batchSize, items.length);
-            for (; index < batchEnd; index++) {
-                fragment.appendChild(processFn(items[index]));
-            }
-            container.appendChild(fragment); // Append the processed batch to the DOM
+// --- Intersection Observer for Lazy Loading ---
+const observerMap = new Map();
 
-            if (index < items.length) {
-                // Schedule the next batch on the next animation frame
-                requestAnimationFrame(processBatch);
-            } else {
-                resolve();
-            }
+function handleIntersection(entries, observer) {
+    entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+
+        const sentinel = entry.target;
+        const grid = sentinel.parentElement;
+        const tabId = grid.closest('.tab-content')?.id;
+
+        if (!tabId || !observerMap.has(tabId)) return;
+
+        const { allItems, createFn, batchSize, currentIndex } = observerMap.get(tabId);
+
+        const nextBatchEnd = Math.min(currentIndex + batchSize, allItems.length);
+        if (currentIndex >= allItems.length) {
+            sentinel.remove();
+            observer.disconnect();
+            return;
         }
-        processBatch();
+
+        const fragment = document.createDocumentFragment();
+        for (let i = currentIndex; i < nextBatchEnd; i++) {
+            fragment.appendChild(createFn(allItems[i]));
+        }
+        
+        grid.insertBefore(fragment, sentinel);
+        
+        observerMap.set(tabId, { allItems, createFn, batchSize, currentIndex: nextBatchEnd });
     });
 }
 
@@ -139,13 +149,6 @@ function createAccordion(title, contentNode, searchData, titleKey, tabId) {
     return clone;
 }
 
-/**
- * UPDATED: Creates a list of responsive cards for the "Key Points" cheat sheets,
- * replacing the old rigid table structure.
- * @param {object} headers - The localized headers for the data.
- * @param {object[]} content - The array of cheat sheet items.
- * @returns {DocumentFragment} A document fragment containing the styled list of cards.
- */
 function createCheatSheetList(headers, content) {
     const fragment = document.createDocumentFragment();
 
@@ -183,7 +186,6 @@ function createCheatSheetList(headers, content) {
 }
 
 
-// UPDATED: This function is now smarter and can render any table-grid data.
 function createKosoadoGrid(content, headers) {
     const container = document.createElement('div');
     container.className = 'space-y-6';
@@ -207,12 +209,10 @@ function createKosoadoGrid(content, headers) {
             let primaryText = '';
             let secondaryText = '';
 
-            // This logic makes it generic.
-            // It prioritizes 'reading' for Kosoado, but uses the first two headers for everything else.
-            if (item.reading) { // Special case for Kosoado Words
+            if (item.reading) { 
                 primaryText = item.reading;
                 secondaryText = getLangText(item, 'meaning');
-            } else { // Generic case for all other grids (like N4 Affixes)
+            } else { 
                 primaryText = getLangText(item, headerKeys[0]);
                 secondaryText = getLangText(item, headerKeys[1]);
             }
@@ -289,16 +289,39 @@ const createCard = (item, category, backGradient) => {
     return clone;
 };
 
-// UPDATED: Now async and uses batchProcess to create cards without blocking the UI.
-const createCardSection = async (title, data, category, backGradient, titleKey, tabId) => {
+function createCardSection(title, data, category, backGradient, titleKey, tabId) {
     if (!data || data.length === 0) return document.createDocumentFragment();
 
     const cardGrid = document.createElement('div');
     cardGrid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4';
 
-    // Asynchronously create and append cards in batches.
-    await batchProcess(data, (item) => createCard(item, category, backGradient), cardGrid);
+    const batchSize = 50;
+    const initialBatch = data.slice(0, batchSize);
 
+    const fragment = document.createDocumentFragment();
+    initialBatch.forEach(item => {
+        fragment.appendChild(createCard(item, category, backGradient));
+    });
+    cardGrid.appendChild(fragment);
+
+    if (data.length > batchSize) {
+        const sentinel = document.createElement('div');
+        sentinel.className = 'sentinel';
+        cardGrid.appendChild(sentinel);
+
+        const createFn = (item) => createCard(item, category, backGradient);
+
+        observerMap.set(tabId, {
+            allItems: data,
+            createFn: createFn,
+            batchSize: batchSize,
+            currentIndex: batchSize
+        });
+
+        const observer = new IntersectionObserver(handleIntersection, { rootMargin: '200px' });
+        observer.observe(sentinel);
+    }
+    
     const accordionContentWrapper = document.createElement('div');
     accordionContentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
     accordionContentWrapper.appendChild(cardGrid);
@@ -476,7 +499,6 @@ export function closeSidebar() {
     document.body.classList.remove('sidebar-open');
 }
 
-// UPDATED: Now async to handle progressive rendering of its contents.
 async function renderCardBasedSection(containerId, data, category, gradient) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -489,15 +511,20 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
 
     const wrapper = document.createElement('div');
     wrapper.className = 'space-y-4';
-    container.appendChild(wrapper); // Append wrapper immediately for instant UI feedback.
+    container.appendChild(wrapper); 
 
-    // Process and append each section. The cards inside will be rendered in batches.
+    if (observerMap.has(containerId)) {
+        const existingObserver = observerMap.get(containerId).observer;
+        if (existingObserver) existingObserver.disconnect();
+        observerMap.delete(containerId);
+    }
+
     for (const key in data) {
         const section = data[key];
         if (!section.items) continue;
 
         const title = getLangText(section);
-        const accordionFragment = await createCardSection(title, section.items, category, gradient, key, containerId);
+        const accordionFragment = createCardSection(title, section.items, category, gradient, key, containerId);
         wrapper.appendChild(accordionFragment);
     }
 
