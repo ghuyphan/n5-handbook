@@ -1,0 +1,174 @@
+{
+  "trickyParticles": {
+    "en": "Tricky Particle Cheatsheet 📝",
+    "vi": "Ghi nhớ Trợ từ dễ nhầm lẫn 📝",
+    "type": "table",
+    "headers": {
+      "particles": { "en": "Particles", "vi": "Trợ từ" },
+      "usage": { "en": "Usage", "vi": "Cách dùng" },
+      "example": { "en": "Example", "vi": "Ví dụ" }
+    },
+    "content": [
+      {
+        "particles": { "en": "は vs. が", "vi": "は vs. が" },
+        "usage": {
+          "en": "は marks the topic ('As for...'). が marks the subject or new/specific information.",
+          "vi": "は đánh dấu chủ đề ('Về... thì...'). が đánh dấu chủ ngữ hoặc thông tin mới/cụ thể."
+        },
+        "example": {
+          "en": "「私は学生です」 (Topic: I am a student.)\n「猫がいます」 (Subject: There is a cat.)",
+          "vi": "「私は学生です」 (Chủ đề: Tôi là học sinh.)\n「猫がいます」 (Chủ ngữ: Có một con mèo.)"
+        }
+      },
+      {
+        "particles": { "en": "に vs. で", "vi": "に vs. で" },
+        "usage": {
+          "en": "に marks existence (います/あります), a specific time, or a destination. で marks the location of an action or the tool/means used.",
+          "vi": "に chỉ sự tồn tại (います/あります), thời gian cụ thể, hoặc điểm đến. で chỉ nơi diễn ra hành động hoặc công cụ/phương tiện được sử dụng."
+        },
+        "example": {
+          "en": "「７時に起きます」 (Time)\n「学校へ行きます」 (Destination)\n「図書館で勉強します」 (Action Location)\n「バスで行きます」 (Means)",
+          "vi": "「７時に起きます」 (Thời gian)\n「学校へ行きます」 (Điểm đến)\n「図書館で勉強します」 (Nơi diễn ra hành động)\n「バスで行きます」 (Phương tiện)"
+        }
+      },
+      {
+        "particles": { "en": "へ vs. に", "vi": "へ vs. に" },
+        "usage": {
+          "en": "For movement verbs (行きます, etc.), へ emphasizes direction, while に emphasizes the destination. Often interchangeable.",
+          "vi": "Với động từ di chuyển (行きます, v.v.), へ nhấn mạnh phương hướng, trong khi に nhấn mạnh điểm đến. Thường có thể thay thế cho nhau."
+        },
+        "example": {
+          "en": "「東京へ行きます」 (Emphasizes going *towards* Tokyo.)",
+          "vi": "「東京へ行きます」 (Nhấn mạnh việc đi *về hướng* Tokyo.)"
+        }
+      }
+    ]
+  },
+  "kosoadoWords": {
+    "en": "Kosoado Words (Demonstratives) 👇",
+    "vi": "Từ chỉ định (Kosoado) 👇",
+    "type": "table-grid",
+    "headers": {
+      "category": { "en": "Category", "vi": "Loại" },
+      "reading": { "en": "Reading", "vi": "Cách đọc" },
+      "meaning": { "en": "Meaning", "vi": "Nghĩa" }
+    },
+    "content": [
+      {
+        "title": { "en": "こ- (Here, near speaker)", "vi": "こ- (Đây, gần người nói)" },
+        "data": [
+          { "category": { "en": "Thing", "vi": "Sự vật" }, "reading": "これ (kore)", "meaning": { "en": "this one", "vi": "cái này" }},
+          { "category": { "en": "Place", "vi": "Nơi chốn" }, "reading": "ここ (koko)", "meaning": { "en": "here", "vi": "chỗ này" }},
+          { "category": { "en": "Modifier", "vi": "Bổ ngữ" }, "reading": "この (kono)", "meaning": { "en": "this...", "vi": "cái... này" }}
+        ]
+      },
+      {
+        "title": { "en": "そ- (There, near listener)", "vi": "そ- (Đó, gần người nghe)" },
+        "data": [
+          { "category": { "en": "Thing", "vi": "Sự vật" }, "reading": "それ (sore)", "meaning": { "en": "that one", "vi": "cái đó" }},
+          { "category": { "en": "Place", "vi": "Nơi chốn" }, "reading": "そこ (soko)", "meaning": { "en": "there", "vi": "chỗ đó" }},
+          { "category": { "en": "Modifier", "vi": "Bổ ngữ" }, "reading": "その (sono)", "meaning": { "en": "that...", "vi": "cái... đó" }}
+        ]
+      },
+      {
+        "title": { "en": "あ- (Over there, far away)", "vi": "あ- (Kia, ở đằng kia)" },
+        "data": [
+          { "category": { "en": "Thing", "vi": "Sự vật" }, "reading": "あれ (are)", "meaning": { "en": "that one over there", "vi": "cái kia" }},
+          { "category": { "en": "Place", "vi": "Nơi chốn" }, "reading": "あそこ (asoko)", "meaning": { "en": "over there", "vi": "chỗ kia" }},
+          { "category": { "en": "Modifier", "vi": "Bổ ngữ" }, "reading": "あの (ano)", "meaning": { "en": "that... over there", "vi": "cái... kia" }}
+        ]
+      },
+      {
+        "title": { "en": "ど- (Question)", "vi": "ど- (Hỏi)" },
+        "data": [
+          { "category": { "en": "Thing", "vi": "Sự vật" }, "reading": "どれ (dore)", "meaning": { "en": "which one?", "vi": "cái nào?" }},
+          { "category": { "en": "Place", "vi": "Nơi chốn" }, "reading": "どこ (doko)", "meaning": { "en": "where?", "vi": "chỗ nào?" }},
+          { "category": { "en": "Modifier", "vi": "Bổ ngữ" }, "reading": "どの (dono)", "meaning": { "en": "which...?", "vi": "cái... nào?" }}
+        ]
+      }
+    ]
+  },
+  "verbGroups": {
+    "en": "Verb Group Identification ⚙️",
+    "vi": "Phân loại nhóm Động từ ⚙️",
+    "type": "table",
+    "headers": {
+      "group": { "en": "Group", "vi": "Nhóm" },
+      "identification": { "en": "Identification", "vi": "Cách nhận biết" },
+      "example": { "en": "Example", "vi": "Ví dụ" }
+    },
+    "content": [
+      {
+        "group": { "en": "Group 1 (Godan)", "vi": "Nhóm 1 (Godan)" },
+        "identification": {
+          "en": "Verbs ending in ~u, ~ku, ~gu, ~su, ~tsu, ~nu, ~bu, ~mu, ~ru. The sound before -masu is in the 'i' column.",
+          "vi": "Động từ có đuôi ~u, ~ku, ~gu, ~su, ~tsu, ~nu, ~bu, ~mu, ~ru. Âm trước -masu thuộc cột 'i'."
+        },
+        "example": { "en": "かきます (kakimasu), のみます (nomimasu)", "vi": "かきます (kakimasu), のみます (nomimasu)" }
+      },
+      {
+        "group": { "en": "Group 2 (Ichidan)", "vi": "Nhóm 2 (Ichidan)" },
+        "identification": {
+          "en": "Most verbs ending in -iru or -eru. The sound before -masu is in the 'e' column or is a single 'i' syllable.",
+          "vi": "Hầu hết động từ kết thúc bằng -iru hoặc -eru. Âm trước -masu thuộc cột 'e' hoặc là một âm tiết 'i' đơn."
+        },
+        "example": { "en": "たべます (tabemasu), みます (mimasu)", "vi": "たべます (tabemasu), みます (mimasu)" }
+      },
+      {
+        "group": { "en": "Group 3 (Irregular)", "vi": "Nhóm 3 (Bất quy tắc)" },
+        "identification": {
+          "en": "Only two verbs: します (shimasu) and 来ます (kimasu).",
+          "vi": "Chỉ có hai động từ: します (shimasu) và 来ます (kimasu)."
+        },
+        "example": { "en": "します (shimasu), きます (kimasu)", "vi": "します (shimasu), きます (kimasu)" }
+      }
+    ]
+  },
+  "teFormRules": {
+    "en": "Te-Form Conjugation Rules 🔄",
+    "vi": "Quy tắc chia thể Te 🔄",
+    "type": "table",
+    "headers": {
+      "group": { "en": "Group", "vi": "Nhóm" },
+      "ending": { "en": "Ending Change", "vi": "Thay đổi đuôi" },
+      "example": { "en": "Example", "vi": "Ví dụ" }
+    },
+    "content": [
+      { "group": { "en": "Group 1", "vi": "Nhóm 1" }, "ending": { "en": "ending in き -> いて", "vi": "đuôi き -> いて" }, "example": { "en": "かきます -> かいて", "vi": "かきます -> かいて" }},
+      { "group": { "en": "Group 1", "vi": "Nhóm 1" }, "ending": { "en": "ending in ぎ -> いで", "vi": "đuôi ぎ -> いで" }, "example": { "en": "およぎます -> およいで", "vi": "およぎます -> およいで" }},
+      { "group": { "en": "Group 1", "vi": "Nhóm 1" }, "ending": { "en": "ending in み, び, に -> んで", "vi": "đuôi み, び, に -> んで" }, "example": { "en": "のみます -> のんで", "vi": "のみます -> のんで" }},
+      { "group": { "en": "Group 1", "vi": "Nhóm 1" }, "ending": { "en": "ending in い, ち, り -> って", "vi": "đuôi い, ち, り -> って" }, "example": { "en": "かいます -> かって", "vi": "かいます -> かって" }},
+      { "group": { "en": "Group 1", "vi": "Nhóm 1" }, "ending": { "en": "ending in し -> して", "vi": "đuôi し -> して" }, "example": { "en": "はなします -> はなして", "vi": "はなします -> はなして" }},
+      { "group": { "en": "Group 2", "vi": "Nhóm 2" }, "ending": { "en": "Drop ます, add て", "vi": "Bỏ ます, thêm て" }, "example": { "en": "たべます -> たべて", "vi": "たべます -> たべて" }},
+      { "group": { "en": "Group 3", "vi": "Nhóm 3" }, "ending": { "en": "Irregular", "vi": "Bất quy tắc" }, "example": { "en": "します -> して | きます -> きて", "vi": "します -> して | きます -> きて" }}
+    ]
+  },
+  "politeVsPlain": {
+    "en": "Polite vs. Plain Form 🧑‍🏫/🧑‍🤝‍🧑",
+    "vi": "Thể Lịch sự vs. Thể Thông thường 🧑‍🏫/🧑‍🤝‍🧑",
+    "type": "table",
+    "headers": {
+      "form": { "en": "Form", "vi": "Thể" },
+      "usage": { "en": "Usage", "vi": "Cách dùng" },
+      "example": { "en": "Example", "vi": "Ví dụ" }
+    },
+    "content": [
+      {
+        "form": { "en": "Polite (丁寧語)", "vi": "Thể Lịch sự (丁寧語)" },
+        "usage": {
+          "en": "Used with strangers, teachers, superiors, or in formal situations.",
+          "vi": "Dùng với người lạ, giáo viên, cấp trên, hoặc trong các tình huống trang trọng."
+        },
+        "example": { "en": "です / ます", "vi": "です / ます" }
+      },
+      {
+        "form": { "en": "Plain (普通語)", "vi": "Thể Thông thường (普通語)" },
+        "usage": {
+          "en": "Used with close friends, family, or when talking to oneself.",
+          "vi": "Dùng với bạn bè thân, gia đình, hoặc khi tự nói chuyện với bản thân."
+        },
+        "example": { "en": "だ / dictionary form (る)", "vi": "だ / thể từ điển (る)" }
+      }
+    ]
+  }
+}

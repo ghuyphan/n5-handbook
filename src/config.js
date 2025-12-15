@@ -6,7 +6,7 @@
 // Static configuration that doesn't change during runtime
 export const config = {
     defaultLevel: 'n5',
-    dataPath: 'https://raw.githubusercontent.com/ghuyphan/JLPT_Datas/main',
+    dataPath: './data',
 };
 
 // Dynamic state of the application, which will be modified during runtime
@@ -22,8 +22,8 @@ export const state = {
     activeTab: 'progress',
     notes: {
         /** @type {Map<string, string>} */
-        data: new Map(), 
-        originalContent: '' 
+        data: new Map(),
+        originalContent: ''
     },
     fuseInstances: {},
     universalFuse: null,

@@ -34,6 +34,7 @@
 * **💡 Detailed Kanji Info**: See kanji examples, mnemonics, and sentence breakdowns in a flash.
 * **📊 Progress Dashboard**: Visualize your study progress and stay motivated.
 * **📌 Pin Your Favorite Tab**: Keep your most-used section just a click away.
+* **🔗 Shareable Links**: Bookmark or share specific levels and tabs instantly.
 * **📝 Take Notes**: Jot down personal mnemonics or reminders for any topic.
 * **🎨 Light & Dark Modes**: Study comfortably, day or night.
 * **⚡️ Offline Ready**: Access content and continue studying even without an internet connection.
@@ -43,7 +44,7 @@
 
 ### 🛠️ Tech Stack
 
-<p align="center"> <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5"> <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3"> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript"> <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"> <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"> <img src="https://img.shields.io/badge/Fuse.js-FF6B6B?style=for-the-badge&logo=javascript&logoColor=white" alt="Fuse.js"> <img src="https://img.shields.io/badge/WanaKana-FF69B4?style=for-the-badge&logo=japanese&logoColor=white" alt="WanaKana"> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" alt="GitHub Actions"> </p>
+<p align="center"> <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5"> <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3"> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript"> <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"> <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"> <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA"> <img src="https://img.shields.io/badge/IndexedDB-C21325?style=for-the-badge&logo=c&logoColor=white" alt="IndexedDB"> <img src="https://img.shields.io/badge/Fuse.js-FF6B6B?style=for-the-badge&logo=javascript&logoColor=white" alt="Fuse.js"> <img src="https://img.shields.io/badge/WanaKana-FF69B4?style=for-the-badge&logo=japanese&logoColor=white" alt="WanaKana"> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" alt="GitHub Actions"> </p>
 
 ---
 
