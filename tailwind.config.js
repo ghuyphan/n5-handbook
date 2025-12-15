@@ -2,7 +2,7 @@
 module.exports = {
   content: [
     './index.html',
-    './js/**/*.js',
+    './src/**/*.js',
   ],
   darkMode: 'class',
   theme: {
@@ -46,8 +46,8 @@ module.exports = {
         full: 'var(--radius-full)',
       },
       backgroundImage: {
-        'main-gradient': 'radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 50%), radial-gradient(at 97% 21%, hsla(340, 96%, 76%, 0.1) 0px, transparent 50%), radial-gradient(at 75% 88%, hsla(240, 96%, 76%, 0.1) 0px, transparent 50%)',
-        'modal-gradient': 'radial-gradient(at 5% 5%, hsla(215, 98%, 70%, 0.15) 0px, transparent 50%), radial-gradient(at 95% 95%, hsla(280, 96%, 76%, 0.15) 0px, transparent 50%)',
+        // 'main-gradient': 'radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 50%), radial-gradient(at 97% 21%, hsla(340, 96%, 76%, 0.1) 0px, transparent 50%), radial-gradient(at 75% 88%, hsla(240, 96%, 76%, 0.1) 0px, transparent 50%)',
+        // 'modal-gradient': 'radial-gradient(at 5% 5%, hsla(215, 98%, 70%, 0.15) 0px, transparent 50%), radial-gradient(at 95% 95%, hsla(280, 96%, 76%, 0.15) 0px, transparent 50%)',
       },
       keyframes: {
         fadeIn: {

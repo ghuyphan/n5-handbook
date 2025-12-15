@@ -101,13 +101,21 @@ export function toggleAccordion(buttonElement) {
 }
 
 export function setupFuseForTab(tabId) {
-    if (state.fuseInstances[tabId] || !state.appData[tabId]) return;
+    // Optimization: If a Fuse instance already exists for this tab, don't rebuild it.
+    // The DOM elements are now persisted, so the references in Fuse remain valid.
+    if (state.fuseInstances[tabId]) return;
+
+    if (!state.appData[tabId]) return;
 
     const container = document.getElementById(tabId);
     if (!container) return;
-    
+
     const searchableElements = Array.from(container.querySelectorAll('[data-search-item]'));
-    
+
+    // If no elements found (e.g. data not loaded yet), don't create an empty Fuse instance
+    // or it will prevent future creation when data IS loaded.
+    if (searchableElements.length === 0) return;
+
     const fuseCollection = searchableElements.map((el) => {
         const itemId = el.dataset.itemId || el.closest('[data-item-id]')?.dataset.itemId || el.textContent.trim();
         return {
@@ -117,15 +125,24 @@ export function setupFuseForTab(tabId) {
         }
     });
 
-    if (fuseCollection.length > 0) {
-        state.fuseInstances[tabId] = new Fuse(fuseCollection, {
-            keys: ['searchData'],
-            includeScore: true,
-            threshold: 0.3,
-            ignoreLocation: true,
-            useExtendedSearch: true,
-        });
-    }
+    // Defer Fuse initialization to unblock the main thread during render/tab switch.
+    // Use requestIdleCallback if available, otherwise fallback to setTimeout
+    const runIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+
+    runIdle(() => {
+        // Re-check existence inside idle callback in case of race conditions
+        if (state.fuseInstances[tabId]) return;
+
+        if (fuseCollection.length > 0) {
+            state.fuseInstances[tabId] = new Fuse(fuseCollection, {
+                keys: ['searchData'],
+                includeScore: true,
+                threshold: 0.3,
+                ignoreLocation: true,
+                useExtendedSearch: true,
+            });
+        }
+    });
 }
 
 export const handleSearch = debounce(() => {
@@ -141,7 +158,7 @@ export const handleSearch = debounce(() => {
 
     const allWrappers = activeTab.querySelectorAll('.search-wrapper');
     const allItems = activeTab.querySelectorAll('[data-search-item]');
-    
+
     // First, reset everything to its default state
     allItems.forEach(item => {
         item.classList.remove('search-hidden');
@@ -168,7 +185,7 @@ export const handleSearch = debounce(() => {
 
     const fuse = state.fuseInstances[activeTabId];
     if (!fuse) return;
-    
+
     const results = fuse.search(query);
     const matchedItemElements = new Set(results.map(result => result.item.element));
     const matchedWrapperElements = new Set();
@@ -206,7 +223,7 @@ export const handleSearch = debounce(() => {
 export function setLanguage(lang, skipRender = false) {
     state.currentLang = lang;
     saveSetting('language', lang);
-    
+
     if (state.renderedTabs) state.renderedTabs.clear();
 
     const uiStrings = state.appData.ui;
@@ -251,7 +268,7 @@ export function toggleTheme() {
     } catch (e) {
         console.warn("Could not save theme to localStorage.", e);
     }
-    
+
     // Sync emoji button
     if (els.themeEmoji) {
         els.themeEmoji.textContent = isDark ? '🌙' : '☀️';
@@ -308,8 +325,16 @@ async function loadLevelData(level) {
     const [_, progressData, levelSettings] = await Promise.all(dataPromises);
 
     state.progress = progressData || { kanji: [], vocab: [] };
-    state.pinnedTab = levelSettings?.[state.currentLevel]?.pinnedTab || null;
-    
+
+    // Load level-specific settings
+    const currentLevelSettings = levelSettings?.[state.currentLevel];
+    state.pinnedTab = currentLevelSettings?.pinnedTab || null;
+
+    // FIXED: Restore accordion state for this level
+    state.openAccordions = new Map(
+        (currentLevelSettings?.openAccordions || []).map(([tabId, keys]) => [tabId, new Set(keys)])
+    );
+
     state.fuseInstances = {};
     state.lastDictionaryQuery = '';
     state.notes.data = new Map();
@@ -319,7 +344,6 @@ async function loadLevelData(level) {
     const db = await dbPromise;
     const isCustomLevel = !!(await db.get('levels', level));
     if (!isCustomLevel) {
-        // --- MODIFICATION START ---
         // Base tabs for all levels
         const tabsToPreload = ['kanji', 'vocab', 'grammar', 'keyPoints'];
 
@@ -331,7 +355,6 @@ async function loadLevelData(level) {
         Promise.all(tabsToPreload.map(tabId => loadTabData(level, tabId).catch(err => {
             console.warn(`Non-critical preload of tab '${tabId}' failed.`, err);
         }))).then(() => console.log(`Pre-loading for level ${level} complete.`));
-        // --- MODIFICATION END ---
     }
 }
 
@@ -385,7 +408,7 @@ export async function setLevel(level, fromHistory = false) {
             const body = getUIText('errorLoadLevelBody');
             showCustomAlert(title, `${error.message}\n\n${body}`);
         }
-        return; 
+        return;
     } finally {
         state.isSwitchingLevel = false;
         if (state.loadingStatus !== 'error') {
@@ -429,7 +452,7 @@ export function toggleSidebarPin(event, tabId) {
 function updateTabUI(tabName) {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tabName === tabName));
     const targetButton = document.querySelector(`.nav-item[data-tab-name="${tabName}"]`);
-    
+
     const isMobileView = window.innerWidth <= 768;
     if (isMobileView) {
         if (els.mobileSearchBar) els.mobileSearchBar.classList.toggle('visible', tabName !== 'progress');
@@ -439,7 +462,7 @@ function updateTabUI(tabName) {
             els.mobileHeaderTitle.textContent = titleKey ? getUIText(titleKey) : (titleSpan?.textContent || '');
         }
     }
-    
+
     if (els.pinToggle) {
         els.pinToggle.style.display = isMobileView ? 'block' : 'none';
         updatePinButtonState(tabName);
@@ -449,12 +472,14 @@ function updateTabUI(tabName) {
     const displayStyle = isNotesEligible ? 'flex' : 'none';
     if (els.desktopNotesBtn) els.desktopNotesBtn.style.display = displayStyle;
     if (els.mobileNotesBtn) els.mobileNotesBtn.style.display = displayStyle;
-    
+
     updateSearchPlaceholders(tabName);
 }
 
 export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false, forceRender = false) {
     const activeTabEl = document.querySelector('.tab-content.active');
+
+    // If clicking the already active tab, just return unless forcing a re-render.
     if (activeTabEl?.id === tabName && !forceRender) {
         closeSidebar();
         return;
@@ -464,15 +489,19 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
     updateTabUI(tabName);
     closeSidebar();
 
+    // Store scroll position of the PREVIOUS tab before hiding it
     if (activeTabEl) {
         state.tabScrollPositions.set(activeTabEl.id, window.scrollY);
         activeTabEl.classList.remove('active');
     }
+
     const newTabContentEl = document.getElementById(tabName);
     if (!newTabContentEl) {
         console.error(`Tab container not found for tab: ${tabName}`);
         return;
     }
+
+    // Show the new tab
     newTabContentEl.classList.add('active');
 
     if (!fromHistory) {
@@ -487,27 +516,40 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
     const isDataTab = !['external-search', 'progress'].includes(tabName);
 
     if (isDataTab) {
+        // PERFORMANCE FIX: Only render if we haven't rendered this tab yet (or forcing).
+        // stored 'true' in renderedTabs means it's been rendered and DOM exists.
         if (forceRender || !state.renderedTabs.has(tabName)) {
             const loaderTemplate = document.getElementById('content-loader-template');
-            newTabContentEl.innerHTML = loaderTemplate ? loaderTemplate.innerHTML : '<div class="loader"></div>';
-            
+            // Only show loader if we are actually loading data/rendering for the first time
+            if (!newTabContentEl.children.length) {
+                newTabContentEl.innerHTML = loaderTemplate ? loaderTemplate.innerHTML : '<div class="loader"></div>';
+            }
+
             try {
                 if (!state.appData[tabName]) {
                     await loadTabData(state.currentLevel, tabName);
                 }
-                
+
+                // renderContent puts the actual items into the DOM
                 await renderContent(tabName);
-                state.renderedTabs.set(tabName, newTabContentEl.innerHTML);
+
+                // Mark as rendered. We do NOT store HTML string anymore.
+                state.renderedTabs.set(tabName, true);
+
+                // Initialize Fuse only after render
+                setupFuseForTab(tabName);
             } catch (error) {
                 console.error(`Error loading or rendering data for tab ${tabName}:`, error);
                 renderContentNotAvailable(tabName);
                 state.renderedTabs.delete(tabName);
             }
         } else {
-            newTabContentEl.innerHTML = state.renderedTabs.get(tabName);
+            // Tab is already rendered and in DOM. Just visibility toggle happened above.
+            // Ensure Fuse is set up if it was somehow missed (though it shouldn't be)
             setupFuseForTab(tabName);
         }
     } else if (tabName === 'external-search') {
+        // External search logic remains mostly same, as it's dynamic
         newTabContentEl.innerHTML = '';
         getActiveSearchInput().value = state.lastDictionaryQuery;
         handleExternalSearch(state.lastDictionaryQuery, false, true);
@@ -515,59 +557,107 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         updateProgressDashboard();
     }
 
-    if (isDataTab && getActiveSearchInput().value) {
-        getActiveSearchInput().value = '';
-        handleSearch.cancel(); 
-        handleSearch(); 
+    // Handle search input restoration
+    if (isDataTab) {
+        // If there was a search query, we might want to clear it or re-apply it?
+        // Current behavior: clear input on tab switch to avoid confusion
+        if (getActiveSearchInput().value) {
+            getActiveSearchInput().value = '';
+            // Cancel any pending debounced search
+            handleSearch.cancel();
+            // Reset the search view (unhide all items)
+            handleSearch();
+        }
     }
 
     if (!suppressScroll) {
+        // Restore scroll position for this tab
         window.scrollTo({ top: state.tabScrollPositions.get(tabName) || 0, behavior: 'instant' });
     }
 }
 
 
-export function jumpToSection(tabName, sectionTitleKey) {
+/**
+ * Jump to a specific section within a tab, opening its accordion if needed.
+ * Saves accordion state when opened.
+ * @param {string} tabName - The tab to navigate to
+ * @param {string} sectionTitleKey - The data-section-title-key to scroll to
+ */
+export async function jumpToSection(tabName, sectionTitleKey) {
+    // Cancellation token - if user triggers another jumpToSection, we abandon the previous one
+    const token = Symbol('jumpToSection');
+    state._currentJumpToken = token;
+
+    const isCancelled = () => state._currentJumpToken !== token;
+
+    // Navigate to tab if not already there
     const activeTab = document.querySelector('.tab-content.active');
-    const isAlreadyOnTab = activeTab?.id === tabName;
-    
-    const scrollToAction = () => {
-        requestAnimationFrame(() => {
-            const sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
-            if (!sectionHeader) return;
-
-            const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
-            if (accordionWrapper && sectionHeader.tagName === 'BUTTON' && !sectionHeader.classList.contains('open')) {
-                sectionHeader.click();
-            }
-
-            setTimeout(() => {
-                const elementRect = sectionHeader.getBoundingClientRect();
-                const absoluteElementTop = elementRect.top + window.scrollY;
-                const mobileHeader = document.querySelector('.mobile-header.sticky');
-                const headerOffset = (mobileHeader?.isConnected && getComputedStyle(mobileHeader).position === 'sticky') ? mobileHeader.offsetHeight : 0;
-                
-                window.scrollTo({
-                    top: absoluteElementTop - headerOffset - 20,
-                    behavior: 'smooth'
-                });
-
-                const itemToHighlight = sectionHeader.closest('.progress-item-wrapper, .search-wrapper, .accordion-wrapper');
-                if (itemToHighlight) {
-                    itemToHighlight.classList.add('is-highlighted');
-                    itemToHighlight.addEventListener('animationend', () => {
-                        itemToHighlight.classList.remove('is-highlighted');
-                    }, { once: true });
-                }
-            }, 100);
-        });
-    };
-
-    if (isAlreadyOnTab) {
-        scrollToAction();
-    } else {
-        changeTab(tabName, null, true).then(scrollToAction);
+    if (activeTab?.id !== tabName) {
+        await changeTab(tabName, null, true);
+        if (isCancelled()) return;
     }
+
+    // Wait for the element to appear in DOM (with polling)
+    let sectionHeader = null;
+    for (let i = 0; i < 20; i++) {
+        if (isCancelled()) return;
+        sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
+        if (sectionHeader?.isConnected) break;
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    if (!sectionHeader || isCancelled()) {
+        console.warn(`jumpToSection: Could not find section "${sectionTitleKey}"`);
+        return;
+    }
+
+    // Find the scroll target wrapper (which has scroll-margin-top CSS)
+    const scrollTarget = sectionHeader.closest(
+        '.progress-item-wrapper, .search-wrapper, .accordion-wrapper'
+    ) || sectionHeader;
+
+    // Check if this is inside an accordion that needs to be opened
+    const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
+    const accordionButton = accordionWrapper?.querySelector('.accordion-button');
+    const needsToOpen = accordionButton && !accordionButton.classList.contains('open');
+
+    if (needsToOpen) {
+        // Open the accordion programmatically (not via click to avoid side effects)
+        accordionButton.classList.add('open');
+
+        // Save the accordion state
+        const tabId = state.activeTab;
+        if (tabId && sectionTitleKey) {
+            if (!state.openAccordions.has(tabId)) {
+                state.openAccordions.set(tabId, new Set());
+            }
+            state.openAccordions.get(tabId).add(sectionTitleKey);
+            saveAccordionState();
+        }
+
+        // Wait for layout to update after opening accordion
+        await new Promise(r => setTimeout(r, 50));
+        if (isCancelled()) return;
+    }
+
+    // FIXED: Use manual scroll calculation to respect scroll-margin-top
+    const scrollMarginTop = parseInt(getComputedStyle(scrollTarget).scrollMarginTop, 10) || 0;
+    const targetRect = scrollTarget.getBoundingClientRect();
+    const targetTop = window.scrollY + targetRect.top - scrollMarginTop;
+
+    window.scrollTo({ top: targetTop, behavior: 'instant' });
+
+    // Wait for next frame before applying highlight
+    await new Promise(r => requestAnimationFrame(r));
+    if (isCancelled()) return;
+
+    // Apply highlight animation
+    scrollTarget.classList.remove('is-highlighted');
+    void scrollTarget.offsetWidth; // Force reflow
+    scrollTarget.classList.add('is-highlighted');
+    scrollTarget.addEventListener('animationend', () => {
+        scrollTarget.classList.remove('is-highlighted');
+    }, { once: true });
 }
 
 export async function deleteLevel(level) {
@@ -584,7 +674,7 @@ export async function deleteLevel(level) {
     if (!confirmed) {
         return;
     }
-    
+
     try {
         const db = await dbPromise;
         await Promise.all([
@@ -592,7 +682,7 @@ export async function deleteLevel(level) {
             db.delete('progress', level),
             deleteNotesForLevel(level)
         ]);
-        
+
         state.allAvailableLevels = state.allAvailableLevels.filter(l => l !== level);
         if (state.currentLevel === level) {
             await setLevel(config.defaultLevel);

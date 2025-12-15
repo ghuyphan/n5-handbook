@@ -21,8 +21,7 @@ import {
 
 // --- Constants ---
 const JAPANESE_REGEX = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
-// UPDATE: Corrected the JDict API endpoint to the new, working URL.
-const JDICT_BASE_URL = 'https://jdict-backend-dev.up.railway.app/api/v1/search';
+const MAZII_BASE_URL = 'https://mazii.net/api/search';
 const JOTOBA_BASE_URL = 'https://jotoba.de/api/search/words';
 const REQUEST_TIMEOUT = 10000;
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -92,87 +91,79 @@ async function fetchWithTimeoutAndRetry(url, options = {}, signal, retries = MAX
 }
 
 
-// --- API Specific Logic (JDict & Jotoba) ---
+// --- API Specific Logic (Mazii & Jotoba) ---
 
-// Parses the "suggest_mean" string from JDict into a more usable format.
-function parseSuggestMean(suggestMean) {
-    if (!suggestMean || typeof suggestMean !== 'string') return [];
+function transformMaziiData(maziiData) {
+    if (!maziiData?.data?.length) return null;
+
     try {
-        const readingRegex = /「(.*?)」/;
-        return suggestMean.split(';').map(s => s.trim()).filter(Boolean).map(entry => {
-            const match = entry.match(readingRegex);
-            if (match) {
-                const kana = match[1];
-                const kanji = entry.replace(readingRegex, '').trim();
-                return {
-                    kanji: kanji || kana,
-                    kana
-                };
-            }
+        const words = maziiData.data.map(item => {
+            // Basic reading extraction
+            let kanji = item.object_id || item.word || '';
+            let kana = item.phonetic || '';
+
+            // Attempt to get better reading from "pronunciation" if available (sometimes redundant)
+            // Mazii structure is a bit inconsistent. "word" is usually the kanji or kana headword.
+
+            // Senses
+            const meanings = item.means ? item.means.map(m => m.mean) : [];
+            const shortMean = item.short_mean ? [item.short_mean] : [];
+
+            // Prefer detailed means, fallback to short_mean
+            let glosses = meanings.length > 0 ? meanings : shortMean;
+
+            // Deduplicate glosses and split by common delimiters if standard
+            // Mazii sometimes puts semicolon separated strings
+            glosses = glosses.flatMap(g => g.split(';').map(s => s.trim()).filter(Boolean));
+
             return {
-                kanji: entry,
-                kana: entry
+                reading: {
+                    kanji: kanji,
+                    kana: kana
+                },
+                senses: [{
+                    glosses: glosses,
+                    pos: item.means?.[0]?.kind ? [item.means[0].kind] : [] // best effort POS
+                }]
             };
         });
-    } catch (error) {
-        console.warn('Error parsing suggest_mean:', error);
-        return [];
-    }
-}
 
-// Transforms the response from JDict to match the structure of the Jotoba response.
-function transformJDictData(jdictData, isJP) {
-    if (!jdictData?.list?.length) return null;
-
-    try {
-        const words = isJP ?
-            jdictData.list.map(item => {
-                const meanings = (item.suggest_mean || '').split(';').map(s => s.trim()).filter(Boolean);
-                const kanaMatch = (item.word || '').match(/「(.*?)」/);
-                const kanji = (item.word || '').replace(/「(.*?)」/, '').trim();
-                return {
-                    reading: {
-                        kanji: kanji || (kanaMatch ? kanaMatch[1] : ''),
-                        kana: kanaMatch ? kanaMatch[1] : ''
-                    },
-                    senses: [{
-                        glosses: meanings
-                    }]
-                };
-            }) :
-            jdictData.list.map(item => ({
-                reading: {
-                    kanji: item.word || '',
-                    kana: ''
-                },
-                senses: parseSuggestMean(item.suggest_mean).map(meaning => ({
-                    glosses: [meaning.kanji],
-                    reading: meaning.kana
-                }))
-            }));
         return {
             words,
-            kanji: []
+            kanji: [] // Mazii kanji endpoint is separate; for now just returning words.
         };
     } catch (error) {
-        console.warn('Error transforming JDict data:', error);
+        console.warn('Error transforming Mazii data:', error);
         return null;
     }
 }
 
-// UPDATE: Refined function to use the new JDict API endpoint and parameter structure.
-async function searchJDict(query, isJP, signal) {
-    const url = new URL(JDICT_BASE_URL);
-    url.search = new URLSearchParams({
-        keyword: query.trim(),
-        keyword_position: 'start',
-        page: 1,
-        type: 'word' // New API uses a 'type' parameter
-    }).toString();
+async function searchMazii(query, isJP, signal) {
+    const response = await fetchWithTimeoutAndRetry(MAZII_BASE_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            dict: "javi",
+            type: "word",
+            query: query.trim(),
+            page: 1
+        }),
+    }, signal);
 
-    const response = await fetchWithTimeoutAndRetry(url, {}, signal);
     const data = await response.json();
-    return transformJDictData(data, isJP);
+    if (data.status !== 200) {
+        throw new Error(`Mazii API error status: ${data.status}`);
+    }
+
+    // Mazii returns found: false if no results
+    if (data.found === false && (!data.data || data.data.length === 0)) {
+        return null; // Signals to try fallback or return no results
+    }
+
+    return transformMaziiData(data);
 }
 
 
@@ -279,16 +270,16 @@ function renderErrorState(error, query) {
 
 // --- Main Search Logic ---
 
-// Implements the fallback strategy: try JDict first (if applicable), then fall back to Jotoba.
+// Implements the fallback strategy: try Mazii first (if applicable), then fall back to Jotoba.
 async function performSearch(query, isJP, signal) {
     if (state.currentLang === 'vi') {
         try {
-            const jdictResults = await searchJDict(query, isJP, signal);
-            if (jdictResults) return jdictResults;
-            console.log('JDict failed or returned no results, falling back to Jotoba.');
+            const maziiResults = await searchMazii(query, isJP, signal);
+            if (maziiResults) return maziiResults;
+            console.log('Mazii failed or returned no results, falling back to Jotoba.');
         } catch (error) {
             if (error.name === 'AbortError') throw error;
-            console.warn('JDict search failed, falling back to Jotoba:', error.message);
+            console.warn('Mazii search failed, falling back to Jotoba:', error.message);
         }
     }
     return await searchJotoba(query, isJP, signal);

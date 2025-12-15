@@ -43,7 +43,7 @@
 
 ### 🛠️ Tech Stack
 
-<p align="center"> <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5"> <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3"> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript"> <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"> <img src="https://img.shields.io/badge/esbuild-FFCF00?style=for-the-badge&logo=esbuild&logoColor=black" alt="ESBuild"> <img src="https://img.shields.io/badge/Fuse.js-FF6B6B?style=for-the-badge&logo=javascript&logoColor=white" alt="Fuse.js"> <img src="https://img.shields.io/badge/WanaKana-FF69B4?style=for-the-badge&logo=japanese&logoColor=white" alt="WanaKana"> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" alt="GitHub Actions"> </p>
+<p align="center"> <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5"> <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3"> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript"> <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"> <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"> <img src="https://img.shields.io/badge/Fuse.js-FF6B6B?style=for-the-badge&logo=javascript&logoColor=white" alt="Fuse.js"> <img src="https://img.shields.io/badge/WanaKana-FF69B4?style=for-the-badge&logo=japanese&logoColor=white" alt="WanaKana"> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" alt="GitHub Actions"> </p>
 
 ---
 
@@ -175,26 +175,27 @@ Want to run the project on your own machine?
 
 ```bash
 # Clone the repository
-git clone [https://github.com/ghuyphan/n5-handbook.git](https://github.com/ghuyphan/n5-handbook.git)
+git clone https://github.com/ghuyphan/n5-handbook.git
 
 # Go into the project folder
 cd n5-handbook
 
-# Install the necessary tools
+# Install dependencies
 npm install
 
-# Build the project for production
+# Start the development server with hot reload
+npm run dev
+
+# Build for production
 npm run build
 
-# Or use the development build for sourcemaps
-npm run build:dev
-
-# Now, open the index.html file with a tool like VS Code's Live Server
+# Preview the production build
+npm run preview
 ```
 
 ---
 
 ### 🙏 Acknowledgements
 
-* Dictionary data from [Jotoba](https://jotoba.de/) and [JDict](https://jdict.net/).
+* Dictionary data from [Jotoba](https://jotoba.de/) and [Mazii](https://mazii.net/).
 * Icons and logos from [Devicon](https://devicon.dev/) and other respective owners.

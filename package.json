@@ -2,13 +2,11 @@
   "name": "n5-handbook",
   "version": "1.0.2",
   "description": "An interactive, multi-level web application to help you study Japanese.",
-  "main": "index.js",
+  "main": "index.html",
   "scripts": {
-    "build:css:main": "tailwindcss -i ./src/css/main.css -o ./dist/main.min.css --minify",
-    "build:css:deferred": "tailwindcss -i ./src/css/deferred.css -o ./dist/deferred.min.css --minify",
-    "build": "node build.js",
-    "build:dev": "node build.js --dev",
-    "watch": "tailwindcss -i ./src/css/deferred.css -o ./dist/deferred.min.css --watch"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "keywords": [
     "japanese",
@@ -20,9 +18,12 @@
   "license": "ISC",
   "devDependencies": {
     "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.6",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vite-plugin-pwa": "^0.17.4",
+    "@types/node": "^20.10.5"
   },
   "dependencies": {
     "fuse.js": "^7.1.0",

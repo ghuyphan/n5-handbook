@@ -3,6 +3,9 @@
  * @description Main application entry point. Initializes the app and sets up event listeners.
  */
 
+import './css/main.css';
+import './css/deferred.css';
+
 import { els, populateEls } from './dom.js';
 import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting, loadGlobalUI } from './database.js';
@@ -206,8 +209,20 @@ async function init() {
     const params = new URLSearchParams(window.location.search);
     let initialTab = params.get('tab') || state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'hiragana');
     const urlLevel = params.get('level');
-    if (urlLevel) {
+    if (urlLevel && urlLevel !== state.currentLevel) {
         state.currentLevel = urlLevel;
+        // Reload level-specific settings (including accordion state) for the URL-specified level
+        const db = await dbPromise;
+        const levelSettings = await db.get('settings', 'levelSettings');
+        const currentLevelSettings = levelSettings?.[state.currentLevel];
+        state.pinnedTab = currentLevelSettings?.pinnedTab || null;
+        state.openAccordions = new Map(
+            (currentLevelSettings?.openAccordions || []).map(([tabId, keys]) => [tabId, new Set(keys)])
+        );
+        // Update initialTab if there's a pinned tab for this level
+        if (!params.get('tab') && state.pinnedTab) {
+            initialTab = state.pinnedTab;
+        }
     }
 
     const initialTabEl = document.getElementById(initialTab);
@@ -232,6 +247,11 @@ async function init() {
         if (document.getElementById('sidebar-import-btn')) {
             import('./modals.js').then(module => module.setupImportModal());
         }
+
+        // Enable transitions after initial render
+        requestAnimationFrame(() => {
+            document.body.classList.remove('preload');
+        });
 
         const db = await dbPromise;
         const remoteLevelsPromise = fetch(`${config.dataPath}/levels.json`)
@@ -263,10 +283,20 @@ async function init() {
         await loadRequiredDataForProgress();
 
         await changeTab(initialTab, null, false, true, true);
-        
+
+        // Restore scroll position from sessionStorage
+        const scrollKey = `scroll_${state.currentLevel}_${initialTab}`;
+        const savedScrollY = sessionStorage.getItem(scrollKey);
+        if (savedScrollY) {
+            // Use requestAnimationFrame to ensure DOM is ready
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: parseInt(savedScrollY, 10), behavior: 'instant' });
+            });
+        }
+
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
-        
+
         // THIS IS THE FIX: Explicitly update the sidebar pin icons after all state is loaded.
         updateSidebarPinIcons();
 
@@ -274,7 +304,7 @@ async function init() {
         if (versionElement) {
             versionElement.textContent = `v${process.env.APP_VERSION}`;
         }
-        
+
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;
         history.replaceState(initialState, '', initialUrl);
@@ -295,7 +325,8 @@ document.addEventListener('DOMContentLoaded', init);
 // --- SERVICE WORKER REGISTRATION ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        const swUrl = `/service-worker.js?v=${process.env.APP_VERSION}`;
+        // Use relative path so it works with the 'base' configuration (e.g. /n5-handbook/)
+        const swUrl = `./service-worker.js?v=${process.env.APP_VERSION}`;
         navigator.serviceWorker.register(swUrl).then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
         }, err => {
@@ -303,3 +334,13 @@ if ('serviceWorker' in navigator) {
         });
     });
 }
+
+// --- SCROLL POSITION PERSISTENCE ---
+window.addEventListener('beforeunload', () => {
+    // Save current scroll position for the active level+tab combo
+    const activeTab = document.querySelector('.tab-content.active');
+    if (activeTab && state.currentLevel) {
+        const scrollKey = `scroll_${state.currentLevel}_${activeTab.id}`;
+        sessionStorage.setItem(scrollKey, window.scrollY.toString());
+    }
+});

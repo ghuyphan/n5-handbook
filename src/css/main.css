@@ -9,7 +9,8 @@
 /* --- 1. ROOT & THEME VARIABLES (Highest Priority) --- */
 :root {
     /* Color Palette */
-    --bg-main: #F4F7FE;
+    --bg-main: #F1F5F9;
+    /* Slate 100 - Slightly darker for better card contrast */
     --text-primary: #1a1a2e;
     --text-secondary: #5a5a78;
     --accent-pink: #EC4899;
@@ -25,10 +26,13 @@
 
     /* UI Colors */
     --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.25);
-    --shadow-color: rgba(99, 102, 241, 0.08);
-    --card-front-bg: rgba(255, 255, 255, 0.8);
-    --card-front-border: rgba(255, 255, 255, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --shadow-color: rgba(71, 85, 105, 0.1);
+    /* Darker shadow for definition */
+    --card-front-bg: #FFFFFF;
+    /* Solid white for distinct contrast against Slate-50 */
+    --card-front-border: transparent;
+    /* No visible border for consistency */
     --progress-track-color: rgba(229, 231, 235, 0.6);
     --nav-hover-bg: #E0E7FF;
     --switch-bg: #e9eaf1;
@@ -57,7 +61,8 @@
 
 .dark-mode {
     /* Color Palette */
-    --bg-main: #111827;
+    --bg-main: #0F172A;
+    /* Slate 900 - Richer dark */
     --text-primary: #F3F4F6;
     --text-secondary: #D1D5DB;
     --color-danger: #f87171;
@@ -88,7 +93,8 @@ html {
 }
 
 body {
-    @apply font-sans text-primary bg-main-gradient;
+    @apply font-sans text-primary;
+    /* Removed bg-main-gradient */
     background-color: var(--bg-main);
     transition: background-color var(--transition-duration) var(--ease-in-out-quad), color var(--transition-duration) var(--ease-in-out-quad);
 }
@@ -142,41 +148,43 @@ body.sidebar-open {
 }
 
 .loader {
-  position: relative;
-width: clamp(2.5rem, 10vw, 3.5rem);
-  aspect-ratio: 1 / 1;
+    position: relative;
+    width: clamp(2.5rem, 10vw, 3.5rem);
+    aspect-ratio: 1 / 1;
 }
 
 .loader:before,
 .loader:after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 3px solid var(--accent-blue);
-  animation: pulse 2s ease-out infinite;
-  filter: drop-shadow(0 0 8px var(--accent-blue));
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid var(--accent-blue);
+    animation: pulse 2s ease-out infinite;
+    filter: drop-shadow(0 0 8px var(--accent-blue));
 }
 
 .loader:after {
-  animation-delay: -1s;
+    animation-delay: -1s;
 }
 
 @keyframes pulse {
-  0% {
-    transform: scale(0.2);
-    opacity: 1;
-    border-width: 3px;
-  }
-  50% {
-    opacity: 0.3;
-    border-width: 1px;
-  }
-  100% {
-    transform: scale(1.5);
-    opacity: 0;
-    border-width: 0px;
-  }
+    0% {
+        transform: scale(0.2);
+        opacity: 1;
+        border-width: 3px;
+    }
+
+    50% {
+        opacity: 0.3;
+        border-width: 1px;
+    }
+
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+        border-width: 0px;
+    }
 }
 
 .app-loader-logo {
@@ -185,14 +193,17 @@ width: clamp(2.5rem, 10vw, 3.5rem);
 }
 
 @keyframes loader-pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(0.95);
-  }
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(0.95);
+    }
 }
 
 
@@ -273,6 +284,7 @@ width: clamp(2.5rem, 10vw, 3.5rem);
     .right-sidebar {
         display: none;
     }
+
     .main-grid {
         grid-template-columns: 280px 1fr;
         padding: 0 1.5rem;
@@ -285,9 +297,11 @@ width: clamp(2.5rem, 10vw, 3.5rem);
         padding: 0;
         gap: 0;
     }
+
     .main-header {
         display: none;
     }
+
     .mobile-header {
         display: flex;
         padding: 0.75rem 1rem;
@@ -306,6 +320,7 @@ width: clamp(2.5rem, 10vw, 3.5rem);
         padding-top: 2rem;
         padding-bottom: 2rem;
     }
+
     #sidebar {
         position: fixed;
         top: 50%;
@@ -332,6 +347,7 @@ width: clamp(2.5rem, 10vw, 3.5rem);
     .sidebar-title {
         font-size: 1.125rem;
     }
+
     .nav-item {
         font-size: 0.9375rem;
         padding: 0.625rem;
@@ -346,13 +362,13 @@ width: clamp(2.5rem, 10vw, 3.5rem);
 
 /* --- 5. CORE UI COMPONENTS (Initial State) --- */
 #main-content {
-    min-height: calc(100vh - 250px); 
+    min-height: calc(100vh - 250px);
 }
 
 .glass-effect {
     background: var(--glass-bg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     box-shadow: 0 4px 20px 0 var(--shadow-color);
     transition: background var(--transition-duration) var(--ease-in-out-quad), border-color var(--transition-duration) var(--ease-in-out-quad);
@@ -388,7 +404,8 @@ width: clamp(2.5rem, 10vw, 3.5rem);
     -webkit-appearance: none;
 }
 
-.modal-hidden, #kanji-detail-modal {
+.modal-hidden,
+#kanji-detail-modal {
     display: none;
     pointer-events: none;
 }
@@ -416,7 +433,37 @@ width: clamp(2.5rem, 10vw, 3.5rem);
     box-shadow: 0 2px 8px -2px var(--shadow-color);
     transition: background-color var(--transition-duration) var(--ease-out-quint), color var(--transition-duration) var(--ease-out-quint), transform var(--transition-duration) var(--ease-out-quint), box-shadow var(--transition-duration) var(--ease-out-quint);
     will-change: transform, background-color, box-shadow;
+    will-change: transform, background-color, box-shadow;
     border-radius: var(--radius-md);
+}
+
+/* Optimization: Defer rendering of off-screen content */
+.accordion-wrapper {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 200px;
+    /* Approximate height estimate */
+    contain: layout paint;
+    scroll-margin-top: 1.5rem;
+    /* Match sidebar sticky position on desktop */
+}
+
+.search-wrapper,
+.progress-item-wrapper {
+    scroll-margin-top: 1.5rem;
+}
+
+/* Mobile: Need more scroll margin for sticky header */
+@media (max-width: 768px) {
+
+    .accordion-wrapper,
+    .search-wrapper,
+    .progress-item-wrapper {
+        scroll-margin-top: 100px;
+    }
+}
+
+.accordion-wrapper .glass-effect {
+    box-shadow: 0 1px 3px 0 var(--shadow-color), 0 1px 2px -1px var(--shadow-color);
 }
 
 .dark-mode .nav-item {
@@ -444,13 +491,16 @@ width: clamp(2.5rem, 10vw, 3.5rem);
 .dark-mode .notes-header-btn {
     background-color: #374151;
 }
+
 .notes-header-btn svg {
-    fill: var(--pin-unpinned); /* Change this to your desired default gray or any other color */
+    fill: var(--pin-unpinned);
+    /* Change this to your desired default gray or any other color */
 }
 
 /* Icon color for the notes button in dark mode */
 .dark-mode .notes-header-btn svg {
-    fill: var(--pin-unpinned); /* Change this to your desired dark mode color */
+    fill: var(--pin-unpinned);
+    /* Change this to your desired dark mode color */
 }
 
 .lang-switch {
@@ -550,12 +600,12 @@ width: clamp(2.5rem, 10vw, 3.5rem);
         @apply bg-accent-blue text-white font-semibold rounded-md shadow-lg shadow-blue-500/20;
         padding: 0.875rem 1.5rem;
     }
-    
+
     .btn-primary:hover {
         @apply bg-blue-600 shadow-blue-500/30;
         transform: translateY(-2px);
     }
-    
+
     .btn-primary:disabled {
         @apply opacity-50 cursor-not-allowed transform-none shadow-none;
     }
@@ -567,11 +617,11 @@ width: clamp(2.5rem, 10vw, 3.5rem);
     .btn-icon:hover {
         @apply bg-nav-hover-bg scale-110 shadow-lg;
     }
-    
+
     .btn-icon:focus-visible {
         @apply bg-nav-hover-bg scale-110 shadow-lg;
     }
-    
+
     .btn-icon:active {
         @apply scale-95 duration-100;
     }
@@ -579,6 +629,7 @@ width: clamp(2.5rem, 10vw, 3.5rem);
 
 
 @media (max-width: 768px) {
+
     .mobile-header h1,
     .modal-title {
         font-size: clamp(1.1rem, 4vw, 1.25rem);
@@ -592,8 +643,8 @@ width: clamp(2.5rem, 10vw, 3.5rem);
 }
 
 #external-search .placeholder-container {
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
