@@ -54,14 +54,59 @@ mark.search-highlight {
     border-radius: var(--radius-lg);
 }
 
+.progress-item-wrapper,
 .cell-bg,
 .grammar-card,
 .dict-card {
     background-color: var(--card-front-bg);
-    border: 1px solid var(--card-front-border);
+    border: 1px solid var(--washi-border);
     border-radius: var(--radius-lg);
     position: relative;
     box-shadow: var(--shadow-paper);
+    /* Enhanced Washi paper texture - visible grain and fiber pattern */
+    background-image:
+        /* Diagonal fiber lines */
+        repeating-linear-gradient(135deg,
+            transparent 0px,
+            rgba(139, 119, 101, 0.025) 1px,
+            transparent 2px,
+            transparent 6px),
+        /* Cross fibers for organic feel */
+        repeating-linear-gradient(45deg,
+            transparent 0px,
+            rgba(120, 100, 80, 0.02) 1px,
+            transparent 2px,
+            transparent 10px),
+        /* Organic grain spots */
+        radial-gradient(ellipse at 20% 30%, rgba(180, 160, 130, 0.05) 0%, transparent 40%),
+        radial-gradient(ellipse at 80% 70%, rgba(160, 140, 110, 0.04) 0%, transparent 35%),
+        /* Noise texture for paper tooth */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+.dark-mode .progress-item-wrapper,
+.dark-mode .cell-bg,
+.dark-mode .grammar-card,
+.dark-mode .dict-card {
+    /* Enhanced Washi paper texture for dark mode */
+    background-image:
+        /* Diagonal fiber lines - lighter for dark bg */
+        repeating-linear-gradient(135deg,
+            transparent 0px,
+            rgba(200, 180, 150, 0.02) 1px,
+            transparent 2px,
+            transparent 6px),
+        /* Cross fibers */
+        repeating-linear-gradient(45deg,
+            transparent 0px,
+            rgba(180, 160, 130, 0.015) 1px,
+            transparent 2px,
+            transparent 10px),
+        /* Organic grain spots */
+        radial-gradient(ellipse at 20% 30%, rgba(100, 90, 70, 0.06) 0%, transparent 40%),
+        radial-gradient(ellipse at 80% 70%, rgba(80, 70, 55, 0.05) 0%, transparent 35%),
+        /* Noise texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 /* Fix hover flicker/death spot */
@@ -82,28 +127,32 @@ mark.search-highlight {
 
 @media (hover: hover) and (pointer: fine) {
     .progress-item-wrapper:hover {
-        transform: translateY(-3px);
+        /* transform: translateY(-3px); REMOVED lift */
         background-color: var(--nav-hover-bg);
-        box-shadow: var(--shadow-paper-hover);
+        /* box-shadow: var(--shadow-paper-hover); REMOVED shadow expansion */
     }
 
     .cell-bg:hover,
     .grammar-card:hover,
     .dict-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-paper-hover);
+        /* transform: translateY(-2px); REMOVED lift */
+        background-color: var(--nav-hover-bg);
+        /* Highlight background instead */
     }
 
+    /* .nav-item-wrapper styles moved to main.css, removing from here if present or ensuring no conflict */
     .nav-item-wrapper:hover .nav-item:not(.active) {
+        /* Redundant if main.css handles it, but good to harmonize */
         background-color: var(--nav-hover-bg);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-paper-hover);
+        transform: translateX(4px);
+        box-shadow: none;
     }
 
     #close-sidebar-btn:hover {
         color: var(--text-primary);
         background-color: var(--nav-hover-bg);
         transform: scale(1.05);
+        /* Icon scaling is fine */
     }
 }
 
@@ -312,15 +361,48 @@ mark.search-highlight {
 .card-face-front {
     background: var(--card-front-bg);
     border: 1px solid var(--card-front-border);
+    /* Inked edge effect - irregular shadows like brush strokes */
+    box-shadow:
+        inset 2px 0 0 rgba(45, 42, 38, 0.06),
+        inset 0 2px 0 rgba(45, 42, 38, 0.05),
+        inset -1px 0 0 rgba(45, 42, 38, 0.03),
+        inset 0 -1px 0 rgba(45, 42, 38, 0.04);
+    /* Subtle Washi Texture */
+    background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
+.dark-mode .card-face-front {
+    box-shadow:
+        inset 2px 0 0 rgba(0, 0, 0, 0.1),
+        inset 0 2px 0 rgba(0, 0, 0, 0.08),
+        inset -1px 0 0 rgba(0, 0, 0, 0.05),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.06);
 }
 
 .card-face-back {
     transform: rotateY(180deg);
-    color: white;
+    /* Indigo Colored Paper - Washi Style */
+    background-color: var(--accent-indigo);
+    color: #F7F5F0;
+    /* Cream text on dark paper */
     padding: 1rem;
     flex-direction: column;
     justify-content: space-around;
     text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Organic Washi Texture */
+    background-image:
+        /* Subtle fibers */
+        repeating-linear-gradient(115deg,
+            transparent,
+            transparent 7px,
+            rgba(255, 255, 255, 0.04) 7px,
+            rgba(255, 255, 255, 0.04) 9px),
+        /* Organic variation */
+        radial-gradient(ellipse at 70% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 40%),
+        radial-gradient(ellipse at 20% 80%, rgba(255, 255, 255, 0.04) 0%, transparent 35%);
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.15);
 }
 
 .search-placeholder-wrapper {
@@ -1095,8 +1177,38 @@ mark.search-highlight {
 
 .accordion-button {
     padding: 1.25rem;
+    padding-left: 1.5rem;
     font-size: 1.125rem;
     transition: background-color 0.4s var(--ease-out-quint);
+    position: relative;
+}
+
+/* Washi strip decorative accent on left edge */
+.accordion-button::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    max-height: 40px;
+    background: linear-gradient(180deg,
+            var(--accent-vermilion) 0%,
+            var(--accent-gold) 50%,
+            var(--accent-matcha) 100%);
+    border-radius: 0 2px 2px 0;
+    opacity: 0.7;
+    transition: opacity 0.4s var(--ease-out-quint), height 0.4s var(--ease-out-quint);
+}
+
+.accordion-button:hover::before {
+    opacity: 1;
+    height: 70%;
+}
+
+.accordion-button.open::before {
+    opacity: 1;
 }
 
 .accordion-button:hover {
@@ -1154,8 +1266,8 @@ mark.search-highlight {
     background-color: var(--switch-bg);
     color: var(--lang-inactive-color, #1F2937);
     padding: 0.5rem 1rem;
-    border-radius: var(--radius-full);
-    border: none;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
     cursor: pointer;
     font-weight: 600;
     font-size: 0.875rem;
@@ -1164,15 +1276,16 @@ mark.search-highlight {
 
 .level-switch .level-switch-button:hover:not(.active) {
     color: var(--text-primary);
-    transform: translateY(-1px);
+    background-color: var(--nav-hover-bg);
+    border-color: var(--border-medium);
 }
 
 .level-switch .level-switch-button.active {
     background-color: var(--accent-vermilion);
     color: white;
     font-weight: 700;
-    box-shadow: 0 4px 12px -2px rgba(197, 61, 67, 0.4);
-    transform: translateY(-1px);
+    box-shadow: var(--shadow-paper);
+    border-color: transparent;
     pointer-events: none;
     cursor: default;
     opacity: 1;
@@ -1422,6 +1535,108 @@ input:checked+.slider:before {
 }
 
 
+
+/* --- SKELETON LOADING (Washi Paper Style) --- */
+/* Skeleton cards match exact dimensions of real cards to prevent layout shift */
+.skeleton-card {
+    height: 8rem;
+    /* h-32 */
+    border-radius: var(--radius-lg);
+    background: var(--card-front-bg);
+    border: 1px solid var(--card-front-border);
+    box-shadow: var(--shadow-paper);
+    position: relative;
+    overflow: hidden;
+}
+
+@media (min-width: 640px) {
+    .skeleton-card {
+        height: 10rem;
+        /* sm:h-40 */
+    }
+}
+
+/* Inner skeleton content mimicking card structure */
+.skeleton-card-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 0.5rem;
+    padding: 1rem;
+}
+
+/* Skeleton text lines with Washi Paper warm tones */
+.skeleton-line {
+    background: linear-gradient(90deg,
+            var(--border-subtle) 0%,
+            var(--border-medium) 50%,
+            var(--border-subtle) 100%);
+    background-size: 200% 100%;
+    border-radius: var(--radius-sm);
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Primary skeleton line (mimics kanji/word) */
+.skeleton-line-lg {
+    width: 60%;
+    height: 2.5rem;
+}
+
+/* Secondary skeleton line (mimics reading) */
+.skeleton-line-sm {
+    width: 40%;
+    height: 1rem;
+}
+
+/* Shimmer animation - organic, not too fast for zen aesthetic */
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Dark mode adjustments */
+.dark-mode .skeleton-line {
+    background: linear-gradient(90deg,
+            var(--border-subtle) 0%,
+            var(--border-medium) 50%,
+            var(--border-subtle) 100%);
+    background-size: 200% 100%;
+}
+
+/* Fade-in when skeleton is hydrated to real card */
+.skeleton-hydrated {
+    animation: skeleton-fade-in 0.3s ease-out forwards;
+}
+
+@keyframes skeleton-fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-line {
+        animation: none;
+    }
+
+    .skeleton-hydrated {
+        animation: none;
+    }
+}
 
 .sentinel {
     height: 1px;

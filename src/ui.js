@@ -291,7 +291,8 @@ const createCard = (item, category, backGradient) => {
 
 /**
  * Creates a section of cards (e.g., Grammar, Vocab) dynamically.
- * Optimizes performance by using DocumentFragment and IntersectionObserver for lazy loading.
+ * Uses skeleton loading for performance - renders lightweight placeholders first,
+ * then hydrates them to real cards when they enter the viewport.
  * 
  * @param {string} title - The section title.
  * @param {Array} data - Array of data items to render.
@@ -306,13 +307,58 @@ function createCardSection(title, data, category, backGradient, titleKey, tabId)
     // Using same responsive grid classes as before
     cardGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
 
-    // Render ALL cards upfront to avoid blank cards during fast scrolling
-    // The previous lazy loading (IntersectionObserver) couldn't keep up with fast scroll
-    const fragment = document.createDocumentFragment();
-    const createFn = (item) => createCard(item, category, backGradient);
+    // Create skeleton placeholder cards - lightweight placeholders that match real card dimensions
+    const createSkeletonCard = (item, index) => {
+        const skeleton = document.createElement('div');
+        skeleton.className = 'skeleton-card';
+        skeleton.dataset.itemIndex = index;
+        skeleton.innerHTML = `
+            <div class="skeleton-card-inner">
+                <div class="skeleton-line skeleton-line-lg"></div>
+                <div class="skeleton-line skeleton-line-sm"></div>
+            </div>
+        `;
+        return skeleton;
+    };
 
-    data.forEach(item => {
-        fragment.appendChild(createFn(item));
+    // Hydrate skeleton to real card when visible
+    const hydrateCard = (skeleton, item) => {
+        const realCard = createCard(item, category, backGradient);
+        // Get the first element from the DocumentFragment
+        const cardElement = realCard.firstElementChild;
+        cardElement.classList.add('skeleton-hydrated');
+        skeleton.replaceWith(cardElement);
+    };
+
+    // IntersectionObserver with large rootMargin to pre-load cards ahead of scroll
+    const cardObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const skeleton = entry.target;
+                const index = parseInt(skeleton.dataset.itemIndex, 10);
+                if (data[index]) {
+                    hydrateCard(skeleton, data[index]);
+                }
+                cardObserver.unobserve(skeleton);
+            }
+        });
+    }, {
+        rootMargin: '200% 0px', // Pre-load cards 2 screens ahead for smooth scrolling
+        threshold: 0
+    });
+
+    // Render skeleton placeholders and observe them
+    const fragment = document.createDocumentFragment();
+    data.forEach((item, index) => {
+        const skeleton = createSkeletonCard(item, index);
+        fragment.appendChild(skeleton);
+        // Use requestIdleCallback for non-critical observation setup
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => cardObserver.observe(skeleton), { timeout: 100 });
+        } else {
+            // Fallback for Safari
+            setTimeout(() => cardObserver.observe(skeleton), 0);
+        }
     });
 
     cardGrid.appendChild(fragment);
@@ -865,8 +911,8 @@ export async function renderContent(tabId = null) {
             els.grammarTab.appendChild(wrapper);
             setupFuseForTab('grammar');
         }, 'grammar'),
-        kanji: () => renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, var(--accent-purple), #A78BFA)'), 'kanji'),
-        vocab: () => renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, var(--accent-green), #4ADE80)'), 'vocab')
+        kanji: () => renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, #3D5A66, var(--accent-indigo))'), 'kanji'),
+        vocab: () => renderSafely(() => renderCardBasedSection('vocab', state.appData.vocab, 'vocab', 'linear-gradient(135deg, #C9A83B, var(--accent-gold))'), 'vocab')
     };
 
     for (const tab of tabsToRender) {

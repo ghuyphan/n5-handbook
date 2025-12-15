@@ -10,10 +10,10 @@
 :root {
     /* === WASHI PAPER COLOR PALETTE - LIGHT MODE === */
     /* Base colors - warm cream like traditional washi */
-    --bg-main: #F7F5F0;
-    /* Warm cream (unbleached washi) */
+    --bg-main: #F0EFE9;
+    /* Slightly darker than paper for contrast */
     --bg-paper: #FAF8F3;
-    /* Pure washi white */
+    /* Warm cream (unbleached washi) */
     --bg-paper-elevated: #FFFFFF;
     /* Bright white for cards */
 
@@ -26,15 +26,18 @@
     /* Deep black for headers */
 
     /* Borders - subtle fiber/edge appearance */
-    --border-subtle: #E5DFD3;
+    --border-subtle: #D8D2C5;
     /* Soft washi fiber edge */
-    --border-medium: #D4CEC2;
+    --border-medium: #C8BFB0;
     /* Visible paper edge */
 
     /* Shadows - soft, paper-like */
+    /* Shadows - soft, diffused ink look */
     --shadow-color: rgba(45, 42, 38, 0.08);
-    --shadow-paper: 0 2px 8px rgba(45, 42, 38, 0.06), 0 1px 2px rgba(45, 42, 38, 0.04);
-    --shadow-paper-hover: 0 4px 16px rgba(45, 42, 38, 0.1), 0 2px 4px rgba(45, 42, 38, 0.06);
+    /* More diffuse, less "floaty", more "layered" */
+    --shadow-paper: 0 4px 12px rgba(45, 42, 38, 0.06), 0 1px 3px rgba(45, 42, 38, 0.04);
+    /* Deeper but softer hover */
+    --shadow-paper-hover: 0 10px 25px rgba(45, 42, 38, 0.1), 0 4px 10px rgba(45, 42, 38, 0.05);
 
     /* Traditional Japanese accent colors */
     --accent-vermilion: #C53D43;
@@ -72,10 +75,10 @@
     --card-front-bg: var(--bg-paper-elevated);
     --card-front-border: var(--border-subtle);
     --progress-track-color: #D1C9B8;
-    --nav-hover-bg: #EDE9E0;
+    --nav-hover-bg: #EAE6dc;
     /* Slightly darker cream on hover */
-    --switch-bg: #E5E0D6;
-    --backdrop-bg: rgba(45, 42, 38, 0.4);
+    --switch-bg: #E0DBD0;
+    --backdrop-bg: rgba(45, 42, 38, 0.5);
     --bg-orange: rgba(201, 106, 59, 0.1);
     --bg-teal: rgba(74, 124, 124, 0.1);
 
@@ -104,31 +107,31 @@
 }
 
 .dark-mode {
-    /* === WASHI PAPER COLOR PALETTE - DARK MODE (INK STONE) === */
-    /* Base colors - charcoal/sumi ink stone aesthetic */
-    --bg-main: #1A1917;
-    /* Deep charcoal */
-    --bg-paper: #252320;
-    /* Dark washi */
-    --bg-paper-elevated: #2D2A26;
-    /* Elevated dark surface */
+    /* === WASHI PAPER COLOR PALETTE - DARK MODE (INK STONE / 墨) === */
+    /* Base colors - warm charcoal with slight warmth like aged ink stone */
+    --bg-main: #1A1816;
+    /* Warm deep charcoal - not pure black */
+    --bg-paper: #242220;
+    /* Dark washi - warm undertone */
+    --bg-paper-elevated: #302D2A;
+    /* Elevated surface - visible lift from paper */
 
-    /* Text - light cream on dark */
-    --text-primary: #E8E4DC;
-    /* Cream white */
-    --text-secondary: #A09A90;
-    /* Muted cream */
-    --text-header: #F5F2EC;
+    /* Text - warm cream on dark, good contrast */
+    --text-primary: #F0EBE0;
+    /* Warm cream white - easy on eyes */
+    --text-secondary: #9C958A;
+    /* Muted warm gray */
+    --text-header: #FAF7F0;
     /* Bright cream for headers */
 
-    /* Borders */
-    --border-subtle: #3A3632;
-    --border-medium: #4A4540;
+    /* Borders - warm brown tones, subtle but visible */
+    --border-subtle: #3D3935;
+    --border-medium: #4D4843;
 
-    /* Shadows */
-    --shadow-color: rgba(0, 0, 0, 0.3);
-    --shadow-paper: 0 2px 8px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15);
-    --shadow-paper-hover: 0 4px 16px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Shadows - softer for dark mode */
+    --shadow-color: rgba(0, 0, 0, 0.35);
+    --shadow-paper: 0 2px 8px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+    --shadow-paper-hover: 0 6px 20px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
 
     /* Danger colors */
     --color-danger: #E57373;
@@ -139,55 +142,86 @@
     --washi-border: var(--border-subtle);
     --card-front-bg: var(--bg-paper-elevated);
     --card-front-border: var(--border-subtle);
-    --progress-track-color: #4A4540;
-    --nav-hover-bg: #353230;
-    --switch-bg: #3A3632;
-    --backdrop-bg: rgba(10, 10, 9, 0.7);
-    --bg-orange: rgba(201, 106, 59, 0.15);
-    --lang-inactive-color: #C9C4BA;
+    --progress-track-color: #3D3935;
+    --nav-hover-bg: #3A3632;
+    --switch-bg: #353230;
+    --backdrop-bg: rgba(10, 9, 8, 0.85);
+    --bg-orange: rgba(201, 106, 59, 0.18);
+    --bg-teal: rgba(74, 124, 124, 0.15);
+    --lang-inactive-color: #C5C0B5;
 
     /* Pin & Icon Colors */
-    --pin-color: #E57373;
+    --pin-color: #E8726A;
     /* Lighter vermilion for dark mode */
-    --pin-unpinned: #8C857A;
-    --pin-pinned-bg: #E57373;
+    --pin-unpinned: #7A756C;
+    --pin-pinned-bg: #E8726A;
 }
 
 /* --- 2. GLOBAL & BASE STYLES (For basic page rendering) --- */
 html {
     scroll-behavior: smooth;
-    font-size: 16px;
+    font-size: 15px;
+    /* Reduced from 16px */
 }
 
 body {
     font-family: "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--text-primary);
     background-color: var(--bg-main);
-    /* Washi paper texture - simulates paper fibers and grain */
+    /* Enhanced Washi paper texture - visible cross-fiber pattern */
     background-image:
-        /* Subtle horizontal fiber lines */
-        repeating-linear-gradient(0deg,
-            transparent,
+        /* Horizontal fibers */
+        repeating-linear-gradient(90deg,
+            transparent 0px,
+            rgba(139, 119, 101, 0.025) 1px,
             transparent 2px,
-            rgba(139, 119, 101, 0.015) 2px,
-            rgba(139, 119, 101, 0.015) 3px),
-        /* Organic noise/grain texture */
-        radial-gradient(ellipse at 20% 30%, rgba(180, 160, 130, 0.04) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 70%, rgba(180, 160, 130, 0.03) 0%, transparent 40%),
-        radial-gradient(ellipse at 40% 80%, rgba(160, 140, 110, 0.025) 0%, transparent 35%),
-        radial-gradient(ellipse at 70% 20%, rgba(170, 150, 120, 0.03) 0%, transparent 45%);
+            transparent 8px),
+        /* Vertical fibers - more sparse */
+        repeating-linear-gradient(0deg,
+            transparent 0px,
+            rgba(120, 100, 80, 0.02) 1px,
+            transparent 2px,
+            transparent 14px),
+        /* Diagonal fibers for organic feel */
+        repeating-linear-gradient(45deg,
+            transparent,
+            transparent 12px,
+            rgba(139, 119, 101, 0.025) 12px,
+            rgba(139, 119, 101, 0.025) 13px),
+        /* Noise texture for tooth */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E");
     transition: background-color var(--transition-duration) var(--ease-in-out-quad), color var(--transition-duration) var(--ease-in-out-quad);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.sidebar-title,
+.modal-title,
+.font-serif {
+    font-family: inherit;
+    font-weight: 700;
 }
 
 .dark-mode body {
     background-image:
-        repeating-linear-gradient(0deg,
-            transparent,
+        /* Horizontal fibers - subtle on dark */
+        repeating-linear-gradient(90deg,
+            transparent 0px,
+            rgba(200, 180, 150, 0.02) 1px,
             transparent 2px,
-            rgba(200, 180, 150, 0.015) 2px,
-            rgba(200, 180, 150, 0.015) 3px),
-        radial-gradient(ellipse at 20% 30%, rgba(100, 90, 70, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 70%, rgba(100, 90, 70, 0.05) 0%, transparent 40%);
+            transparent 10px),
+        /* Vertical fibers */
+        repeating-linear-gradient(0deg,
+            transparent 0px,
+            rgba(180, 160, 130, 0.015) 1px,
+            transparent 2px,
+            transparent 16px),
+        /* Noise texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
 .body-no-scroll,
@@ -298,43 +332,65 @@ body.sidebar-open {
 
 
 /* --- 4. LAYOUT & RESPONSIVE STRUCTURE (Prevents CLS) --- */
+/* --- 4. LAYOUT & RESPONSIVE STRUCTURE --- */
 .main-grid {
     display: grid;
-    grid-template-columns: 280px 1fr 280px;
-    gap: 1.5rem;
-    align-items: start;
-    padding: 0 2rem;
+    grid-template-columns: 260px 1fr 300px;
+    /* Adjusted columns */
+    gap: 0;
+    /* REMOVED GAP for continuous look */
+    align-items: stretch;
+    padding: 0;
+    /* REMOVED PADDING */
+    min-height: 100vh;
     transition: filter var(--transition-duration) var(--ease-in-out-quad);
 }
 
-/* Both sidebars are sticky - stay in viewport while content scrolls */
+/* Both sidebars are sticky/fixed - creating the "Book" frame */
+/* Both sidebars are sticky/fixed - creating the "Book" frame */
 .left-sidebar,
 .right-sidebar {
     position: sticky;
-    top: 1.5rem;
-    height: calc(100vh - 3rem);
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background-color: var(--bg-paper);
+    border-right: 1px solid var(--border-medium);
+    z-index: 10;
+    scrollbar-gutter: stable;
+    border-radius: 0;
+    padding: 1.5rem 1rem 1.5rem 2rem;
+
+    /* Enhanced Washi paper texture for sidebars - visible fibers */
+    background-image:
+        /* Diagonal fiber strands */
+        repeating-linear-gradient(135deg,
+            transparent 0px,
+            rgba(139, 119, 101, 0.03) 1px,
+            transparent 2px,
+            transparent 6px),
+        /* Cross fibers */
+        repeating-linear-gradient(45deg,
+            transparent 0px,
+            rgba(120, 100, 80, 0.02) 1px,
+            transparent 2px,
+            transparent 10px),
+        /* Organic spots */
+        radial-gradient(ellipse at 15% 25%, rgba(180, 160, 130, 0.06) 0%, transparent 40%),
+        radial-gradient(ellipse at 85% 75%, rgba(160, 140, 110, 0.05) 0%, transparent 35%),
+        radial-gradient(ellipse at 50% 50%, rgba(170, 150, 120, 0.03) 0%, transparent 60%);
 }
 
-.left-sidebar {
-    max-height: calc(100vh - 3rem);
-    overflow-y: auto;
-    scrollbar-gutter: stable;
-    border-radius: var(--radius-xl);
-    /* Washi paper texture for sidebar */
-    background-image:
-        /* Subtle diagonal fiber texture */
-        repeating-linear-gradient(135deg,
-            transparent,
-            transparent 1px,
-            rgba(139, 119, 101, 0.02) 1px,
-            rgba(139, 119, 101, 0.02) 2px),
-        /* Soft organic spots */
-        radial-gradient(ellipse at 15% 25%, rgba(180, 160, 130, 0.05) 0%, transparent 40%),
-        radial-gradient(ellipse at 85% 75%, rgba(160, 140, 110, 0.04) 0%, transparent 35%);
+.right-sidebar {
+    border-right: none;
+    border-left: 1px solid var(--border-medium);
+    /* Padding for Right Sidebar (Spine is on Left) - Mirror of Left Sidebar */
+    padding: 1.5rem 2rem 1.5rem 1rem;
 }
 
 /* Decorative top edge - like torn paper */
-.left-sidebar::before {
+.left-sidebar::before,
+.right-sidebar::before {
     content: '';
     position: absolute;
     top: 0;
@@ -351,11 +407,13 @@ body.sidebar-open {
 }
 
 .main-header h1 {
-    font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2rem);
+    font-size: clamp(1.2rem, 1rem + 1vw, 1.5rem);
+    font-family: var(--font-serif);
 }
 
 .sidebar-title {
-    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+    font-family: var(--font-serif);
 }
 
 /* Search Header Structure */
@@ -405,8 +463,8 @@ body.sidebar-open {
     }
 
     .main-grid {
-        grid-template-columns: 280px 1fr;
-        padding: 0 1.5rem;
+        grid-template-columns: 260px 1fr;
+        padding: 0;
     }
 }
 
@@ -428,7 +486,13 @@ body.sidebar-open {
         border-radius: 0 !important;
     }
 
-    #main-content,
+    #main-content {
+        padding: 0.25rem;
+        /* Reduced padding for mobile to maximize space */
+        margin: 0;
+        width: 100%;
+    }
+
     footer {
         padding: 1rem;
         margin: 0;
@@ -442,25 +506,58 @@ body.sidebar-open {
 
     #sidebar {
         position: fixed;
-        top: 50%;
-        transform: translateY(-50%);
+        top: 0;
         left: -100%;
-        width: 70vw;
+        width: 85%;
         max-width: 320px;
-        height: calc(100svh - 2rem);
+        height: 100vh;
         z-index: 100;
-        transition: left var(--transition-duration) var(--ease-out-quint);
-        border-radius: var(--radius-xl);
+        transition: left var(--transition-duration) var(--ease-out-quint),
+            box-shadow var(--transition-duration) var(--ease-out-quint);
+        border-radius: 0;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        padding: 1.25rem;
+        padding: 2rem 1.5rem;
         -ms-overflow-style: none;
         scrollbar-width: none;
+
+        /* Light shadow when closed */
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+        border-right: 1px solid var(--border-medium);
+        background-color: var(--bg-paper);
+        /* Enhanced Washi texture for mobile sidebar */
+        background-image:
+            repeating-linear-gradient(135deg,
+                transparent 0px,
+                rgba(139, 119, 101, 0.03) 1px,
+                transparent 2px,
+                transparent 6px),
+            repeating-linear-gradient(45deg,
+                transparent 0px,
+                rgba(120, 100, 80, 0.02) 1px,
+                transparent 2px,
+                transparent 10px),
+            radial-gradient(ellipse at 15% 25%, rgba(180, 160, 130, 0.06) 0%, transparent 40%),
+            radial-gradient(ellipse at 85% 75%, rgba(160, 140, 110, 0.05) 0%, transparent 35%);
     }
 
     #sidebar.open {
-        left: 1rem;
+        left: 0;
+        /* Dramatic layered paper shadow when open */
+        box-shadow:
+            4px 0 8px rgba(45, 42, 38, 0.08),
+            8px 0 16px rgba(45, 42, 38, 0.06),
+            16px 0 32px rgba(45, 42, 38, 0.04),
+            32px 0 64px rgba(45, 42, 38, 0.02);
+    }
+
+    .dark-mode #sidebar.open {
+        box-shadow:
+            4px 0 8px rgba(0, 0, 0, 0.2),
+            8px 0 16px rgba(0, 0, 0, 0.15),
+            16px 0 32px rgba(0, 0, 0, 0.1),
+            32px 0 64px rgba(0, 0, 0, 0.05);
     }
 
     .sidebar-title {
@@ -479,9 +576,24 @@ body.sidebar-open {
 }
 
 
+.main-header {
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-paper);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+    /* Ensure no gaps */
+}
+
 /* --- 5. CORE UI COMPONENTS (Initial State) --- */
 #main-content {
-    min-height: calc(100vh - 250px);
+    min-height: 100vh;
+    padding: 1.25rem 2rem;
+    /* Tighter padding to maximize content area */
+    background-color: var(--bg-main);
+    /* Continuous sheet */
 }
 
 /* Washi Paper Effect - replaces glass-effect */
@@ -500,9 +612,10 @@ body.sidebar-open {
         radial-gradient(ellipse at 75% 65%, rgba(160, 140, 110, 0.03) 0%, transparent 35%),
         radial-gradient(ellipse at 50% 10%, rgba(170, 150, 120, 0.025) 0%, transparent 30%);
     border: 1px solid var(--washi-border);
-    box-shadow: var(--shadow-paper);
+    /* box-shadow: var(--shadow-paper); REMOVE SHADOW from basic glass */
     transition: background var(--transition-duration) var(--ease-in-out-quad), box-shadow var(--transition-duration) var(--ease-in-out-quad), border-color var(--transition-duration) var(--ease-in-out-quad);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
+    /* Reduce radius for internal elements */
 }
 
 .dark-mode .glass-effect {
@@ -562,6 +675,8 @@ body.sidebar-open {
 
 .tab-content.active {
     display: block;
+    /* Performance: CSS containment for scroll optimization */
+    contain: layout style;
 }
 
 .nav-item-wrapper {
@@ -569,45 +684,47 @@ body.sidebar-open {
 }
 
 .nav-item {
-    background: var(--bg-paper);
+    background-color: var(--card-front-bg);
     border: 1px solid var(--washi-border);
     box-shadow: var(--shadow-paper);
-    transition: background-color var(--transition-duration) var(--ease-out-quint), color var(--transition-duration) var(--ease-out-quint), transform var(--transition-duration) var(--ease-out-quint), box-shadow var(--transition-duration) var(--ease-out-quint);
-    border-radius: var(--radius-md);
-    /* Subtle paper texture */
-    background-image:
-        radial-gradient(ellipse at 10% 50%, rgba(180, 160, 130, 0.03) 0%, transparent 50%),
-        radial-gradient(ellipse at 90% 50%, rgba(160, 140, 110, 0.02) 0%, transparent 40%);
+    transition: background-color var(--transition-duration) var(--ease-out-quint),
+        color var(--transition-duration) var(--ease-out-quint),
+        transform var(--transition-duration) var(--ease-out-quint),
+        box-shadow var(--transition-duration) var(--ease-out-quint),
+        border-color var(--transition-duration) var(--ease-out-quint);
+    border-radius: var(--radius-lg);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
-/* Decorative left accent - like an ink brush mark */
-.nav-item::before {
+/* Folded corner (dogear) effect on nav items */
+.nav-item::after {
     content: '';
     position: absolute;
-    left: 0;
-    top: 20%;
-    bottom: 20%;
-    width: 3px;
-    background: linear-gradient(180deg,
-            transparent 0%,
-            var(--accent-vermilion) 30%,
-            var(--accent-vermilion) 70%,
-            transparent 100%);
-    opacity: 0;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    background: linear-gradient(135deg,
+            transparent 50%,
+            var(--border-medium) 50%,
+            var(--bg-paper) 60%);
+    border-bottom-left-radius: 2px;
+    opacity: 0.7;
     transition: opacity var(--transition-duration) var(--ease-out-quint);
-    border-radius: 0 2px 2px 0;
 }
 
-.nav-item:hover::before,
-.nav-item.active::before {
-    opacity: 0.6;
-}
-
-.nav-item.active::before {
+.nav-item.active::after {
+    background: linear-gradient(135deg,
+            transparent 50%,
+            rgba(255, 255, 255, 0.3) 50%,
+            rgba(255, 255, 255, 0.15) 60%);
     opacity: 1;
 }
+
+
+
+
 
 /* Optimization: Defer rendering of off-screen content - REMOVED for stability */
 .accordion-wrapper {
@@ -636,6 +753,24 @@ body.sidebar-open {
 
 .dark-mode .accordion-wrapper .glass-effect {
     box-shadow: var(--shadow-paper);
+}
+
+/* Decorative brush-stroke divider between sections */
+.accordion-wrapper+.accordion-wrapper::before {
+    content: '';
+    display: block;
+    width: 60%;
+    max-width: 200px;
+    height: 2px;
+    margin: 0 auto 1rem auto;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            var(--border-medium) 20%,
+            var(--border-subtle) 50%,
+            var(--border-medium) 80%,
+            transparent 100%);
+    border-radius: 1px;
+    opacity: 0.6;
 }
 
 .dark-mode .nav-item {
@@ -679,9 +814,9 @@ body.sidebar-open {
 .lang-switch {
     position: relative;
     background-color: var(--switch-bg);
-    border: none;
+    border: 1px solid var(--border-subtle);
     padding: 2px;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-md);
     display: inline-flex;
     align-items: center;
 }
@@ -691,9 +826,9 @@ body.sidebar-open {
     z-index: 1;
     top: 2px;
     bottom: 2px;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-sm);
     background-color: var(--accent-vermilion);
-    box-shadow: 0 4px 12px -2px rgba(197, 61, 67, 0.4);
+    box-shadow: var(--shadow-paper);
     transition: transform 0.4s var(--ease-out-quint), width 0.4s var(--ease-out-quint);
 }
 
@@ -701,7 +836,7 @@ body.sidebar-open {
     position: relative;
     z-index: 2;
     padding: 0.5rem 1rem;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-sm);
     font-weight: 600;
     font-size: 0.875rem;
     border: none;
@@ -793,6 +928,14 @@ body.sidebar-open {
         border: 1px solid var(--washi-border);
     }
 
+    .nav-item-wrapper:hover .nav-item:not(.active) {
+        background-color: var(--nav-hover-bg);
+        transform: translateX(4px);
+        /* Slide slightly right instead of lift */
+        box-shadow: none;
+        /* No shadow for hover */
+    }
+
     .btn-icon:hover {
         background-color: var(--nav-hover-bg);
         transform: scale(1.05);
@@ -830,4 +973,13 @@ body.sidebar-open {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Ensure mobile padding is applied by placing it last */
+@media (max-width: 768px) {
+    #main-content {
+        padding: 0.25rem !important;
+        margin: 0;
+        width: 100%;
+    }
 }

@@ -7,12 +7,16 @@
     <title>JLPT Handbook</title>
     <link rel="icon" type="image/webp" href="./assets/siteIcon.webp">
     <link rel="alternate icon" type="image/png" href="./assets/siteIcon.png">
-    <!-- Japanese Fonts for Washi Paper aesthetic -->
+    <!-- Japanese Fonts for Washi Paper aesthetic - Non-render-blocking -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
+    <link rel="preload" as="style"
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+        onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;600;700&display=swap">
+    </noscript>
     <!-- CSS and JS injected by Vite -->
 
     <meta name="description"
@@ -140,7 +144,7 @@
 
 <body class="min-h-screen preload">
 
-    <header class="mobile-header md:hidden sticky top-0 glass-effect z-40 p-3 flex items-center gap-4">
+    <header class="mobile-header md:hidden sticky top-0 glass-effect z-40 px-3 py-1.5 flex items-center gap-4">
         <button id="menu-toggle" data-action="toggle-sidebar" class="p-2 -ml-2" aria-label="Toggle menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
@@ -186,8 +190,8 @@
         </div>
     </header>
 
-    <div class="main-grid p-0 md:p-6 lg:p-8">
-        <aside id="sidebar" class="left-sidebar glass-effect p-6 flex flex-col md:rounded-2xl">
+    <div class="main-grid">
+        <aside id="sidebar" class="left-sidebar flex flex-col">
             <button id="close-sidebar-btn" class="absolute top-4 right-4 p-2 md:hidden" aria-label="Close sidebar">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
@@ -336,7 +340,7 @@
         <div class="flex flex-col min-w-0">
             <header class="main-header mb-8 items-start justify-between hidden md:flex">
                 <div class="min-w-0">
-                    <h1 class="text-3xl font-bold text-header" data-lang-key="dashboard"></h1>
+                    <h1 class="text-2xl font-bold text-header" data-lang-key="dashboard"></h1>
                     <p class="text-secondary truncate" data-lang-key="dashboardSubtitle"></p>
                 </div>
                 <div class="glass-effect flex items-center gap-2 rounded-full py-1.5 px-4">
@@ -371,7 +375,7 @@
                 </div>
             </header>
 
-            <div class="mobile-search-bar md:hidden mt-4 mb-5 px-3">
+            <div class="mobile-search-bar md:hidden mt-2 mb-2 px-3">
                 <div class="relative w-full glass-effect rounded-full">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -444,7 +448,7 @@
         </div>
 
         <aside class="right-sidebar">
-            <div id="progress-overview" class="glass-effect p-6 rounded-2xl h-full"></div>
+            <div id="progress-overview" class="h-full flex flex-col"></div>
         </aside>
     </div>
     <div id="overlay"></div>
@@ -530,7 +534,7 @@
     </template>
 
     <template id="progress-item-template">
-        <div class="progress-item-wrapper flex items-center gap-3 p-3 rounded-xl cursor-pointer glass-effect"
+        <div class="progress-item-wrapper flex items-center gap-3 p-3 rounded-xl cursor-pointer"
             data-action="jump-to-section">
             <div class="relative w-12 h-12 flex-shrink-0">
                 <svg class="w-full h-full" viewBox="0 0 50 50">
