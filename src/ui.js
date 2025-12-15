@@ -304,8 +304,8 @@ const createCard = (item, category, backGradient) => {
  */
 function createCardSection(title, data, category, backGradient, titleKey, tabId) {
     const cardGrid = document.createElement('div');
-    // Using same responsive grid classes as before
-    cardGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
+    // Using 2-column grid on mobile, scaling up on larger screens
+    cardGrid.className = 'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6';
 
     // Create skeleton placeholder cards - lightweight placeholders that match real card dimensions
     const createSkeletonCard = (item, index) => {

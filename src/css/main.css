@@ -487,8 +487,8 @@ body.sidebar-open {
     }
 
     #main-content {
-        padding: 0.25rem;
-        /* Reduced padding for mobile to maximize space */
+        padding: 0.5rem 0.75rem;
+        /* Comfortable padding for mobile */
         margin: 0;
         width: 100%;
     }
@@ -978,7 +978,7 @@ body.sidebar-open {
 /* Ensure mobile padding is applied by placing it last */
 @media (max-width: 768px) {
     #main-content {
-        padding: 0.25rem !important;
+        padding: 0.75rem !important;
         margin: 0;
         width: 100%;
     }
