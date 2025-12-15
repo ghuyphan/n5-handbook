@@ -5,7 +5,7 @@ import packageJson from './package.json';
 
 export default defineConfig({
     root: './',
-    base: '/n5-handbook/',
+    base: '/',
     define: {
         'process.env.APP_VERSION': JSON.stringify(packageJson.version),
     },
@@ -17,6 +17,7 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         emptyOutDir: true,
+        minify: 'esbuild', // Explicitly enabled for clarity
     },
     server: {
         open: true,
@@ -31,9 +32,9 @@ export default defineConfig({
                 name: "JLPT Handbook",
                 short_name: "JLPT Handbook",
                 description: "Your personal, interactive space to master Japanese. Dive into built-in JLPT N5 & N4 materials, or bring your own study lists by importing custom levels!",
-                id: "/n5-handbook/",
-                start_url: "/n5-handbook/index.html",
-                scope: "/n5-handbook/",
+                id: "/",
+                start_url: "/index.html",
+                scope: "/",
                 display: "standalone",
                 background_color: "#111827",
                 theme_color: "#2998FF",
@@ -61,7 +62,7 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                navigateFallback: '/n5-handbook/offline.html',
+                navigateFallback: '/offline.html',
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}'],
                 runtimeCaching: [
                     {
