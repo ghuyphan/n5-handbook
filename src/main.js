@@ -236,7 +236,10 @@ async function init() {
 
     if (els.loadingOverlay) {
         els.loadingOverlay.style.opacity = '0';
-        els.loadingOverlay.addEventListener('transitionend', () => els.loadingOverlay.classList.add('hidden'), { once: true });
+        els.loadingOverlay.addEventListener('transitionend', () => {
+            els.loadingOverlay.classList.add('hidden');
+            document.body.classList.remove('preload');
+        }, { once: true });
     }
 
     try {

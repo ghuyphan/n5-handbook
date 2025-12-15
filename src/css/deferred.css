@@ -4,12 +4,10 @@
    ========================================================================== */
 
 /* --- GLOBAL HELPER STYLES --- */
-.font-jp {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
-}
-
+/* Using Noto Sans JP for better readability in UI elements */
+.font-jp,
 .noto-sans {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
+    font-family: "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 mark.search-highlight {
@@ -48,7 +46,8 @@ mark.search-highlight {
 .dict-card {
     padding: clamp(0.75rem, 3vw, 1.25rem);
     transition: transform var(--transition-duration) var(--ease-out-quint), background-color var(--transition-duration) var(--ease-out-quint), box-shadow var(--transition-duration) var(--ease-out-quint);
-    will-change: transform, box-shadow;
+    /* REMOVED: will-change - applying it to hundreds of elements creates 
+       excessive GPU layers and actually hurts scroll performance */
 }
 
 .progress-item-wrapper {
@@ -62,7 +61,7 @@ mark.search-highlight {
     border: 1px solid var(--card-front-border);
     border-radius: var(--radius-lg);
     position: relative;
-    /* Ensure ::after is positioned relative to this */
+    box-shadow: var(--shadow-paper);
 }
 
 /* Fix hover flicker/death spot */
@@ -83,28 +82,28 @@ mark.search-highlight {
 
 @media (hover: hover) and (pointer: fine) {
     .progress-item-wrapper:hover {
-        transform: translateY(-5px) scale(1.02);
+        transform: translateY(-3px);
         background-color: var(--nav-hover-bg);
-        box-shadow: 0 10px 20px -5px var(--shadow-color);
+        box-shadow: var(--shadow-paper-hover);
     }
 
     .cell-bg:hover,
     .grammar-card:hover,
     .dict-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 22px -6px var(--shadow-color);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-paper-hover);
     }
 
     .nav-item-wrapper:hover .nav-item:not(.active) {
         background-color: var(--nav-hover-bg);
-        transform: translateY(-3px);
-        box-shadow: 0 4px 12px var(--shadow-color);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-paper-hover);
     }
 
     #close-sidebar-btn:hover {
         color: var(--text-primary);
         background-color: var(--nav-hover-bg);
-        transform: scale(1.1);
+        transform: scale(1.05);
     }
 }
 
@@ -181,9 +180,13 @@ mark.search-highlight {
     border-radius: var(--radius-xl);
     overflow: hidden;
     position: relative;
+    background: var(--bg-paper);
+    border: 1px solid var(--washi-border);
+    box-shadow: var(--shadow-paper-hover);
+    /* Subtle washi texture hint - like paper fibers */
     background-image:
-        radial-gradient(at 5% 5%, hsla(215, 98%, 70%, 0.15) 0px, transparent 50%),
-        radial-gradient(at 95% 95%, hsla(280, 96%, 76%, 0.15) 0px, transparent 50%);
+        radial-gradient(ellipse at 10% 20%, rgba(180, 160, 130, 0.04) 0%, transparent 40%),
+        radial-gradient(ellipse at 90% 80%, rgba(180, 160, 130, 0.03) 0%, transparent 35%);
 }
 
 .modal-header,
@@ -236,7 +239,7 @@ mark.search-highlight {
 }
 
 .nav-item:focus-visible:not(.active) {
-    outline: 2px solid var(--accent-blue);
+    outline: 2px solid var(--accent-vermilion);
     outline-offset: 2px;
 }
 
@@ -275,11 +278,10 @@ mark.search-highlight {
 .card {
     perspective: 1500px;
     transition: transform var(--transition-duration) var(--ease-out-quint);
-    will-change: transform;
 }
 
 .card:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
 }
 
 .card-inner {
@@ -333,9 +335,9 @@ mark.search-highlight {
 }
 
 .search-placeholder-box {
-    background: var(--glass-bg);
-    /* border: 1px solid var(--glass-border); Removed border */
-    box-shadow: 0 4px 20px 0 var(--shadow-color);
+    background: var(--bg-paper);
+    border: 1px solid var(--washi-border);
+    box-shadow: var(--shadow-paper);
     border-radius: var(--radius-xl);
     padding: 2rem;
     display: flex;
@@ -351,8 +353,8 @@ mark.search-highlight {
     margin-top: 1rem;
     padding: 0.75rem 1rem;
     border-radius: var(--radius-md);
-    background-color: var(--bg-teal);
-    border-left: 4px solid var(--accent-teal);
+    background-color: rgba(197, 61, 67, 0.08);
+    border-left: 4px solid var(--accent-vermilion);
     color: var(--text-secondary);
     font-size: 0.875rem;
     text-align: left;
@@ -461,35 +463,34 @@ mark.search-highlight {
 }
 
 #notes-modal .modal-content {
-    background-color: rgba(254, 244, 167, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: #3d3d3d;
+    background-color: #F5EED9;
+    /* Warm washi paper color */
+    color: #3B352E;
     border-radius: var(--radius-xl);
-    border: 1px solid #e7d18c;
-    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.15);
+    border: 1px solid #D9CEAF;
+    box-shadow: 4px 4px 12px rgba(59, 53, 46, 0.12);
 }
 
 #notes-modal .modal-header {
-    border-bottom: 2px dashed #d1c08a;
+    border-bottom: 1px solid #D9CEAF;
     padding-bottom: 1rem;
 }
 
 #notes-modal .modal-title {
-    color: #594a25;
+    color: #3B352E;
+    font-weight: 600;
 }
 
 #notes-modal .modal-close-btn {
-    color: #8c7a4b;
+    color: #8C7F6A;
 }
 
 #notes-modal .modal-close-btn:hover {
-    background-color: rgba(0, 0, 0, 0.08);
+    background-color: rgba(59, 53, 46, 0.08);
 }
 
 #notes-modal #notes-textarea {
-    color: #3d3d3d;
-    font-family: 'Noto Sans JP', sans-serif;
+    color: #3B352E;
     font-size: 1.1rem;
     line-height: 1.8;
     background-color: transparent;
@@ -501,7 +502,7 @@ mark.search-highlight {
 }
 
 #notes-modal #notes-textarea::placeholder {
-    color: #a0926d;
+    color: #A0937A;
 }
 
 #notes-modal .modal-footer {
@@ -513,18 +514,22 @@ mark.search-highlight {
 
 #notes-modal #note-info-display {
     font-family: monospace;
-    color: #8c7a4b;
+    color: #8C7F6A;
     font-size: 0.8rem;
 }
 
 #notes-modal #notes-save-btn {
-    background-color: #f9bf2d;
-    color: #594a25;
+    background-color: var(--accent-vermilion);
+    color: white;
     font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 6px rgba(197, 61, 67, 0.25);
 }
 
 #notes-modal #notes-save-btn:hover {
-    background-color: #ffca43;
+    background-color: #A83238;
+    box-shadow: 0 4px 10px rgba(197, 61, 67, 0.35);
 }
 
 .responsive-grid {
@@ -537,7 +542,7 @@ mark.search-highlight {
     overflow-x: auto;
     width: 100%;
     -webkit-overflow-scrolling: touch;
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--washi-border);
     border-radius: var(--radius-lg);
     margin: 1rem 0;
 }
@@ -586,12 +591,11 @@ mark.search-highlight {
     border: 1px solid var(--card-front-border);
     border-radius: var(--radius-lg);
     margin-bottom: 1rem;
-    /* Space between cards */
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* Two equal columns on desktop */
     gap: 1.5rem;
     padding: 1.5rem;
+    box-shadow: var(--shadow-paper);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     position: relative;
 }
@@ -608,8 +612,8 @@ mark.search-highlight {
 }
 
 .cheatsheet-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 22px -6px var(--shadow-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-paper-hover);
 }
 
 .cheatsheet-particles {
@@ -666,13 +670,17 @@ mark.search-highlight {
 }
 
 .import-button {
-    border: 1px solid var(--accent-blue);
+    border: 1px solid var(--accent-vermilion);
     background-color: transparent;
-    color: var(--accent-blue);
+    color: var(--accent-vermilion);
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-md);
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .import-button:hover {
-    background-color: var(--accent-blue);
+    background-color: var(--accent-vermilion);
     color: white;
 }
 
@@ -682,7 +690,7 @@ mark.search-highlight {
     border-radius: var(--radius-md);
     color: var(--text-primary);
     background-color: rgba(255, 255, 255, 0.4);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--washi-border);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -696,8 +704,8 @@ mark.search-highlight {
 
 .modal-input:focus {
     outline: none;
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px var(--accent-blue);
+    border-color: var(--accent-vermilion);
+    box-shadow: 0 0 0 3px rgba(197, 61, 67, 0.15);
 }
 
 #file-import-area {
@@ -714,18 +722,18 @@ mark.search-highlight {
 
 #file-import-area:hover {
     opacity: 1;
-    border-color: var(--accent-blue);
+    border-color: var(--accent-vermilion);
 }
 
 #file-import-area.drag-active {
     opacity: 1;
-    border-color: var(--accent-blue);
-    background-color: rgba(59, 130, 246, 0.1);
+    border-color: var(--accent-vermilion);
+    background-color: rgba(197, 61, 67, 0.08);
 }
 
 #file-import-area.state-preview {
     border-style: solid;
-    border-color: var(--glass-border);
+    border-color: var(--washi-border);
     background-color: rgba(255, 255, 0, 0.2);
     cursor: default;
     padding: 1.25rem;
@@ -741,7 +749,7 @@ mark.search-highlight {
     background-color: var(--card-front-bg);
     padding: 0.75rem 1.25rem;
     border-radius: var(--radius-md);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--washi-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -792,7 +800,10 @@ mark.search-highlight {
 }
 
 #kanji-detail-modal .glass-effect {
-    background-image: radial-gradient(at 5% 5%, hsla(215, 98%, 70%, 0.15) 0px, transparent 50%), radial-gradient(at 95% 95%, hsla(280, 96%, 76%, 0.15) 0px, transparent 50%);
+    /* Washi paper texture instead of glass gradient */
+    background-image:
+        radial-gradient(ellipse at 10% 20%, rgba(180, 160, 130, 0.04) 0%, transparent 40%),
+        radial-gradient(ellipse at 90% 80%, rgba(180, 160, 130, 0.03) 0%, transparent 35%);
 }
 
 #kanji-detail-modal .text-5xl {
@@ -818,7 +829,7 @@ mark.search-highlight {
 }
 
 .border-glass-border {
-    border-color: var(--glass-border);
+    border-color: var(--washi-border);
 }
 
 .with-furigana {
@@ -861,7 +872,7 @@ mark.search-highlight {
     color: var(--text-primary);
     padding-bottom: 0.5rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--washi-border);
 }
 
 .dict-grid {
@@ -894,7 +905,7 @@ mark.search-highlight {
     line-height: 1.7;
     color: var(--text-secondary);
     padding-top: 0.75rem;
-    border-top: 1px solid var(--glass-border);
+    border-top: 1px solid var(--washi-border);
 }
 
 .dict-vocab-definitions p {
@@ -942,7 +953,7 @@ mark.search-highlight {
 .dict-kanji-meanings {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
-    border-top: 1px solid var(--glass-border);
+    border-top: 1px solid var(--washi-border);
     font-size: clamp(0.9rem, 3.5vw, 0.95rem);
     line-height: 1.6;
     color: var(--text-primary);
@@ -1148,20 +1159,20 @@ mark.search-highlight {
     cursor: pointer;
     font-weight: 600;
     font-size: 0.875rem;
-    transition: all 0.4s var(--ease-in-out-quad);
+    transition: all 0.35s var(--ease-in-out-quad);
 }
 
 .level-switch .level-switch-button:hover:not(.active) {
     color: var(--text-primary);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 .level-switch .level-switch-button.active {
-    background-color: var(--accent-blue);
+    background-color: var(--accent-vermilion);
     color: white;
     font-weight: 700;
-    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.5);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 12px -2px rgba(197, 61, 67, 0.4);
+    transform: translateY(-1px);
     pointer-events: none;
     cursor: default;
     opacity: 1;
@@ -1175,7 +1186,7 @@ mark.search-highlight {
     padding: 4px;
     border-radius: var(--radius-full);
     background-color: var(--card-front-bg);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--washi-border);
     color: var(--text-secondary);
     cursor: pointer;
     display: flex;
@@ -1260,7 +1271,7 @@ mark.search-highlight {
 }
 
 .sidebar-pin-btn.is-pinned svg {
-    fill: var(--accent-blue) !important;
+    fill: var(--accent-vermilion) !important;
     transform: scale(1.1);
 }
 
@@ -1289,7 +1300,7 @@ mark.search-highlight {
 
 .progress-fill {
     height: 100%;
-    background-color: var(--accent-blue);
+    background-color: var(--accent-vermilion);
     border-radius: var(--radius-full);
     transition: width 0.8s var(--ease-out-quint), stroke-dashoffset 1.2s var(--ease-out-quint);
 }
@@ -1410,9 +1421,7 @@ input:checked+.slider:before {
     }
 }
 
-.accordion-content {
-    content-visibility: auto;
-}
+
 
 .sentinel {
     height: 1px;

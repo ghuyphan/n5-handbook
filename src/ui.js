@@ -37,9 +37,9 @@ function handleIntersection(entries, observer) {
         for (let i = currentIndex; i < nextBatchEnd; i++) {
             fragment.appendChild(createFn(allItems[i]));
         }
-        
+
         grid.insertBefore(fragment, sentinel);
-        
+
         observerMap.set(tabId, { allItems, createFn, batchSize, currentIndex: nextBatchEnd });
     });
 }
@@ -158,14 +158,14 @@ function createCheatSheetList(headers, content) {
 
         const searchTermsForRow = Object.keys(headers).map(key => getLangText(item, key));
         card.dataset.searchItem = generateSearchTerms(searchTermsForRow);
-        
+
         const mainContent = document.createElement('div');
         mainContent.className = 'cheatsheet-main';
 
         const particles = document.createElement('h4');
         particles.className = 'cheatsheet-particles';
         particles.textContent = getLangText(item, Object.keys(headers)[0]);
-        
+
         const usage = document.createElement('p');
         usage.className = 'cheatsheet-usage';
         usage.textContent = getLangText(item, Object.keys(headers)[1]);
@@ -201,22 +201,22 @@ function createKosoadoGrid(content, headers) {
 
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
-        
+
         group.data.forEach(item => {
             const cell = document.createElement('div');
             cell.className = 'cell-bg rounded-lg p-3 flex flex-col justify-center text-center h-24';
-            
+
             let primaryText = '';
             let secondaryText = '';
 
-            if (item.reading) { 
+            if (item.reading) {
                 primaryText = item.reading;
                 secondaryText = getLangText(item, 'meaning');
-            } else { 
+            } else {
                 primaryText = getLangText(item, headerKeys[0]);
                 secondaryText = getLangText(item, headerKeys[1]);
             }
-            
+
             const searchData = generateSearchTerms([primaryText, secondaryText]);
             cell.dataset.searchItem = searchData;
 
@@ -289,46 +289,46 @@ const createCard = (item, category, backGradient) => {
     return clone;
 };
 
+/**
+ * Creates a section of cards (e.g., Grammar, Vocab) dynamically.
+ * Optimizes performance by using DocumentFragment and IntersectionObserver for lazy loading.
+ * 
+ * @param {string} title - The section title.
+ * @param {Array} data - Array of data items to render.
+ * @param {string} category - Category identifier (e.g., 'vocab').
+ * @param {string} backGradient - CSS class or value for card back gradient.
+ * @param {string} titleKey - Localization key for the title.
+ * @param {string} tabId - The ID of the tab this section belongs to.
+ * @returns {HTMLElement} The constructed section element.
+ */
 function createCardSection(title, data, category, backGradient, titleKey, tabId) {
-    if (!data || data.length === 0) return document.createDocumentFragment();
-
     const cardGrid = document.createElement('div');
-    cardGrid.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4';
+    // Using same responsive grid classes as before
+    cardGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
 
-    const batchSize = 50;
-    const initialBatch = data.slice(0, batchSize);
-
+    // Render ALL cards upfront to avoid blank cards during fast scrolling
+    // The previous lazy loading (IntersectionObserver) couldn't keep up with fast scroll
     const fragment = document.createDocumentFragment();
-    initialBatch.forEach(item => {
-        fragment.appendChild(createCard(item, category, backGradient));
+    const createFn = (item) => createCard(item, category, backGradient);
+
+    data.forEach(item => {
+        fragment.appendChild(createFn(item));
     });
+
     cardGrid.appendChild(fragment);
 
-    if (data.length > batchSize) {
-        const sentinel = document.createElement('div');
-        sentinel.className = 'sentinel';
-        cardGrid.appendChild(sentinel);
-
-        const createFn = (item) => createCard(item, category, backGradient);
-
-        observerMap.set(tabId, {
-            allItems: data,
-            createFn: createFn,
-            batchSize: batchSize,
-            currentIndex: batchSize
-        });
-
-        const observer = new IntersectionObserver(handleIntersection, { rootMargin: '200px' });
-        observer.observe(sentinel);
-    }
-    
     const accordionContentWrapper = document.createElement('div');
     accordionContentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
     accordionContentWrapper.appendChild(cardGrid);
 
+    // Generate search terms for the whole section to help filtering
+    // Note: This matches the previous logic, ensuring Fuse works on the whole block
     const searchTermsForSection = generateSearchTerms([title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]);
+
+    // Critical: Use the existing logic which handles 'title' correctly (via re-render)
+    // rather than injecting data-lang-key which might be missing in UI dictionary.
     return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId);
-};
+}
 
 
 const createStaticSection = (data, icon, color) => {
@@ -394,8 +394,9 @@ export function updateProgressDashboard() {
     const containers = [els.progressOverview, els.progressTab];
     if (!state.appData.ui || !containers.every(c => c)) return;
 
-    const gradientsSVG = `<svg width="0" height="0"><defs><linearGradient id="purple-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#A78BFA" /><stop offset="100%" stop-color="#8B5CF6" /></linearGradient><linearGradient id="green-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4ADE80" /><stop offset="100%" stop-color="#22C55E" /></linearGradient></defs></svg>`;
-    const dataCategories = { kanji: 'purple', vocab: 'green' };
+    // Washi paper themed gradients - vermilion for kanji, gold/amber for vocab
+    const gradientsSVG = `<svg width="0" height="0"><defs><linearGradient id="vermilion-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D45A5A" /><stop offset="100%" stop-color="#C53D43" /></linearGradient><linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D4A84A" /><stop offset="100%" stop-color="#B8860B" /></linearGradient></defs></svg>`;
+    const dataCategories = { kanji: 'vermilion', vocab: 'gold' };
 
     const progressItemsFragment = document.createDocumentFragment();
 
@@ -511,7 +512,7 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
 
     const wrapper = document.createElement('div');
     wrapper.className = 'space-y-4';
-    container.appendChild(wrapper); 
+    container.appendChild(wrapper);
 
     if (observerMap.has(containerId)) {
         const existingObserver = observerMap.get(containerId).observer;
@@ -543,6 +544,14 @@ function findKanjiData(kanjiCharacter) {
     return null;
 }
 
+/**
+ * Updates the External Search tab dynamically.
+ * Performs a search via Jotoba API (delegated) or displays placeholders.
+ * 
+ * @param {string} type - 'word', 'kanji', 'sentence', or 'names'.
+ * @param {object} data - The search result data.
+ * @param {boolean} isInitialLoad - Whether this is the first load (show placeholder).
+ */
 export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) {
     if (!els.externalSearchTab) return;
 
@@ -568,11 +577,11 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
         placeholderContainer.innerHTML = `<div class="search-placeholder-box"></div>`;
         els.externalSearchTab.appendChild(placeholderContainer);
     }
-    
-    if(type === 'results') {
-         els.externalSearchTab.innerHTML = '';
-         els.externalSearchTab.appendChild(resultsContainer);
-         els.externalSearchTab.appendChild(placeholderContainer);
+
+    if (type === 'results') {
+        els.externalSearchTab.innerHTML = '';
+        els.externalSearchTab.appendChild(resultsContainer);
+        els.externalSearchTab.appendChild(placeholderContainer);
     }
 
 
@@ -791,7 +800,7 @@ export async function renderContent(tabId = null) {
             if (!els.keyPointsTab || !state.appData.keyPoints) return;
             els.keyPointsTab.innerHTML = '';
             const fragment = document.createDocumentFragment();
-            
+
             for (const key in state.appData.keyPoints) {
                 const section = state.appData.keyPoints[key];
                 const title = getLangText(section);
@@ -811,7 +820,7 @@ export async function renderContent(tabId = null) {
                     fragment.appendChild(createAccordion(title, contentWrapper, searchTerms, key, 'keyPoints'));
                 }
             }
-            
+
             const wrapper = document.createElement('div');
             wrapper.className = 'space-y-4';
             wrapper.appendChild(fragment);

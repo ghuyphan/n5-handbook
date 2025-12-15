@@ -6,84 +6,151 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --- 1. ROOT & THEME VARIABLES (Highest Priority) --- */
+/* --- 1. ROOT & THEME VARIABLES - WASHI PAPER (和紙) THEME --- */
 :root {
-    /* Color Palette */
-    --bg-main: #F1F5F9;
-    /* Slate 100 - Slightly darker for better card contrast */
-    --text-primary: #1a1a2e;
-    --text-secondary: #5a5a78;
-    --accent-pink: #EC4899;
-    --accent-blue: #3B82F6;
-    --accent-green: #22C55E;
-    --accent-red: #EF4444;
-    --accent-purple: #8B5CF6;
-    --accent-orange: #F97316;
-    --accent-yellow: #F59E0B;
-    --accent-teal: rgb(20, 184, 166);
-    --color-danger: #ef4444;
-    --color-danger-bg: rgba(239, 68, 68, 0.15);
+    /* === WASHI PAPER COLOR PALETTE - LIGHT MODE === */
+    /* Base colors - warm cream like traditional washi */
+    --bg-main: #F7F5F0;
+    /* Warm cream (unbleached washi) */
+    --bg-paper: #FAF8F3;
+    /* Pure washi white */
+    --bg-paper-elevated: #FFFFFF;
+    /* Bright white for cards */
 
-    /* UI Colors */
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.4);
-    --shadow-color: rgba(71, 85, 105, 0.1);
-    /* Darker shadow for definition */
-    --card-front-bg: #FFFFFF;
-    /* Solid white for distinct contrast against Slate-50 */
-    --card-front-border: transparent;
-    /* No visible border for consistency */
-    --progress-track-color: rgba(229, 231, 235, 0.6);
-    --nav-hover-bg: #E0E7FF;
-    --switch-bg: #e9eaf1;
-    --backdrop-bg: rgba(0, 0, 0, 0.3);
-    --bg-orange: rgba(249, 115, 22, 0.1);
-    --bg-teal: rgba(20, 184, 166, 0.1);
+    /* Text - Sumi ink inspired */
+    --text-primary: #2D2A26;
+    /* Sumi ink black */
+    --text-secondary: #6B6560;
+    /* Faded/diluted ink */
+    --text-header: #1A1816;
+    /* Deep black for headers */
 
-    /* Pin & Icon Colors */
-    --pin-color: #3B82F6;
-    --pin-unpinned: #6B7280;
-    --pin-background: var(--glass-bg);
+    /* Borders - subtle fiber/edge appearance */
+    --border-subtle: #E5DFD3;
+    /* Soft washi fiber edge */
+    --border-medium: #D4CEC2;
+    /* Visible paper edge */
+
+    /* Shadows - soft, paper-like */
+    --shadow-color: rgba(45, 42, 38, 0.08);
+    --shadow-paper: 0 2px 8px rgba(45, 42, 38, 0.06), 0 1px 2px rgba(45, 42, 38, 0.04);
+    --shadow-paper-hover: 0 4px 16px rgba(45, 42, 38, 0.1), 0 2px 4px rgba(45, 42, 38, 0.06);
+
+    /* Traditional Japanese accent colors */
+    --accent-vermilion: #C53D43;
+    /* 朱 (shu) - vermilion seal red */
+    --accent-indigo: #2C4A52;
+    /* 藍 (ai) - indigo blue */
+    --accent-gold: #B8860B;
+    /* 金 (kin) - gold leaf */
+    --accent-matcha: #5B7E5A;
+    /* 抹茶 - matcha green */
+    --accent-sakura: #F4A7B9;
+    /* 桜 - cherry blossom pink */
+
+    /* Keep some utility colors but muted */
+    --accent-pink: #D97B93;
+    --accent-blue: #4A7C8C;
+    /* Muted traditional blue */
+    --accent-green: #5B7E5A;
+    --accent-red: #C53D43;
+    --accent-purple: #6B5B7C;
+    /* Muted purple */
+    --accent-orange: #C96A3B;
+    /* Earthy orange */
+    --accent-yellow: #C9A83B;
+    /* Gold-yellow */
+    --accent-teal: #4A7C7C;
+
+    /* Danger/warning colors */
+    --color-danger: #C53D43;
+    --color-danger-bg: rgba(197, 61, 67, 0.1);
+
+    /* UI Component colors - replacing glass with paper */
+    --washi-bg: var(--bg-paper);
+    --washi-border: var(--border-subtle);
+    --card-front-bg: var(--bg-paper-elevated);
+    --card-front-border: var(--border-subtle);
+    --progress-track-color: #D1C9B8;
+    --nav-hover-bg: #EDE9E0;
+    /* Slightly darker cream on hover */
+    --switch-bg: #E5E0D6;
+    --backdrop-bg: rgba(45, 42, 38, 0.4);
+    --bg-orange: rgba(201, 106, 59, 0.1);
+    --bg-teal: rgba(74, 124, 124, 0.1);
+
+    /* Pin & Icon Colors - use vermilion as accent */
+    --pin-color: var(--accent-vermilion);
+    --pin-unpinned: #8C857A;
+    --pin-background: var(--bg-paper);
     --pin-hover-bg: var(--nav-hover-bg);
+    --pin-pinned-bg: var(--accent-vermilion);
 
-    /* Sizing & Radius */
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.5rem;
+    /* Sizing & Radius - softer, more organic */
+    --radius-sm: 0.375rem;
+    /* 6px - softer corners */
+    --radius-md: 0.625rem;
+    /* 10px */
+    --radius-lg: 0.875rem;
+    /* 14px */
+    --radius-xl: 1.25rem;
+    /* 20px - main containers */
     --radius-full: 9999px;
 
-    /* Animation & Transitions */
+    /* Animation & Transitions - slightly slower for zen feel */
     --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out-quad: cubic-bezier(0.455, 0.03, 0.515, 0.955);
-    --transition-duration: 0.4s;
+    --transition-duration: 0.35s;
 }
 
 .dark-mode {
-    /* Color Palette */
-    --bg-main: #0F172A;
-    /* Slate 900 - Richer dark */
-    --text-primary: #F3F4F6;
-    --text-secondary: #D1D5DB;
-    --color-danger: #f87171;
-    --color-danger-bg: rgba(248, 113, 113, 0.15);
+    /* === WASHI PAPER COLOR PALETTE - DARK MODE (INK STONE) === */
+    /* Base colors - charcoal/sumi ink stone aesthetic */
+    --bg-main: #1A1917;
+    /* Deep charcoal */
+    --bg-paper: #252320;
+    /* Dark washi */
+    --bg-paper-elevated: #2D2A26;
+    /* Elevated dark surface */
 
-    /* UI Colors */
-    --glass-bg: rgba(31, 41, 55, 0.75);
-    --glass-border: rgba(55, 65, 81, 0.25);
-    --shadow-color: rgba(31, 41, 55, 0.1);
-    --card-front-bg: rgba(55, 65, 81, 0.8);
-    --card-front-border: rgba(75, 85, 99, 0.4);
-    --progress-track-color: rgba(75, 85, 99, 0.6);
-    --nav-hover-bg: #1F2937;
-    --switch-bg: #374151;
-    --backdrop-bg: rgba(17, 24, 39, 0.5);
-    --bg-orange: rgba(251, 146, 60, 0.15);
-    --lang-inactive-color: #E5E7EB;
+    /* Text - light cream on dark */
+    --text-primary: #E8E4DC;
+    /* Cream white */
+    --text-secondary: #A09A90;
+    /* Muted cream */
+    --text-header: #F5F2EC;
+    /* Bright cream for headers */
+
+    /* Borders */
+    --border-subtle: #3A3632;
+    --border-medium: #4A4540;
+
+    /* Shadows */
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --shadow-paper: 0 2px 8px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15);
+    --shadow-paper-hover: 0 4px 16px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.2);
+
+    /* Danger colors */
+    --color-danger: #E57373;
+    --color-danger-bg: rgba(229, 115, 115, 0.15);
+
+    /* UI Component colors */
+    --washi-bg: var(--bg-paper);
+    --washi-border: var(--border-subtle);
+    --card-front-bg: var(--bg-paper-elevated);
+    --card-front-border: var(--border-subtle);
+    --progress-track-color: #4A4540;
+    --nav-hover-bg: #353230;
+    --switch-bg: #3A3632;
+    --backdrop-bg: rgba(10, 10, 9, 0.7);
+    --bg-orange: rgba(201, 106, 59, 0.15);
+    --lang-inactive-color: #C9C4BA;
 
     /* Pin & Icon Colors */
-    --pin-color: #60A5FA;
-    --pin-unpinned: #9CA3AF;
+    --pin-color: #E57373;
+    /* Lighter vermilion for dark mode */
+    --pin-unpinned: #8C857A;
+    --pin-pinned-bg: #E57373;
 }
 
 /* --- 2. GLOBAL & BASE STYLES (For basic page rendering) --- */
@@ -93,10 +160,34 @@ html {
 }
 
 body {
-    @apply font-sans text-primary;
-    /* Removed bg-main-gradient */
+    font-family: "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
     background-color: var(--bg-main);
+    /* Washi paper texture - simulates paper fibers and grain */
+    background-image:
+        /* Subtle horizontal fiber lines */
+        repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(139, 119, 101, 0.015) 2px,
+            rgba(139, 119, 101, 0.015) 3px),
+        /* Organic noise/grain texture */
+        radial-gradient(ellipse at 20% 30%, rgba(180, 160, 130, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(180, 160, 130, 0.03) 0%, transparent 40%),
+        radial-gradient(ellipse at 40% 80%, rgba(160, 140, 110, 0.025) 0%, transparent 35%),
+        radial-gradient(ellipse at 70% 20%, rgba(170, 150, 120, 0.03) 0%, transparent 45%);
     transition: background-color var(--transition-duration) var(--ease-in-out-quad), color var(--transition-duration) var(--ease-in-out-quad);
+}
+
+.dark-mode body {
+    background-image:
+        repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(200, 180, 150, 0.015) 2px,
+            rgba(200, 180, 150, 0.015) 3px),
+        radial-gradient(ellipse at 20% 30%, rgba(100, 90, 70, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(100, 90, 70, 0.05) 0%, transparent 40%);
 }
 
 .body-no-scroll,
@@ -121,14 +212,13 @@ body.sidebar-open {
 #loading-overlay {
     position: fixed;
     inset: 0;
-    background-color: var(--backdrop-bg);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background-color: var(--bg-main);
+    /* Solid paper background, no blur */
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 200;
-    transition: opacity 0.4s ease-out, visibility 0.4s, backdrop-filter 0.4s ease-out;
+    transition: opacity 0.4s ease-out, visibility 0.4s;
     opacity: 1;
     visibility: visible;
 }
@@ -159,9 +249,9 @@ body.sidebar-open {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 3px solid var(--accent-blue);
+    border: 3px solid var(--accent-vermilion);
     animation: pulse 2s ease-out infinite;
-    filter: drop-shadow(0 0 8px var(--accent-blue));
+    filter: drop-shadow(0 0 6px var(--accent-vermilion));
 }
 
 .loader:after {
@@ -217,6 +307,7 @@ body.sidebar-open {
     transition: filter var(--transition-duration) var(--ease-in-out-quad);
 }
 
+/* Both sidebars are sticky - stay in viewport while content scrolls */
 .left-sidebar,
 .right-sidebar {
     position: sticky;
@@ -229,6 +320,34 @@ body.sidebar-open {
     overflow-y: auto;
     scrollbar-gutter: stable;
     border-radius: var(--radius-xl);
+    /* Washi paper texture for sidebar */
+    background-image:
+        /* Subtle diagonal fiber texture */
+        repeating-linear-gradient(135deg,
+            transparent,
+            transparent 1px,
+            rgba(139, 119, 101, 0.02) 1px,
+            rgba(139, 119, 101, 0.02) 2px),
+        /* Soft organic spots */
+        radial-gradient(ellipse at 15% 25%, rgba(180, 160, 130, 0.05) 0%, transparent 40%),
+        radial-gradient(ellipse at 85% 75%, rgba(160, 140, 110, 0.04) 0%, transparent 35%);
+}
+
+/* Decorative top edge - like torn paper */
+.left-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 5%;
+    right: 5%;
+    height: 3px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(197, 61, 67, 0.3) 20%,
+            rgba(197, 61, 67, 0.5) 50%,
+            rgba(197, 61, 67, 0.3) 80%,
+            transparent 100%);
+    border-radius: 0 0 2px 2px;
 }
 
 .main-header h1 {
@@ -365,14 +484,36 @@ body.sidebar-open {
     min-height: calc(100vh - 250px);
 }
 
+/* Washi Paper Effect - replaces glass-effect */
 .glass-effect {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 20px 0 var(--shadow-color);
-    transition: background var(--transition-duration) var(--ease-in-out-quad), border-color var(--transition-duration) var(--ease-in-out-quad);
+    background: var(--bg-paper);
+    /* Washi paper fiber texture */
+    background-image:
+        /* Diagonal fiber lines */
+        repeating-linear-gradient(-45deg,
+            transparent,
+            transparent 3px,
+            rgba(139, 119, 101, 0.02) 3px,
+            rgba(139, 119, 101, 0.02) 4px),
+        /* Organic grain spots */
+        radial-gradient(ellipse at 15% 25%, rgba(180, 160, 130, 0.04) 0%, transparent 40%),
+        radial-gradient(ellipse at 75% 65%, rgba(160, 140, 110, 0.03) 0%, transparent 35%),
+        radial-gradient(ellipse at 50% 10%, rgba(170, 150, 120, 0.025) 0%, transparent 30%);
+    border: 1px solid var(--washi-border);
+    box-shadow: var(--shadow-paper);
+    transition: background var(--transition-duration) var(--ease-in-out-quad), box-shadow var(--transition-duration) var(--ease-in-out-quad), border-color var(--transition-duration) var(--ease-in-out-quad);
     border-radius: var(--radius-xl);
+}
+
+.dark-mode .glass-effect {
+    background-image:
+        repeating-linear-gradient(-45deg,
+            transparent,
+            transparent 3px,
+            rgba(200, 180, 150, 0.015) 3px,
+            rgba(200, 180, 150, 0.015) 4px),
+        radial-gradient(ellipse at 15% 25%, rgba(80, 70, 55, 0.05) 0%, transparent 40%),
+        radial-gradient(ellipse at 75% 65%, rgba(80, 70, 55, 0.04) 0%, transparent 35%);
 }
 
 #overlay,
@@ -428,21 +569,48 @@ body.sidebar-open {
 }
 
 .nav-item {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 2px 8px -2px var(--shadow-color);
+    background: var(--bg-paper);
+    border: 1px solid var(--washi-border);
+    box-shadow: var(--shadow-paper);
     transition: background-color var(--transition-duration) var(--ease-out-quint), color var(--transition-duration) var(--ease-out-quint), transform var(--transition-duration) var(--ease-out-quint), box-shadow var(--transition-duration) var(--ease-out-quint);
-    will-change: transform, background-color, box-shadow;
-    will-change: transform, background-color, box-shadow;
     border-radius: var(--radius-md);
+    /* Subtle paper texture */
+    background-image:
+        radial-gradient(ellipse at 10% 50%, rgba(180, 160, 130, 0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 50%, rgba(160, 140, 110, 0.02) 0%, transparent 40%);
+    position: relative;
+    overflow: hidden;
 }
 
-/* Optimization: Defer rendering of off-screen content */
+/* Decorative left accent - like an ink brush mark */
+.nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 3px;
+    background: linear-gradient(180deg,
+            transparent 0%,
+            var(--accent-vermilion) 30%,
+            var(--accent-vermilion) 70%,
+            transparent 100%);
+    opacity: 0;
+    transition: opacity var(--transition-duration) var(--ease-out-quint);
+    border-radius: 0 2px 2px 0;
+}
+
+.nav-item:hover::before,
+.nav-item.active::before {
+    opacity: 0.6;
+}
+
+.nav-item.active::before {
+    opacity: 1;
+}
+
+/* Optimization: Defer rendering of off-screen content - REMOVED for stability */
 .accordion-wrapper {
-    content-visibility: auto;
-    contain-intrinsic-size: 1px 200px;
-    /* Approximate height estimate */
-    contain: layout paint;
     scroll-margin-top: 1.5rem;
     /* Match sidebar sticky position on desktop */
 }
@@ -463,7 +631,11 @@ body.sidebar-open {
 }
 
 .accordion-wrapper .glass-effect {
-    box-shadow: 0 1px 3px 0 var(--shadow-color), 0 1px 2px -1px var(--shadow-color);
+    box-shadow: var(--shadow-paper);
+}
+
+.dark-mode .accordion-wrapper .glass-effect {
+    box-shadow: var(--shadow-paper);
 }
 
 .dark-mode .nav-item {
@@ -471,10 +643,10 @@ body.sidebar-open {
 }
 
 .nav-item.active {
-    background-color: var(--accent-blue);
+    background-color: var(--accent-vermilion);
     color: white;
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
-    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 12px rgba(197, 61, 67, 0.3);
+    transform: translateY(-1px);
     border-color: transparent;
 }
 
@@ -489,7 +661,8 @@ body.sidebar-open {
 }
 
 .dark-mode .notes-header-btn {
-    background-color: #374151;
+    background-color: var(--bg-paper);
+    border-color: var(--washi-border);
 }
 
 .notes-header-btn svg {
@@ -519,8 +692,8 @@ body.sidebar-open {
     top: 2px;
     bottom: 2px;
     border-radius: var(--radius-full);
-    background-color: var(--accent-blue);
-    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.5);
+    background-color: var(--accent-vermilion);
+    box-shadow: 0 4px 12px -2px rgba(197, 61, 67, 0.4);
     transition: transform 0.4s var(--ease-out-quint), width 0.4s var(--ease-out-quint);
 }
 
@@ -570,7 +743,7 @@ body.sidebar-open {
     flex-direction: column;
     gap: 1.25rem;
     padding-top: 1.25rem;
-    border-top: 1px solid var(--glass-border);
+    border-top: 1px solid var(--washi-border);
 }
 
 .square-icon-container {
@@ -588,22 +761,26 @@ body.sidebar-open {
     object-fit: contain;
 }
 
-/* ✅ ADDED: Reusable component classes */
+/* Washi Paper Button Components */
 @layer components {
     .btn {
         @apply inline-flex items-center justify-center relative cursor-pointer;
-        /* ✅ This is the key change: No more 'transition-all' */
         transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     }
 
     .btn-primary {
-        @apply bg-accent-blue text-white font-semibold rounded-md shadow-lg shadow-blue-500/20;
+        background-color: var(--accent-vermilion);
+        color: white;
+        font-weight: 600;
+        border-radius: var(--radius-md);
         padding: 0.875rem 1.5rem;
+        box-shadow: 0 2px 8px rgba(197, 61, 67, 0.25);
     }
 
     .btn-primary:hover {
-        @apply bg-blue-600 shadow-blue-500/30;
-        transform: translateY(-2px);
+        background-color: #A83238;
+        box-shadow: 0 4px 12px rgba(197, 61, 67, 0.35);
+        transform: translateY(-1px);
     }
 
     .btn-primary:disabled {
@@ -611,15 +788,21 @@ body.sidebar-open {
     }
 
     .btn-icon {
-        @apply w-10 h-10 p-2.5 rounded-full bg-switch-bg border border-transparent;
+        @apply w-10 h-10 p-2.5 rounded-full;
+        background-color: var(--bg-paper);
+        border: 1px solid var(--washi-border);
     }
 
     .btn-icon:hover {
-        @apply bg-nav-hover-bg scale-110 shadow-lg;
+        background-color: var(--nav-hover-bg);
+        transform: scale(1.05);
+        box-shadow: var(--shadow-paper);
     }
 
     .btn-icon:focus-visible {
-        @apply bg-nav-hover-bg scale-110 shadow-lg;
+        background-color: var(--nav-hover-bg);
+        transform: scale(1.05);
+        box-shadow: var(--shadow-paper);
     }
 
     .btn-icon:active {

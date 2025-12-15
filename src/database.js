@@ -30,16 +30,115 @@ export const dbPromise = openDB('HandbookDB', 3, {
  * This should be called once at startup before any rendering occurs.
  */
 export async function loadGlobalUI() {
-    try {
-        const response = await fetch(`./data/${config.defaultLevel}/ui.json`);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch UI data: ${response.status}`);
+    // Fallback UI data (critical keys)
+    const fallbackUI = {
+        en: {
+            dictionarySearch: "Dictionary Search",
+            keyPoints: "Key Points",
+            vocabulary: "Vocabulary",
+            grammar: "Grammar",
+            dashboard: "Dashboard",
+            dashboardSubtitle: "Your learning progress",
+            progressOverview: "Progress Overview",
+            dictionarySubtitle: "Universal Dictionary", // Added missing key
+            dictionaryNotice: "Select a category to start searching",
+            searchPlaceholder: "Search for words...",
+            progress: "Progress",
+            levelNameLabel: "Level Name",
+            levelNamePlaceholder: "e.g. N5",
+            level: "Level", // Added missing key
+            uploadLabel: "Upload Level File (.csv)",
+            importButton: "Import",
+            importLevel: "Import Level",
+            footerText: "Made with ❤️ by",
+            saveNotes: "Save Notes",
+            notesPlaceholder: "Type your notes here / Gõ ghi chú của bạn ở đây...",
+            modalExamples: "Examples",
+            modalInfo: "Info",
+            modalRadical: "Radical",
+            modalMnemonic: "Mnemonic",
+            noResults: "No results for",
+            noResultsSubtitle: "Try checking your spelling or switching tabs.",
+            searchErrorTitle: "Search failed",
+            searchError: "Something went wrong while searching. Please try again.",
+            retryButton: "Retry",
+            vocabResults: "Vocabulary Results",
+            kanjiResults: "Kanji Results",
+            noDefinition: "No definition found.",
+            onyomi: "On'yomi:",
+            kunyomi: "Kun'yomi:"
+        },
+        vi: {
+            dictionarySearch: "Tra Từ Điển",
+            keyPoints: "Điểm Chính",
+            vocabulary: "Từ Vựng",
+            grammar: "Ngữ Pháp",
+            dashboard: "Bảng Điều Khiển",
+            dashboardSubtitle: "Tiến độ học tập của bạn",
+            progressOverview: "Tổng quan tiến độ",
+            dictionarySubtitle: "Từ điển tổng hợp", // Added missing key
+            dictionaryNotice: "Chọn một danh mục để bắt đầu tìm kiếm",
+            searchPlaceholder: "Tìm kiếm từ vựng...",
+            progress: "Tiến Độ",
+            levelNameLabel: "Tên Cấp Độ",
+            levelNamePlaceholder: "ví dụ: N5",
+            level: "Cấp độ", // Added missing key
+            uploadLabel: "Tải lên tệp cấp độ (.csv)",
+            importButton: "Nhập",
+            importLevel: "Nhập Cấp Độ",
+            footerText: "Được làm bằng ❤️ bởi",
+            saveNotes: "Lưu Ghi Chú",
+            notesPlaceholder: "Gõ ghi chú của bạn ở đây...",
+            modalExamples: "Ví dụ",
+            modalInfo: "Thông tin",
+            modalRadical: "Bộ thủ",
+            modalMnemonic: "Gợi nhớ",
+            noResults: "Không tìm thấy kết quả cho",
+            noResultsSubtitle: "Hãy thử kiểm tra chính tả hoặc chuyển tab.",
+            searchErrorTitle: "Tìm kiếm thất bại",
+            searchError: "Đã xảy ra lỗi khi tìm kiếm. Vui lòng thử lại.",
+            retryButton: "Thử lại",
+            vocabResults: "Kết quả Từ Vựng",
+            kanjiResults: "Kết quả Hán Tự",
+            noDefinition: "Không tìm thấy định nghĩa.",
+            onyomi: "Âm On:",
+            kunyomi: "Âm Kun:"
         }
-        state.appData.ui = await response.json();
+    };
+
+    try {
+        // Try to fetch from local data path first (for development/customization)
+        let response = await fetch(`./data/ui.json`);
+
+        // Check if response is JSON (Vite serves HTML for 404s in dev)
+        const contentType = response.headers.get("content-type");
+        if (response.ok && contentType && contentType.includes("application/json")) {
+            // Valid local JSON
+        } else {
+            console.warn(`Local UI data not found or invalid (content-type: ${contentType}), trying remote: ${config.dataPath}/ui.json`);
+            response = await fetch(`${config.dataPath}/ui.json`);
+        }
+
+        let remoteUI = {};
+        if (response.ok) {
+            remoteUI = await response.json();
+        } else {
+            console.warn(`Failed to fetch UI data from both local and remote sources, using internal fallback.`);
+        }
+
+        // Deep merge fallback into remote (remote takes precedence if key exists)
+        // Actually, we want fallback to fill in GAPS. So we merge remote INTO fallback? 
+        // No, usually remote is source of truth. But if remote is outdated, we want fallback.
+        // Let's do: start with fallback, overwrite with remote.
+        state.appData.ui = {
+            en: { ...fallbackUI.en, ...(remoteUI.en || {}) },
+            vi: { ...fallbackUI.vi, ...(remoteUI.vi || {}) }
+        };
+
     } catch (error) {
         console.error("Fatal: Could not load the global ui.json file.", error);
-        // Set a fallback UI object to prevent the app from crashing.
-        state.appData.ui = { en: { error: "UI failed to load" } };
+        // Use full fallback
+        state.appData.ui = fallbackUI;
     }
 }
 
@@ -138,7 +237,7 @@ export async function loadAllData(level) {
     // The global UI is loaded separately now, so this function only handles level-specific data.
     const db = await dbPromise;
     const savedData = await db.get('levels', level);
-    
+
     // Clear old data except for the UI
     const uiData = state.appData.ui;
     state.appData = { ui: uiData };
@@ -153,7 +252,7 @@ export async function updateLevelData(level, newData) {
     try {
         const db = await dbPromise;
         const existingData = await db.get('levels', level) || {};
-        
+
         // A simple merge, you might want more sophisticated logic here
         const mergedData = { ...existingData, ...newData };
 

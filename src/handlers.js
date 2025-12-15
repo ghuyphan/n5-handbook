@@ -283,9 +283,11 @@ export function toggleTheme() {
 
 function showLoader() {
     if (!els.loadingOverlay) return;
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
     const newOverlay = els.loadingOverlay.cloneNode(true);
     els.loadingOverlay.parentNode.replaceChild(newOverlay, els.loadingOverlay);
     els.loadingOverlay = newOverlay;
+    // content preserved or replaced? The code sets innerHTML below.
     els.loadingOverlay.innerHTML = `<div class="loader"></div>`;
     els.loadingOverlay.classList.remove('hidden');
     requestAnimationFrame(() => {
@@ -296,12 +298,14 @@ function showLoader() {
 function hideLoader() {
     return new Promise(resolve => {
         if (!els.loadingOverlay || els.loadingOverlay.style.opacity === '0') {
+            document.body.style.overflow = ''; // Restore scrolling
             resolve();
             return;
         }
         const onTransitionEnd = (e) => {
             if (e.target !== els.loadingOverlay) return;
             els.loadingOverlay.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
             els.loadingOverlay.removeEventListener('transitionend', onTransitionEnd);
             resolve();
         };
@@ -580,6 +584,7 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 /**
  * Jump to a specific section within a tab, opening its accordion if needed.
  * Saves accordion state when opened.
+ * 
  * @param {string} tabName - The tab to navigate to
  * @param {string} sectionTitleKey - The data-section-title-key to scroll to
  */
@@ -588,25 +593,25 @@ export async function jumpToSection(tabName, sectionTitleKey) {
     const token = Symbol('jumpToSection');
     state._currentJumpToken = token;
 
-    const isCancelled = () => state._currentJumpToken !== token;
+    const isValidationCancelled = () => state._currentJumpToken !== token;
 
     // Navigate to tab if not already there
     const activeTab = document.querySelector('.tab-content.active');
     if (activeTab?.id !== tabName) {
         await changeTab(tabName, null, true);
-        if (isCancelled()) return;
+        if (isValidationCancelled()) return;
     }
 
     // Wait for the element to appear in DOM (with polling)
     let sectionHeader = null;
     for (let i = 0; i < 20; i++) {
-        if (isCancelled()) return;
+        if (isValidationCancelled()) return;
         sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
         if (sectionHeader?.isConnected) break;
         await new Promise(r => setTimeout(r, 100));
     }
 
-    if (!sectionHeader || isCancelled()) {
+    if (!sectionHeader || isValidationCancelled()) {
         console.warn(`jumpToSection: Could not find section "${sectionTitleKey}"`);
         return;
     }
@@ -637,7 +642,7 @@ export async function jumpToSection(tabName, sectionTitleKey) {
 
         // Wait for layout to update after opening accordion
         await new Promise(r => setTimeout(r, 50));
-        if (isCancelled()) return;
+        if (isValidationCancelled()) return;
     }
 
     // FIXED: Use manual scroll calculation to respect scroll-margin-top
@@ -649,11 +654,12 @@ export async function jumpToSection(tabName, sectionTitleKey) {
 
     // Wait for next frame before applying highlight
     await new Promise(r => requestAnimationFrame(r));
-    if (isCancelled()) return;
+    if (isValidationCancelled()) return;
 
     // Apply highlight animation
     scrollTarget.classList.remove('is-highlighted');
-    void scrollTarget.offsetWidth; // Force reflow
+    // Force reflow to restart animation - CRITICAL for CSS animation restart
+    void scrollTarget.offsetWidth;
     scrollTarget.classList.add('is-highlighted');
     scrollTarget.addEventListener('animationend', () => {
         scrollTarget.classList.remove('is-highlighted');

@@ -6,7 +6,7 @@
 // Static configuration that doesn't change during runtime
 export const config = {
     defaultLevel: 'n5',
-    dataPath: './data',
+    dataPath: 'https://raw.githubusercontent.com/ghuyphan/JLPT_Datas/main',
 };
 
 // Dynamic state of the application, which will be modified during runtime
