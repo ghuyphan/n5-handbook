@@ -27,7 +27,7 @@ export default defineConfig({
             injectRegister: null, // We are manually registering the SW in main.js
             registerType: 'autoUpdate',
             filename: 'service-worker.js', // Ensure consistent filename
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'assets/*.png', 'assets/*.webp', 'data/*.json'],
+            includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
             manifest: {
                 name: "JLPT Handbook",
                 short_name: "JLPT Handbook",
