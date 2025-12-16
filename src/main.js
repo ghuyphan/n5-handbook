@@ -15,12 +15,51 @@ import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab,
 
 // --- PWA Installation ---
 let deferredPrompt;
+let pwaInstallModalShown = false;
+
+// Detect platform
+function getPlatform() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios';
+    if (/android/i.test(ua)) return 'android';
+    return 'other';
+}
+
+// Check if running as standalone PWA
+function isStandalonePWA() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true ||
+        document.referrer.includes('android-app://');
+}
+
+// Check if mobile device
+function isMobileDevice() {
+    return window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+// Check if PWA install prompt was dismissed recently
+function wasPWAPromptDismissed() {
+    const dismissedAt = localStorage.getItem('pwaPromptDismissedAt');
+    if (!dismissedAt) return false;
+    // Show again after 7 days
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    return (Date.now() - parseInt(dismissedAt, 10)) < sevenDays;
+}
+
+function dismissPWAPrompt() {
+    localStorage.setItem('pwaPromptDismissedAt', Date.now().toString());
+}
 
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     if (els.installAppBtn) {
         els.installAppBtn.style.display = 'flex';
+    }
+    // Show native install button in modal if available
+    const nativeBtn = document.getElementById('pwa-native-install-btn');
+    if (nativeBtn) {
+        nativeBtn.style.display = 'flex';
     }
 });
 
@@ -33,6 +72,7 @@ async function handleInstallClick() {
         if (els.installAppBtn) {
             els.installAppBtn.style.display = 'none';
         }
+        closePWAInstallModal();
     }
 }
 
@@ -41,8 +81,97 @@ window.addEventListener('appinstalled', () => {
         els.installAppBtn.style.display = 'none';
     }
     deferredPrompt = null;
+    pwaInstallModalShown = true;
+    closePWAInstallModal();
     console.log('PWA was installed');
 });
+
+// --- PWA Install Modal ---
+function openPWAInstallModal() {
+    const modal = document.getElementById('pwa-install-modal');
+    const backdrop = document.getElementById('pwa-install-backdrop');
+    const wrapper = document.getElementById('pwa-install-wrapper');
+    const iosInstructions = document.getElementById('pwa-ios-instructions');
+    const androidInstructions = document.getElementById('pwa-android-instructions');
+    const nativeBtn = document.getElementById('pwa-native-install-btn');
+
+    if (!modal) return;
+
+    const platform = getPlatform();
+
+    // Update locale texts
+    modal.querySelectorAll('[data-lang-key]').forEach(el => {
+        el.innerHTML = getUIText(el.dataset.langKey) || el.innerHTML;
+    });
+
+    // Show platform-specific instructions
+    if (iosInstructions) iosInstructions.style.display = platform === 'ios' ? 'block' : 'none';
+    if (androidInstructions) androidInstructions.style.display = platform === 'android' ? 'block' : 'none';
+
+    // Show native install button only if deferredPrompt is available
+    if (nativeBtn) {
+        nativeBtn.style.display = deferredPrompt ? 'flex' : 'none';
+    }
+
+    document.body.classList.add('body-no-scroll');
+    modal.classList.remove('modal-hidden');
+    modal.style.display = 'block';
+
+    requestAnimationFrame(() => {
+        backdrop.classList.add('active');
+        wrapper.classList.add('active');
+    });
+
+    pwaInstallModalShown = true;
+}
+
+function closePWAInstallModal() {
+    const modal = document.getElementById('pwa-install-modal');
+    const backdrop = document.getElementById('pwa-install-backdrop');
+    const wrapper = document.getElementById('pwa-install-wrapper');
+
+    if (!modal) return;
+
+    document.body.classList.remove('body-no-scroll');
+    backdrop.classList.remove('active');
+    wrapper.classList.remove('active');
+
+    wrapper.addEventListener('transitionend', () => {
+        modal.classList.add('modal-hidden');
+        modal.style.display = 'none';
+    }, { once: true });
+}
+
+function setupPWAInstallModal() {
+    const closeBtn = document.getElementById('close-pwa-install-btn');
+    const dismissBtn = document.getElementById('pwa-install-dismiss-btn');
+    const nativeBtn = document.getElementById('pwa-native-install-btn');
+    const backdrop = document.getElementById('pwa-install-backdrop');
+    const wrapper = document.getElementById('pwa-install-wrapper');
+
+    if (closeBtn) closeBtn.addEventListener('click', closePWAInstallModal);
+    if (dismissBtn) dismissBtn.addEventListener('click', () => {
+        dismissPWAPrompt();
+        closePWAInstallModal();
+    });
+    if (nativeBtn) nativeBtn.addEventListener('click', handleInstallClick);
+    if (backdrop) backdrop.addEventListener('click', closePWAInstallModal);
+    if (wrapper) wrapper.addEventListener('click', (e) => {
+        if (e.target === wrapper) closePWAInstallModal();
+    });
+}
+
+function shouldShowPWAInstallPrompt() {
+    // Don't show if already in standalone mode
+    if (isStandalonePWA()) return false;
+    // Don't show if not on mobile
+    if (!isMobileDevice()) return false;
+    // Don't show if user dismissed recently
+    if (wasPWAPromptDismissed()) return false;
+    // Don't show if modal was already shown this session
+    if (pwaInstallModalShown) return false;
+    return true;
+}
 
 async function loadRequiredDataForProgress() {
     const requiredDataTypes = ['kanji', 'vocab'];
@@ -293,6 +422,9 @@ async function init() {
             });
         }
 
+        // Setup PWA install modal
+        setupPWAInstallModal();
+
         // Enable transitions after initial render
         requestAnimationFrame(() => {
             document.body.classList.remove('preload');
@@ -345,6 +477,13 @@ async function init() {
         // THIS IS THE FIX: Explicitly update the sidebar pin icons after all state is loaded.
         updateSidebarPinIcons();
 
+        // Show PWA install prompt on mobile after a short delay
+        setTimeout(() => {
+            if (shouldShowPWAInstallPrompt()) {
+                openPWAInstallModal();
+            }
+        }, 2000);
+
         const versionElement = document.getElementById('app-version');
         if (versionElement) {
             versionElement.textContent = `v${process.env.APP_VERSION}`;
@@ -368,17 +507,7 @@ async function init() {
 document.addEventListener('DOMContentLoaded', init);
 
 // --- SERVICE WORKER REGISTRATION ---
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        // Use relative path so it works with the 'base' configuration (e.g. /n5-handbook/)
-        const swUrl = `./service-worker.js?v=${process.env.APP_VERSION}`;
-        navigator.serviceWorker.register(swUrl).then(registration => {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, err => {
-            console.log('ServiceWorker registration failed: ', err);
-        });
-    });
-}
+// Managed automatically by vite-plugin-pwa via 'registerType: autoUpdate'
 
 // --- SCROLL POSITION PERSISTENCE ---
 window.addEventListener('beforeunload', () => {

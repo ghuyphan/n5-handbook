@@ -32,9 +32,7 @@ export default defineConfig({
     },
     plugins: [
         VitePWA({
-            injectRegister: null, // We are manually registering the SW in main.js
             registerType: 'autoUpdate',
-            filename: 'service-worker.js', // Ensure consistent filename
             includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
             manifest: {
                 name: "JLPT Handbook",
@@ -61,9 +59,41 @@ export default defineConfig({
             },
             workbox: {
                 navigateFallback: '/index.html',
+                navigateFallbackAllowlist: [/^\/.*$/], // Match ALL paths
+                skipWaiting: true,
+                clientsClaim: true,
+                cleanupOutdatedCaches: true,
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}'],
+                globIgnores: ['assets/siteIcon.png'], // Prevent conflict with manifest icons
                 runtimeCaching: [
-                    // runtimeCaching for navigation removed to allow navigateFallback to work
+                    {
+                        urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'google-fonts-cache',
+                            expiration: {
+                                maxEntries: 10,
+                                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                            },
+                            cacheableResponse: {
+                                statuses: [0, 200]
+                            }
+                        }
+                    },
+                    {
+                        urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'gstatic-fonts-cache',
+                            expiration: {
+                                maxEntries: 10,
+                                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                            },
+                            cacheableResponse: {
+                                statuses: [0, 200]
+                            }
+                        }
+                    }
                 ]
             },
             devOptions: {
