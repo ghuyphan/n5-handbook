@@ -342,15 +342,22 @@ function setupEventListeners() {
                         const currentScrollY = window.scrollY;
                         const scrollDelta = currentScrollY - lastScrollY;
 
-                        // Only hide/show after scrolling a minimum distance (10px)
-                        if (Math.abs(scrollDelta) > 10) {
-                            if (scrollDelta > 0 && currentScrollY > 60) {
-                                // Scrolling down & past header - hide
-                                mobileHeader.classList.add('header-hidden');
-                            } else if (scrollDelta < 0) {
-                                // Scrolling up - show
-                                mobileHeader.classList.remove('header-hidden');
-                            }
+                        // Always show header when near top of page
+                        if (currentScrollY < 60) {
+                            mobileHeader.classList.remove('header-hidden');
+                            lastScrollY = currentScrollY;
+                            ticking = false;
+                            return;
+                        }
+
+                        // Scrolling up - more responsive (5px threshold)
+                        if (scrollDelta < -5) {
+                            mobileHeader.classList.remove('header-hidden');
+                            lastScrollY = currentScrollY;
+                        }
+                        // Scrolling down - hide after 10px
+                        else if (scrollDelta > 10) {
+                            mobileHeader.classList.add('header-hidden');
                             lastScrollY = currentScrollY;
                         }
 
