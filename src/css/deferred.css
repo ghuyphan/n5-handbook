@@ -1346,9 +1346,16 @@ mark.search-highlight {
     transition: opacity 0.4s var(--ease-out-quint), height 0.4s var(--ease-out-quint);
 }
 
-.accordion-button:hover::before {
-    opacity: 1;
-    height: 70%;
+/* Only apply hover effects on devices with hover capability (non-touch) */
+@media (hover: hover) {
+    .accordion-button:hover::before {
+        opacity: 1;
+        height: 70%;
+    }
+
+    .accordion-button:hover {
+        background-color: var(--nav-hover-bg);
+    }
 }
 
 .accordion-button.open::before {
@@ -1360,10 +1367,6 @@ mark.search-highlight {
 .accordion-button.open {
     background-color: var(--nav-hover-bg);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-
-.accordion-button:hover {
-    background-color: var(--nav-hover-bg);
 }
 
 .accordion-button .accordion-icon {
