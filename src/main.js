@@ -179,6 +179,26 @@ function setupEventListeners() {
     if (els.installAppBtn) {
         els.installAppBtn.addEventListener('click', handleInstallClick);
     }
+
+    // Keyboard shortcuts for accessibility and power users
+    document.addEventListener('keydown', (e) => {
+        // Skip if user is typing in an input/textarea
+        const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+
+        // '/' to focus search (common pattern: GitHub, Reddit, YouTube)
+        if (e.key === '/' && !isTyping) {
+            e.preventDefault();
+            const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
+            searchInput?.focus();
+        }
+
+        // Escape to close sidebar on mobile
+        if (e.key === 'Escape') {
+            if (els.sidebar?.classList.contains('open')) {
+                closeSidebar();
+            }
+        }
+    });
 }
 
 function populateAndBindControls() {

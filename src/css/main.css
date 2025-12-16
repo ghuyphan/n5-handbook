@@ -66,6 +66,8 @@
     /* Gold-yellow */
     --accent-teal: #4A7C7C;
     /* Muted teal */
+    --lang-inactive-color: #6B6560;
+    /* Consistent with dark mode */
 
     /* Danger/warning colors */
     --color-danger: #C53D43;
@@ -171,14 +173,8 @@ body {
     font-family: "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--text-primary);
     background-color: var(--bg-main);
-    /* Optimized Washi paper texture - simplified for performance */
-    background-image:
-        /* Subtle diagonal fibers */
-        repeating-linear-gradient(135deg,
-            transparent 0px,
-            rgba(139, 119, 101, 0.02) 1px,
-            transparent 2px,
-            transparent 10px);
+    /* Performance-optimized Washi texture - single SVG pattern */
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.02' stroke-width='0.5'/%3E%3C/svg%3E");
     transition: background-color var(--transition-duration) var(--ease-in-out-quad), color var(--transition-duration) var(--ease-in-out-quad);
 }
 
@@ -196,13 +192,8 @@ h6,
 }
 
 .dark-mode body {
-    background-image:
-        /* Subtle diagonal fibers for dark mode */
-        repeating-linear-gradient(135deg,
-            transparent 0px,
-            rgba(200, 180, 150, 0.015) 1px,
-            transparent 2px,
-            transparent 10px);
+    /* Performance-optimized Washi texture for dark mode */
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%23C8B496' stroke-opacity='0.015' stroke-width='0.5'/%3E%3C/svg%3E");
 }
 
 .body-no-scroll,
@@ -344,15 +335,8 @@ body.sidebar-open {
     scrollbar-gutter: stable;
     border-radius: 0;
     padding: 1rem 0.75rem 1rem 1.25rem;
-
-    /* Optimized Washi paper texture for sidebars */
-    background-image:
-        /* Subtle diagonal fiber strands */
-        repeating-linear-gradient(135deg,
-            transparent 0px,
-            rgba(139, 119, 101, 0.025) 1px,
-            transparent 2px,
-            transparent 8px);
+    /* Performance-optimized Washi texture */
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.025' stroke-width='0.5'/%3E%3C/svg%3E");
 }
 
 .right-sidebar {
@@ -499,13 +483,8 @@ body.sidebar-open {
         box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
         border-right: 1px solid var(--border-medium);
         background-color: var(--bg-paper);
-        /* Optimized Washi texture for mobile sidebar */
-        background-image:
-            repeating-linear-gradient(135deg,
-                transparent 0px,
-                rgba(139, 119, 101, 0.025) 1px,
-                transparent 2px,
-                transparent 8px);
+        /* Performance-optimized Washi texture */
+        background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.025' stroke-width='0.5'/%3E%3C/svg%3E");
     }
 
     #sidebar.open {
@@ -565,34 +544,15 @@ body.sidebar-open {
 /* Washi Paper Effect - replaces glass-effect */
 .glass-effect {
     background: var(--bg-paper);
-    /* Washi paper fiber texture */
-    background-image:
-        /* Diagonal fiber lines */
-        repeating-linear-gradient(-45deg,
-            transparent,
-            transparent 3px,
-            rgba(139, 119, 101, 0.02) 3px,
-            rgba(139, 119, 101, 0.02) 4px),
-        /* Organic grain spots */
-        radial-gradient(ellipse at 15% 25%, rgba(180, 160, 130, 0.04) 0%, transparent 40%),
-        radial-gradient(ellipse at 75% 65%, rgba(160, 140, 110, 0.03) 0%, transparent 35%),
-        radial-gradient(ellipse at 50% 10%, rgba(170, 150, 120, 0.025) 0%, transparent 30%);
+    /* Performance-optimized Washi texture - single SVG */
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='8' fill='%23B4A082' fill-opacity='0.03'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23A0936E' fill-opacity='0.02'/%3E%3C/svg%3E");
     border: 1px solid var(--washi-border);
-    /* box-shadow: var(--shadow-paper); REMOVE SHADOW from basic glass */
     transition: background var(--transition-duration) var(--ease-in-out-quad), box-shadow var(--transition-duration) var(--ease-in-out-quad), border-color var(--transition-duration) var(--ease-in-out-quad);
     border-radius: var(--radius-lg);
-    /* Reduce radius for internal elements */
 }
 
 .dark-mode .glass-effect {
-    background-image:
-        repeating-linear-gradient(-45deg,
-            transparent,
-            transparent 3px,
-            rgba(200, 180, 150, 0.015) 3px,
-            rgba(200, 180, 150, 0.015) 4px),
-        radial-gradient(ellipse at 15% 25%, rgba(80, 70, 55, 0.05) 0%, transparent 40%),
-        radial-gradient(ellipse at 75% 65%, rgba(80, 70, 55, 0.04) 0%, transparent 35%);
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='8' fill='%23504637' fill-opacity='0.04'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23504637' fill-opacity='0.03'/%3E%3C/svg%3E");
 }
 
 #overlay,
@@ -647,6 +607,7 @@ body.sidebar-open {
 
 .nav-item-wrapper {
     position: relative;
+    contain: layout;
 }
 
 .nav-item {

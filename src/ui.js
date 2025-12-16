@@ -11,37 +11,28 @@ import { generateSearchTerms } from './utils.js';
 import { setupFuseForTab } from './handlers.js';
 import { dbPromise } from './database.js';
 
-// --- Intersection Observer for Lazy Loading ---
-const observerMap = new Map();
+// --- Shared Intersection Observer for Lazy Loading ---
+let sharedCardObserver = null;
 
-function handleIntersection(entries, observer) {
-    entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-
-        const sentinel = entry.target;
-        const grid = sentinel.parentElement;
-        const tabId = grid.closest('.tab-content')?.id;
-
-        if (!tabId || !observerMap.has(tabId)) return;
-
-        const { allItems, createFn, batchSize, currentIndex } = observerMap.get(tabId);
-
-        const nextBatchEnd = Math.min(currentIndex + batchSize, allItems.length);
-        if (currentIndex >= allItems.length) {
-            sentinel.remove();
-            observer.disconnect();
-            return;
-        }
-
-        const fragment = document.createDocumentFragment();
-        for (let i = currentIndex; i < nextBatchEnd; i++) {
-            fragment.appendChild(createFn(allItems[i]));
-        }
-
-        grid.insertBefore(fragment, sentinel);
-
-        observerMap.set(tabId, { allItems, createFn, batchSize, currentIndex: nextBatchEnd });
-    });
+function getSharedCardObserver() {
+    if (!sharedCardObserver) {
+        sharedCardObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const skeleton = entry.target;
+                    // Call the attached hydration function
+                    if (typeof skeleton._hydrate === 'function') {
+                        skeleton._hydrate();
+                    }
+                    observer.unobserve(skeleton);
+                }
+            });
+        }, {
+            rootMargin: '300% 0px', // Pre-load cards 3 screens ahead
+            threshold: 0
+        });
+    }
+    return sharedCardObserver;
 }
 
 
@@ -311,7 +302,7 @@ function createCardSection(title, data, category, backGradient, titleKey, tabId)
     const createSkeletonCard = (item, index) => {
         const skeleton = document.createElement('div');
         skeleton.className = 'skeleton-card';
-        skeleton.dataset.itemIndex = index;
+        // Removed dataset.itemIndex as we use closure for hydration
         skeleton.innerHTML = `
             <div class="skeleton-card-inner">
                 <div class="skeleton-line skeleton-line-lg"></div>
@@ -322,42 +313,32 @@ function createCardSection(title, data, category, backGradient, titleKey, tabId)
     };
 
     // Hydrate skeleton to real card when visible
-    const hydrateCard = (skeleton, item) => {
-        const realCard = createCard(item, category, backGradient);
-        // Get the first element from the DocumentFragment
-        const cardElement = realCard.firstElementChild;
-        cardElement.classList.add('skeleton-hydrated');
-        skeleton.replaceWith(cardElement);
-    };
+    // hydrateCard function removed - logic moved into skeleton._hydrate closure
 
-    // IntersectionObserver with large rootMargin to pre-load cards ahead of scroll
-    const cardObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const skeleton = entry.target;
-                const index = parseInt(skeleton.dataset.itemIndex, 10);
-                if (data[index]) {
-                    hydrateCard(skeleton, data[index]);
-                }
-                cardObserver.unobserve(skeleton);
-            }
-        });
-    }, {
-        rootMargin: '300% 0px', // Pre-load cards 3 screens ahead for smooth scrolling
-        threshold: 0
-    });
-
-    // Render skeleton placeholders and observe them
+    // Render skeleton placeholders and observe them using shared observer
     const fragment = document.createDocumentFragment();
     data.forEach((item, index) => {
         const skeleton = createSkeletonCard(item, index);
         fragment.appendChild(skeleton);
+
+        // Tag the skeleton so the shared observer knows how to hydration it
+        // We attach the hydration function directly to the element for easy access
+        skeleton._hydrate = () => {
+            // Check if already hydrated (race condition safety)
+            if (!skeleton.isConnected || skeleton.classList.contains('skeleton-hydrated')) return;
+
+            const realCard = createCard(item, category, backGradient);
+            const cardElement = realCard.firstElementChild;
+            cardElement.classList.add('skeleton-hydrated');
+            skeleton.replaceWith(cardElement);
+        };
+
         // Use requestIdleCallback for non-critical observation setup
         if ('requestIdleCallback' in window) {
-            requestIdleCallback(() => cardObserver.observe(skeleton), { timeout: 100 });
+            requestIdleCallback(() => getSharedCardObserver().observe(skeleton), { timeout: 100 });
         } else {
             // Fallback for Safari
-            setTimeout(() => cardObserver.observe(skeleton), 0);
+            setTimeout(() => getSharedCardObserver().observe(skeleton), 0);
         }
     });
 
@@ -562,11 +543,7 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
     wrapper.className = 'space-y-4';
     container.appendChild(wrapper);
 
-    if (observerMap.has(containerId)) {
-        const existingObserver = observerMap.get(containerId).observer;
-        if (existingObserver) existingObserver.disconnect();
-        observerMap.delete(containerId);
-    }
+
 
     for (const key in data) {
         const section = data[key];
