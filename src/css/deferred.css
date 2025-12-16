@@ -368,11 +368,7 @@ mark.search-highlight {
 
 .card {
     perspective: 1500px;
-    transition: transform var(--transition-duration) var(--ease-out-quint);
-}
-
-.card:hover {
-    transform: scale(1.02);
+    transition: background-color var(--transition-duration) var(--ease-out-quint);
 }
 
 /* Flip hint icon - appears on hover to indicate card is flippable */
@@ -397,9 +393,16 @@ mark.search-highlight {
     z-index: 5;
 }
 
-.card:hover::after {
-    opacity: 0.8;
-    transform: scale(1) rotate(0deg);
+/* Card hover - desktop only, washi paper style */
+@media (hover: hover) and (pointer: fine) {
+    .card:hover .card-face-front {
+        background-color: var(--nav-hover-bg);
+    }
+
+    .card:hover::after {
+        opacity: 0.8;
+        transform: scale(1) rotate(0deg);
+    }
 }
 
 /* Hide flip hint when card is already flipped */
@@ -1662,7 +1665,7 @@ mark.search-highlight {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: var(--switch-bg);
+    background-color: var(--border-medium);
     transition: background-color 0.4s var(--ease-in-out-quad);
     border-radius: var(--radius-full);
 }

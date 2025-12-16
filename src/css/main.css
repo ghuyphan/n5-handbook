@@ -65,6 +65,7 @@
     --accent-yellow: #C9A83B;
     /* Gold-yellow */
     --accent-teal: #4A7C7C;
+    /* Muted teal */
 
     /* Danger/warning colors */
     --color-danger: #C53D43;
@@ -222,12 +223,18 @@ body.sidebar-open {
     }
 }
 
-/* --- 3. LOADER STYLES (Most Critical - first thing user sees) --- */
+/* --- 3. LOADER STYLES - WASHI PAPER / HANKO STYLE --- */
 #loading-overlay {
     position: fixed;
     inset: 0;
     background-color: var(--bg-main);
-    /* Solid paper background, no blur */
+    /* Washi paper texture on loading screen */
+    background-image:
+        repeating-linear-gradient(135deg,
+            transparent 0px,
+            rgba(139, 119, 101, 0.02) 1px,
+            transparent 2px,
+            transparent 10px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -245,69 +252,69 @@ body.sidebar-open {
 
 .loader-wrapper {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 300px;
     width: 100%;
+    gap: 1.5rem;
 }
 
+/* Hanko (判子) stamp style loader */
 .loader {
     position: relative;
-    width: clamp(2.5rem, 10vw, 3.5rem);
+    width: clamp(3rem, 12vw, 4rem);
     aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.loader:before,
-.loader:after {
+/* Outer stamp border - hanko style */
+.loader::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: 50%;
     border: 3px solid var(--accent-vermilion);
-    animation: pulse 2s ease-out infinite;
-    filter: drop-shadow(0 0 6px var(--accent-vermilion));
+    animation: hanko-breathe 2s ease-in-out infinite;
+    /* Worn stamp edge effect */
+    box-shadow:
+        inset 0 0 0 1px rgba(197, 61, 67, 0.3),
+        0 0 8px rgba(197, 61, 67, 0.2);
 }
 
-.loader:after {
-    animation-delay: -1s;
+/* Inner ink bleed effect */
+.loader::after {
+    content: "読";
+    /* "Read" kanji - fitting for a handbook */
+    position: absolute;
+    font-family: "Noto Sans JP", serif;
+    font-size: clamp(1.25rem, 5vw, 1.75rem);
+    font-weight: 700;
+    color: var(--accent-vermilion);
+    animation: hanko-breathe 2s ease-in-out infinite;
+    animation-delay: 0.1s;
 }
 
-@keyframes pulse {
-    0% {
-        transform: scale(0.2);
-        opacity: 1;
-        border-width: 3px;
+/* Gentle breathing animation - like ink settling on paper */
+@keyframes hanko-breathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.9;
     }
 
     50% {
-        opacity: 0.3;
-        border-width: 1px;
-    }
-
-    100% {
-        transform: scale(1.5);
-        opacity: 0;
-        border-width: 0px;
+        transform: scale(1.05);
+        opacity: 1;
     }
 }
 
 .app-loader-logo {
-    animation: loader-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    filter: drop-shadow(0 0 1rem var(--accent-blue));
-}
-
-@keyframes loader-pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 0.8;
-        transform: scale(0.95);
-    }
+    animation: hanko-breathe 2s ease-in-out infinite;
+    filter: drop-shadow(0 2px 4px rgba(197, 61, 67, 0.15));
 }
 
 
@@ -453,7 +460,7 @@ body.sidebar-open {
     }
 
     #main-content {
-        padding: 0.5rem 0.75rem;
+        padding: 0.75rem !important;
         /* Comfortable padding for mobile */
         margin: 0;
         width: 100%;
@@ -474,8 +481,8 @@ body.sidebar-open {
         position: fixed;
         top: 0;
         left: -100%;
-        width: 85%;
-        max-width: 320px;
+        width: 80%;
+        max-width: 280px;
         height: 100vh;
         z-index: 100;
         transition: left var(--transition-duration) var(--ease-out-quint),
@@ -484,7 +491,7 @@ body.sidebar-open {
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        padding: 2rem 1.5rem;
+        padding: 1.5rem 1rem;
         -ms-overflow-style: none;
         scrollbar-width: none;
 
@@ -520,12 +527,12 @@ body.sidebar-open {
     }
 
     .sidebar-title {
-        font-size: 1.125rem;
+        font-size: 1.1rem;
     }
 
     .nav-item {
-        font-size: 0.9375rem;
-        padding: 0.875rem 1rem;
+        font-size: 0.9rem;
+        padding: 0.75rem 0.875rem;
         margin-bottom: 0.25rem;
         border-radius: 8px;
     }
@@ -800,21 +807,52 @@ body.sidebar-open {
     /* Change this to your desired dark mode color */
 }
 
+.control-container {
+    position: relative;
+    background-color: var(--switch-bg);
+    border: 1px solid var(--border-subtle);
+    padding: 2px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    height: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+}
+
 .lang-switch {
     position: relative;
     background-color: var(--switch-bg);
     border: 1px solid var(--border-subtle);
     padding: 2px;
     border-radius: var(--radius-md);
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    min-height: 42px;
+    box-sizing: border-box;
+}
+
+.theme-switch-container {
+    position: relative;
+    background-color: var(--switch-bg);
+    border: 1px solid var(--border-subtle);
+    padding: 6px 8px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    box-sizing: border-box;
+    height: auto;
 }
 
 .lang-switch-pill {
     position: absolute;
     z-index: 1;
-    top: 2px;
-    bottom: 2px;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: calc(100% - 4px);
     border-radius: var(--radius-sm);
     background-color: var(--accent-vermilion);
     box-shadow: var(--shadow-paper);
@@ -822,7 +860,7 @@ body.sidebar-open {
 }
 
 .lang-switch button {
-    position: relative;
+    flex: 1;
     z-index: 2;
     padding: 0.5rem 1rem;
     border-radius: var(--radius-sm);
@@ -830,6 +868,7 @@ body.sidebar-open {
     font-size: 0.875rem;
     border: none;
     cursor: pointer;
+    text-align: center;
     transition: color 0.4s var(--ease-in-out-quad);
     background-color: transparent;
     color: var(--text-secondary);

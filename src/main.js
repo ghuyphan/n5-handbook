@@ -192,7 +192,7 @@ function populateAndBindControls() {
                 </div>
                 <div class="flex-1">
                      <label class="sidebar-control-label mb-2 block" data-lang-key="theme">Theme</label>
-                     <div class="theme-switch-wrapper h-[42px] flex items-center justify-center bg-white/50 rounded-lg border border-stone-200">${getThemeToggleHTML()}</div>
+                     <div class="theme-switch-container">${getThemeToggleHTML()}</div>
                 </div>
             </div>
             <button id="install-app-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button" style="display: none;">
@@ -207,7 +207,7 @@ function populateAndBindControls() {
         headerLangSwitcher.innerHTML = getLangSwitcherHTML();
     }
 
-    document.querySelectorAll('.sidebar-control-group .theme-switch input').forEach(el => el.addEventListener('change', toggleTheme));
+    document.querySelectorAll('.theme-switch input').forEach(el => el.addEventListener('change', toggleTheme));
     document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
         setLanguage(e.currentTarget.dataset.lang);
     }));
