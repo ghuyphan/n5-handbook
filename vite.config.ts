@@ -56,16 +56,6 @@ export default defineConfig({
                         "src": "assets/siteIcon.png",
                         "sizes": "512x512",
                         "type": "image/png"
-                    },
-                    {
-                        "src": "assets/siteIcon.webp",
-                        "sizes": "192x192",
-                        "type": "image/webp"
-                    },
-                    {
-                        "src": "assets/siteIcon.webp",
-                        "sizes": "512x512",
-                        "type": "image/webp"
                     }
                 ]
             },
