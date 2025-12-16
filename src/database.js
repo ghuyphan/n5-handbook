@@ -107,29 +107,17 @@ export async function loadGlobalUI() {
     };
 
     try {
-        // Try to fetch from local data path first (for development/customization)
-        let response = await fetch(`./data/ui.json`);
-
-        // Check if response is JSON (Vite serves HTML for 404s in dev)
-        const contentType = response.headers.get("content-type");
-        if (response.ok && contentType && contentType.includes("application/json")) {
-            // Valid local JSON
-        } else {
-            console.warn(`Local UI data not found or invalid (content-type: ${contentType}), trying remote: ${config.dataPath}/ui.json`);
-            response = await fetch(`${config.dataPath}/ui.json`);
-        }
+        // Direct fetch from remote, skipping local check to avoid 404s
+        let response = await fetch(`${config.dataPath}/ui.json`);
 
         let remoteUI = {};
         if (response.ok) {
             remoteUI = await response.json();
         } else {
-            console.warn(`Failed to fetch UI data from both local and remote sources, using internal fallback.`);
+            console.warn(`Failed to fetch UI data from remote source (${config.dataPath}/ui.json), using internal fallback.`);
         }
 
-        // Deep merge fallback into remote (remote takes precedence if key exists)
-        // Actually, we want fallback to fill in GAPS. So we merge remote INTO fallback? 
-        // No, usually remote is source of truth. But if remote is outdated, we want fallback.
-        // Let's do: start with fallback, overwrite with remote.
+        // Merge fallback into remote (remote takes priority for existing keys)
         state.appData.ui = {
             en: { ...fallbackUI.en, ...(remoteUI.en || {}) },
             vi: { ...fallbackUI.vi, ...(remoteUI.vi || {}) }

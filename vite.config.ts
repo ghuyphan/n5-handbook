@@ -70,7 +70,7 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                navigateFallback: '/offline.html',
+                navigateFallback: '/index.html',
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}'],
                 runtimeCaching: [
                     {
@@ -88,7 +88,7 @@ export default defineConfig({
             devOptions: {
                 enabled: true,
                 type: 'module',
-                navigateFallback: 'offline.html'
+                navigateFallback: 'index.html'
             }
         })
     ]
