@@ -66,7 +66,14 @@ export async function loadGlobalUI() {
             kanjiResults: "Kanji Results",
             noDefinition: "No definition found.",
             onyomi: "On'yomi:",
-            kunyomi: "Kun'yomi:"
+            kunyomi: "Kun'yomi:",
+            supportLabel: "Support",
+            supportDeveloper: "Support the Developer",
+            buyMeCoffee: "Buy me a coffee",
+            momo: "Momo",
+            vietqr: "VietQR",
+            madeWithLove: "Made with ❤️ by",
+            supportMessage: "If you find this handbook helpful, consider supporting its development!"
         },
         vi: {
             dictionarySearch: "Tra Từ Điển",
@@ -102,7 +109,14 @@ export async function loadGlobalUI() {
             kanjiResults: "Kết quả Hán Tự",
             noDefinition: "Không tìm thấy định nghĩa.",
             onyomi: "Âm On:",
-            kunyomi: "Âm Kun:"
+            kunyomi: "Âm Kun:",
+            supportLabel: "Ủng hộ",
+            supportDeveloper: "Ủng hộ nhà phát triển",
+            buyMeCoffee: "Mua cho tôi ly cà phê",
+            momo: "Momo",
+            vietqr: "VietQR",
+            madeWithLove: "Được làm bằng ❤️ bởi",
+            supportMessage: "Nếu bạn thấy sổ tay này hữu ích, hãy cân nhắc ủng hộ nhé!"
         }
     };
 

@@ -972,3 +972,103 @@ body.sidebar-open {
         width: 100%;
     }
 }
+
+/* --- SUPPORT STYLES --- */
+.support-button {
+    background-color: var(--card-front-bg);
+    border: 1px solid var(--washi-border);
+    box-shadow: var(--shadow-paper);
+}
+
+.support-button:hover {
+    background-color: #FFF0F0;
+    /* Very light red tint */
+    border-color: var(--accent-vermilion);
+    box-shadow: var(--shadow-paper-hover);
+    transform: translateY(-1px);
+}
+
+.dark-mode .support-button:hover {
+    background-color: rgba(197, 61, 67, 0.1);
+}
+
+.washi-card {
+    /* Enhanced Washi texture for modals */
+    background-color: var(--bg-paper-elevated);
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='8' fill='%23B4A082' fill-opacity='0.05'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23A0936E' fill-opacity='0.03'/%3E%3Cpath d='M0 0L60 60' stroke='%238B7765' stroke-opacity='0.03' stroke-width='1'/%3E%3C/svg%3E");
+    border: 1px solid var(--border-medium);
+}
+
+.dark-mode .washi-card {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='8' fill='%23504637' fill-opacity='0.05'/%3E%3Ccircle cx='45' cy='40' r='6' fill='%23504637' fill-opacity='0.04'/%3E%3Cpath d='M0 0L60 60' stroke='%23C8B496' stroke-opacity='0.02' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+.support-option-card {
+    display: block;
+    background-color: var(--bg-paper);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-duration) var(--ease-out-quint);
+    text-decoration: none;
+    /* Ensure no underline for link */
+}
+
+.support-option-card:hover {
+    background-color: var(--bg-paper-elevated);
+    border-color: var(--accent-gold);
+    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Brand Specific Styles */
+.brand-bmc:hover {
+    border-color: #FFDD00;
+    background-color: #FFFDF0;
+    box-shadow: 0 4px 12px rgba(255, 221, 0, 0.2);
+}
+
+.brand-momo:hover {
+    border-color: #A50064;
+    background-color: #FFF0F5;
+    box-shadow: 0 4px 12px rgba(165, 0, 100, 0.15);
+}
+
+.dark-mode .brand-bmc:hover {
+    background-color: rgba(255, 221, 0, 0.05);
+}
+
+.dark-mode .brand-momo:hover {
+    background-color: rgba(165, 0, 100, 0.05);
+}
+
+/* Footer Washi Styling */
+footer {
+    font-family: var(--font-serif);
+    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+    position: relative;
+    z-index: 10;
+}
+
+footer::before {
+    content: '愛';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin: 0 auto 0.75rem auto;
+    border: 2px solid var(--accent-vermilion);
+    border-radius: 50%;
+    color: var(--accent-vermilion);
+    font-family: "Noto Serif JP", serif;
+    font-size: 20px;
+    font-weight: 700;
+    opacity: 0.7;
+    transform: rotate(-8deg);
+    /* Subtle angle for hand-stamped look */
+    box-shadow: 0 0 0 1px rgba(197, 61, 67, 0.1);
+    /* Bleed effect */
+    background-image: none;
+}

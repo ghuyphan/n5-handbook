@@ -6,6 +6,52 @@ import { setLevel } from './handlers.js';
 import { closeSidebar } from './ui.js';
 import { getUIText } from './utils.js';
 
+// --- Support Modal ---
+export function setupSupportModal() {
+    const supportModal = document.getElementById('support-modal');
+    if (!supportModal) return;
+
+    const openBtn = document.getElementById('sidebar-support-btn');
+    const closeBtn = document.getElementById('close-support-btn');
+    const backdrop = document.getElementById('support-modal-backdrop');
+    const wrapper = document.getElementById('support-modal-wrapper');
+
+    const openModal = () => {
+        document.body.classList.add('body-no-scroll');
+        closeSidebar();
+
+        // Update locales
+        supportModal.querySelectorAll('[data-lang-key]').forEach(el => {
+            el.textContent = getUIText(el.dataset.langKey);
+        });
+
+        supportModal.classList.remove('modal-hidden');
+        requestAnimationFrame(() => {
+            backdrop.classList.add('active');
+            wrapper.classList.add('active');
+        });
+    };
+
+    const closeModal = () => {
+        document.body.classList.remove('body-no-scroll');
+        backdrop.classList.remove('active');
+        wrapper.classList.remove('active');
+
+        wrapper.addEventListener('transitionend', () => {
+            supportModal.classList.add('modal-hidden');
+        }, { once: true });
+    };
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+
+    // Also close on wrapper click if it's the target (backdrop area)
+    if (wrapper) wrapper.addEventListener('click', (e) => {
+        if (e.target === wrapper) closeModal();
+    });
+}
+
 // --- Kanji Detail Modal ---
 
 let closeKanjiModalWithListeners;
@@ -15,7 +61,7 @@ export function openKanjiDetailModal(kanjiId) {
         console.error("Kanji detail modal element not found.");
         return;
     }
-    
+
     let kanjiItem = null;
     for (const key in state.appData.kanji) {
         const found = state.appData.kanji[key].items.find(item => item.id === kanjiId);
@@ -117,9 +163,9 @@ export function openKanjiDetailModal(kanjiId) {
             handleClose();
         }
     };
-    
+
     const closeButton = els.kanjiModalContentContainer.querySelector('[data-action="close-kanji-modal"]');
-    if(closeButton) {
+    if (closeButton) {
         closeButton.addEventListener('click', handleClose);
     }
 
@@ -132,7 +178,7 @@ export function openKanjiDetailModal(kanjiId) {
         if (closeButton) {
             closeButton.removeEventListener('click', handleClose);
         }
-        closeKanjiModalWithListeners = null; 
+        closeKanjiModalWithListeners = null;
     };
 
     document.body.classList.add('body-no-scroll');
@@ -150,7 +196,7 @@ export function closeKanjiDetailModal() {
     if (closeKanjiModalWithListeners) {
         closeKanjiModalWithListeners();
     }
-    
+
     els.kanjiDetailModal.classList.remove('active');
     els.kanjiModalBackdrop.classList.remove('active');
     if (els.kanjiModalWrapper) {
@@ -158,7 +204,7 @@ export function closeKanjiDetailModal() {
     }
 
     document.body.classList.remove('body-no-scroll');
-    
+
     els.kanjiModalWrapper.addEventListener('transitionend', () => {
         els.kanjiDetailModal.classList.add('modal-hidden');
     }, { once: true });
@@ -233,7 +279,7 @@ export async function openNotesModal() {
 
     document.body.classList.add('body-no-scroll');
     els.notesModal.classList.remove('modal-hidden');
-    
+
     requestAnimationFrame(() => {
         els.notesModalBackdrop.classList.add('active');
         els.notesModalWrapper.classList.add('active');
@@ -252,7 +298,7 @@ function closeNotesModal() {
         document.body.classList.remove('body-no-scroll');
         els.notesModalBackdrop.classList.remove('active');
         els.notesModalWrapper.classList.remove('active');
-        
+
         els.notesModalWrapper.addEventListener('transitionend', () => {
             els.notesModal.classList.add('modal-hidden');
         }, { once: true });
@@ -286,9 +332,9 @@ async function saveAndCloseNotesModal() {
 
     els.notesStatus.textContent = getUIText('savedStatus', 'Saved!');
     els.notesStatus.style.opacity = '1';
-    
+
     setTimeout(() => {
-        closeNotesModal(); 
+        closeNotesModal();
         setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
     }, 1000);
 }
@@ -312,7 +358,7 @@ export function setupImportModal() {
         resetModal();
         updateModalLocale();
         els.importModal.classList.remove('modal-hidden');
-        
+
         requestAnimationFrame(() => {
             els.importModalBackdrop.classList.add('active');
             els.modalWrapper.classList.add('active');
@@ -322,8 +368,8 @@ export function setupImportModal() {
     const closeModal = () => {
         document.body.classList.remove('body-no-scroll');
         els.importModalBackdrop.classList.remove('active');
-        els.modalWrapper.classList.remove('active'); 
-        
+        els.modalWrapper.classList.remove('active');
+
         els.modalWrapper.addEventListener('transitionend', () => {
             els.importModal.classList.add('modal-hidden');
         }, { once: true });
@@ -358,8 +404,8 @@ export function setupImportModal() {
 
     const handleFileSelect = async (files) => {
         const selectedFiles = files ? Array.from(files) : [];
-        importedData = {}; 
-        els.fileInput.value = ''; 
+        importedData = {};
+        els.fileInput.value = '';
         els.fileImportArea.classList.add('state-preview');
 
         const supportedFileNames = ['grammar.csv', 'hiragana.csv', 'kanji.csv', 'katakana.csv', 'keyPoints.csv', 'vocab.csv'];
@@ -368,7 +414,7 @@ export function setupImportModal() {
         if (validFiles.length === 0) {
             els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoSupportedFiles')}</p>`;
             updateImportButtonState();
-            setTimeout(resetModal, 2000); 
+            setTimeout(resetModal, 2000);
             return;
         }
 
@@ -484,7 +530,7 @@ export function setupImportModal() {
             if (results.length === 0) {
                 els.fileImportArea.innerHTML = `<p class="text-red-400 text-sm">${getUIText('errorNoValidData')}</p>`;
                 updateImportButtonState();
-                setTimeout(resetModal, 2000); 
+                setTimeout(resetModal, 2000);
                 return;
             }
 
@@ -544,8 +590,8 @@ export function setupImportModal() {
     }
 
     els.closeModalBtn?.addEventListener('click', closeModal);
-    els.modalWrapper?.addEventListener('click', (e) => { 
-        if (e.target === els.modalWrapper) closeModal(); 
+    els.modalWrapper?.addEventListener('click', (e) => {
+        if (e.target === els.modalWrapper) closeModal();
     });
     els.levelNameInput?.addEventListener('input', updateImportButtonState);
     els.importBtn?.addEventListener('click', handleConfirm);

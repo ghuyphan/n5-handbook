@@ -381,7 +381,7 @@
             <footer class="mt-auto text-center py-8">
                 <div class="flex flex-col items-center gap-2 text-sm text-secondary">
                     <div class="flex items-center gap-1.5">
-                        <span data-lang-key="footerText"></span>
+                        <span data-lang-key="madeWithLove"></span>
                         <a href="https://github.com/ghuyphan/n5-handbook" target="_blank" rel="noopener noreferrer"
                             class="inline-flex items-center gap-1.5 font-semibold text-secondary hover:text-accent-blue transition-colors duration-300">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" role="img" aria-hidden="true">
@@ -590,6 +590,64 @@
         <div id="custom-dialog-backdrop" class="modal-backdrop"></div>
         <div class="modal-wrapper">
             <div class="modal-content-container">
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Modal -->
+    <div id="support-modal" class="modal-hidden">
+        <div id="support-modal-backdrop" class="modal-backdrop"></div>
+        <div id="support-modal-wrapper" class="modal-wrapper">
+            <div class="modal-content-container">
+                <div class="modal-content glass-effect washi-card">
+                    <div class="modal-header">
+                        <h2 class="modal-title flex items-center gap-2">
+                            <span class="text-accent-vermilion">🎁</span>
+                            <span data-lang-key="supportDeveloper">Support the Developer</span>
+                        </h2>
+                        <button id="close-support-btn" class="modal-close-btn" aria-label="Close support dialog">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal-body p-6 text-center">
+                        <p class="text-secondary mb-6 leading-relaxed" data-lang-key="supportMessage">If you find this
+                            handbook helpful, consider supporting its development!</p>
+
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <!-- Buy Me a Coffee -->
+                            <a href="https://buymeacoffee.com/ghuyphan" target="_blank" rel="noopener noreferrer"
+                                class="support-option-card brand-bmc group">
+                                <div class="flex flex-col items-center p-5 gap-3">
+                                    <div
+                                        class="w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                        ☕</div>
+                                    <h3 class="font-bold text-primary" data-lang-key="buyMeCoffee">Buy me a coffee</h3>
+                                    <span class="text-xs text-secondary opacity-75">buymeacoffee.com</span>
+                                </div>
+                            </a>
+
+                            <!-- Momo -->
+                            <a href="https://me.momo.vn/0853300850" target="_blank" rel="noopener noreferrer"
+                                class="support-option-card brand-momo group">
+                                <div class="flex flex-col items-center p-5 gap-3">
+                                    <div
+                                        class="w-14 h-14 rounded-xl bg-pink-100 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                        <!-- Simple Momo Logo SVG Placeholder -->
+                                        <svg class="w-8 h-8 text-[#A50064]" viewBox="0 0 24 24" fill="currentColor">
+                                            <path
+                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="font-bold text-primary" data-lang-key="momo">Momo</h3>
+                                    <span class="text-xs text-secondary opacity-75">0853300850</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
