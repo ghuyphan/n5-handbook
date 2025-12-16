@@ -87,6 +87,9 @@ export function toggleAccordion(buttonElement) {
 
     const isOpen = buttonElement.classList.toggle('open');
 
+    // Update aria-expanded for accessibility
+    buttonElement.setAttribute('aria-expanded', isOpen);
+
     if (!state.openAccordions.has(tabId)) {
         state.openAccordions.set(tabId, new Set());
     }
@@ -284,15 +287,10 @@ export function toggleTheme() {
 function showLoader() {
     if (!els.loadingOverlay) return;
     document.body.style.overflow = 'hidden'; // Prevent scrolling
-    const newOverlay = els.loadingOverlay.cloneNode(true);
-    els.loadingOverlay.parentNode.replaceChild(newOverlay, els.loadingOverlay);
-    els.loadingOverlay = newOverlay;
-    // content preserved or replaced? The code sets innerHTML below.
+    // Reuse existing overlay instead of cloning (DOM optimization)
     els.loadingOverlay.innerHTML = `<div class="loader"></div>`;
     els.loadingOverlay.classList.remove('hidden');
-    requestAnimationFrame(() => {
-        els.loadingOverlay.style.opacity = '1';
-    });
+    els.loadingOverlay.style.opacity = '1';
 }
 
 function hideLoader() {
@@ -629,6 +627,7 @@ export async function jumpToSection(tabName, sectionTitleKey) {
     if (needsToOpen) {
         // Open the accordion programmatically (not via click to avoid side effects)
         accordionButton.classList.add('open');
+        accordionButton.setAttribute('aria-expanded', 'true');
 
         // Save the accordion state
         const tabId = state.activeTab;

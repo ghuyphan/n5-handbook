@@ -343,7 +343,7 @@ function createCardSection(title, data, category, backGradient, titleKey, tabId)
             }
         });
     }, {
-        rootMargin: '200% 0px', // Pre-load cards 2 screens ahead for smooth scrolling
+        rootMargin: '300% 0px', // Pre-load cards 3 screens ahead for smooth scrolling
         threshold: 0
     });
 
@@ -440,8 +440,7 @@ export function updateProgressDashboard() {
     const containers = [els.progressOverview, els.progressTab];
     if (!state.appData.ui || !containers.every(c => c)) return;
 
-    // Washi paper themed gradients - vermilion for kanji, gold/amber for vocab
-    const gradientsSVG = `<svg width="0" height="0"><defs><linearGradient id="vermilion-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D45A5A" /><stop offset="100%" stop-color="#C53D43" /></linearGradient><linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D4A84A" /><stop offset="100%" stop-color="#B8860B" /></linearGradient></defs></svg>`;
+    // Gradients are now defined globally in index.html <defs>
     const dataCategories = { kanji: 'vermilion', vocab: 'gold' };
 
     const progressItemsFragment = document.createDocumentFragment();
@@ -472,16 +471,18 @@ export function updateProgressDashboard() {
         wrapper.appendChild(progressItemsFragment.cloneNode(true));
 
         if (container.id === 'progress-overview') {
+            const headerWrapper = document.createElement('div');
+            headerWrapper.className = 'h-10 flex items-center mb-4';
+
             const overviewTitle = document.createElement('h2');
-            overviewTitle.className = 'text-xl font-bold mb-5';
+            overviewTitle.className = 'text-xl font-bold sidebar-title';
             overviewTitle.dataset.langKey = 'progressOverview';
             overviewTitle.textContent = state.appData.ui[state.currentLang]?.progressOverview || 'Progress Overview';
 
-            container.innerHTML = gradientsSVG;
-            container.appendChild(overviewTitle);
+            headerWrapper.appendChild(overviewTitle);
+            container.appendChild(headerWrapper);
             container.appendChild(wrapper);
         } else {
-            container.innerHTML = gradientsSVG;
             container.appendChild(wrapper);
         }
     });

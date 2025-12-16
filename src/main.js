@@ -110,6 +110,10 @@ function setupEventListeners() {
                 els.sidebar?.classList.add('open');
                 els.overlay?.classList.add('active');
                 document.body.classList.add('sidebar-open');
+                // Force update language pill position in case of layout shifts
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('.lang-switch').forEach(moveLangPill);
+                });
             },
             'toggle-theme': () => toggleTheme(),
             'toggle-pin': () => togglePin(),
@@ -166,7 +170,7 @@ function setupEventListeners() {
             }
         }
     }, 100);
-    window.addEventListener('resize', debouncedResize);
+    window.addEventListener('resize', debouncedResize, { passive: true });
 
     window.addEventListener('popstate', (e) => {
         handleStateChange(e.state);
@@ -181,8 +185,16 @@ function populateAndBindControls() {
     if (els.sidebarControls) {
         els.sidebarControls.innerHTML = `
             <div class="sidebar-control-group"><label class="sidebar-control-label" data-lang-key="level">Level</label><div id="level-switcher-sidebar" class="level-switch"></div></div>
-            <div class="sidebar-control-group md:hidden"><label class="sidebar-control-label" data-lang-key="language">Language</label><div id="sidebar-lang-switcher" class="lang-switch">${getLangSwitcherHTML()}</div></div>
-            <div class="sidebar-control-group md:hidden"><label class="sidebar-control-label" data-lang-key="theme">Theme</label><div class="theme-switch-wrapper">${getThemeToggleHTML()}</div></div>
+            <div class="flex items-end gap-4 mt-4 md:hidden">
+                <div class="flex-1">
+                    <label class="sidebar-control-label mb-2 block" data-lang-key="language">Language</label>
+                    <div id="sidebar-lang-switcher" class="lang-switch w-full justify-center">${getLangSwitcherHTML()}</div>
+                </div>
+                <div class="flex-1">
+                     <label class="sidebar-control-label mb-2 block" data-lang-key="theme">Theme</label>
+                     <div class="theme-switch-wrapper h-[42px] flex items-center justify-center bg-white/50 rounded-lg border border-stone-200">${getThemeToggleHTML()}</div>
+                </div>
+            </div>
             <button id="install-app-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button" style="display: none;">
                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1h4a1 1 0 001-1V2zm-1 5a1 1 0 011 1v10a1 1 0 11-2 0V8a1 1 0 011-1zm-4-4h2V2H5v2zM15 4h-2V2h2v2zm-2 4h-2v10h2V8z"/></svg>
                 <span class="pointer-events-none">Install App</span>

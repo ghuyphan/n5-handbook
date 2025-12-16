@@ -18,6 +18,14 @@ export default defineConfig({
         outDir: 'dist',
         emptyOutDir: true,
         minify: 'esbuild', // Explicitly enabled for clarity
+        rollupOptions: {
+            output: {
+                // Separate vendor chunks for better caching
+                manualChunks: {
+                    vendor: ['fuse.js', 'idb', 'wanakana']
+                }
+            }
+        }
     },
     server: {
         open: true,
