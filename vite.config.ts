@@ -73,16 +73,7 @@ export default defineConfig({
                 navigateFallback: '/index.html',
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}'],
                 runtimeCaching: [
-                    {
-                        urlPattern: ({ request }) => request.mode === 'navigate',
-                        handler: 'StaleWhileRevalidate',
-                        options: {
-                            cacheName: 'pages-cache',
-                            expiration: {
-                                maxEntries: 10,
-                            },
-                        },
-                    }
+                    // runtimeCaching for navigation removed to allow navigateFallback to work
                 ]
             },
             devOptions: {
