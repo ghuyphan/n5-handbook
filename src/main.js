@@ -328,6 +328,39 @@ function setupEventListeners() {
             }
         }
     });
+
+    // Mobile header scroll-aware hide/show
+    if (window.innerWidth <= 768) {
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+        const mobileHeader = document.querySelector('.mobile-header');
+
+        if (mobileHeader) {
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        const currentScrollY = window.scrollY;
+                        const scrollDelta = currentScrollY - lastScrollY;
+
+                        // Only hide/show after scrolling a minimum distance (10px)
+                        if (Math.abs(scrollDelta) > 10) {
+                            if (scrollDelta > 0 && currentScrollY > 60) {
+                                // Scrolling down & past header - hide
+                                mobileHeader.classList.add('header-hidden');
+                            } else if (scrollDelta < 0) {
+                                // Scrolling up - show
+                                mobileHeader.classList.remove('header-hidden');
+                            }
+                            lastScrollY = currentScrollY;
+                        }
+
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }, { passive: true });
+        }
+    }
 }
 
 function populateAndBindControls() {
