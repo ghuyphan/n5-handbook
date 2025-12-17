@@ -690,6 +690,7 @@ export async function jumpToSection(tabName, sectionTitleKey) {
     state._currentJumpToken = token;
 
     const isValidationCancelled = () => state._currentJumpToken !== token;
+    const isMobile = window.innerWidth <= 768;
 
     // Navigate to tab if not already there
     const activeTab = document.querySelector('.tab-content.active');
@@ -738,20 +739,59 @@ export async function jumpToSection(tabName, sectionTitleKey) {
         }
 
         // Wait for layout to update after opening accordion
-        await new Promise(r => setTimeout(r, 50));
+        await new Promise(r => setTimeout(r, 100));
         if (isValidationCancelled()) return;
     }
 
-    // FIXED: Use manual scroll calculation to respect scroll-margin-top
-    const scrollMarginTop = parseInt(getComputedStyle(scrollTarget).scrollMarginTop, 10) || 0;
-    const targetRect = scrollTarget.getBoundingClientRect();
-    const targetTop = window.scrollY + targetRect.top - scrollMarginTop;
+    // Mobile: Wait for chunked rendering to complete by monitoring layout stability
+    // This is necessary because mobile uses reduced initial chunk sizes for performance
+    if (isMobile) {
+        const tabContainer = document.getElementById(tabName);
+        if (tabContainer) {
+            let lastHeight = tabContainer.scrollHeight;
+            let stableFrames = 0;
+            const maxWaitFrames = 30; // ~500ms max wait at 60fps
 
-    window.scrollTo({ top: targetTop, behavior: 'instant' });
+            for (let i = 0; i < maxWaitFrames; i++) {
+                if (isValidationCancelled()) return;
+                await new Promise(r => requestAnimationFrame(r));
 
-    // Wait for next frame before applying highlight
+                const currentHeight = tabContainer.scrollHeight;
+                if (currentHeight === lastHeight) {
+                    stableFrames++;
+                    // Consider layout stable after 3 consecutive stable frames
+                    if (stableFrames >= 3) break;
+                } else {
+                    stableFrames = 0;
+                    lastHeight = currentHeight;
+                }
+            }
+        }
+        if (isValidationCancelled()) return;
+    }
+
+    // Helper function to scroll to the target
+    const scrollToTarget = () => {
+        const scrollMarginTop = parseInt(getComputedStyle(scrollTarget).scrollMarginTop, 10) || 0;
+        const targetRect = scrollTarget.getBoundingClientRect();
+        const targetTop = window.scrollY + targetRect.top - scrollMarginTop;
+        window.scrollTo({ top: targetTop, behavior: 'instant' });
+    };
+
+    // Scroll to target - use multiple attempts to ensure it sticks on mobile
+    scrollToTarget();
+
+    // Wait for next frame
     await new Promise(r => requestAnimationFrame(r));
     if (isValidationCancelled()) return;
+
+    // Scroll again after frame to ensure it persists
+    scrollToTarget();
+
+    // One more attempt after a short delay (for mobile layout shifts)
+    await new Promise(r => setTimeout(r, 50));
+    if (isValidationCancelled()) return;
+    scrollToTarget();
 
     // Apply highlight animation
     scrollTarget.classList.remove('is-highlighted');
