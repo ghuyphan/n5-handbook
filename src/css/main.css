@@ -167,12 +167,16 @@ html {
     scroll-behavior: smooth;
     font-size: 15px;
     /* Reduced from 16px */
+    overflow-x: hidden;
+    /* Prevent horizontal scroll from animations/overflow */
 }
 
 body {
     font-family: "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--text-primary);
     background-color: var(--bg-main);
+    overflow-x: hidden;
+    /* Ensure body also clips horizontal overflow */
     /* Performance-optimized Washi texture - single SVG pattern */
     background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.02' stroke-width='0.5'/%3E%3C/svg%3E");
     transition: background-color var(--transition-duration) var(--ease-in-out-quad), color var(--transition-duration) var(--ease-in-out-quad);
@@ -441,13 +445,9 @@ body.sidebar-open {
         padding: 0.5rem 0.75rem;
         margin: 0;
         border-radius: 0 !important;
-        /* Scroll-aware hide/show */
-        transition: transform 0.3s var(--ease-out-quint);
-        will-change: transform;
-    }
-
-    .mobile-header.header-hidden {
-        transform: translateY(-100%);
+        position: sticky;
+        top: 0;
+        z-index: 20;
     }
 
     /* Expandable search in header */
