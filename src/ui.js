@@ -8,33 +8,8 @@
 import { els } from './dom.js';
 import { state, config } from './config.js';
 import { generateSearchTerms } from './utils.js';
-import { setupFuseForTab } from './handlers.js';
+
 import { dbPromise } from './database.js';
-
-// --- Shared Intersection Observer for Lazy Loading ---
-let sharedCardObserver = null;
-
-function getSharedCardObserver() {
-    if (!sharedCardObserver) {
-        sharedCardObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const skeleton = entry.target;
-                    // Call the attached hydration function
-                    if (typeof skeleton._hydrate === 'function') {
-                        skeleton._hydrate();
-                    }
-                    observer.unobserve(skeleton);
-                }
-            });
-        }, {
-            rootMargin: '150% 0px', // Pre-load cards 1.5 screens ahead (reduced from 300% for memory efficiency)
-            threshold: 0
-        });
-    }
-    return sharedCardObserver;
-}
-
 
 // Centralized helper function to get localized text safely.
 function getLangText(source, key) {
@@ -45,7 +20,6 @@ function getLangText(source, key) {
     }
     return target || '';
 }
-
 
 function getSearchPlaceholderInnerContent(type, query = '') {
     const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
@@ -301,10 +275,10 @@ const createCard = (item, category, backGradient) => {
     return clone;
 };
 
+
 /**
  * Creates a section of cards (e.g., Grammar, Vocab) dynamically.
- * Uses skeleton loading for performance - renders lightweight placeholders first,
- * then hydrates them to real cards when they enter the viewport.
+ * Uses Accordion-Level Lazy Rendering: The content is NOT rendered until the accordion is opened.
  * 
  * @param {string} title - The section title.
  * @param {Array} data - Array of data items to render.
@@ -312,127 +286,40 @@ const createCard = (item, category, backGradient) => {
  * @param {string} backGradient - CSS class or value for card back gradient.
  * @param {string} titleKey - Localization key for the title.
  * @param {string} tabId - The ID of the tab this section belongs to.
- * @returns {HTMLElement} The constructed section element.
- */
-// Helper for chunked rendering to avoid blocking main thread
-// Helper for chunked rendering to avoid blocking main thread
-function renderChunks(items, renderFn, container, initialChunkSize = 48, chunkSize = 100) {
-    return new Promise((resolve) => {
-        let index = 0;
-        const total = items.length;
-
-        // Optimization: Reduce initial sync chunk on mobile to unblock main thread faster
-        const isMobile = window.innerWidth <= 768;
-        const effectiveInitialSize = isMobile ? Math.min(initialChunkSize, 30) : initialChunkSize;
-
-        const renderBlock = () => {
-            const start = performance.now();
-            const fragment = document.createDocumentFragment();
-            // 8ms budget to maintain ~60fps
-            const timeBudget = 8;
-            let count = 0;
-
-            while (index < total) {
-                fragment.appendChild(renderFn(items[index], index));
-                index++;
-                count++;
-
-                // Check budget every 5 items to minimize overhead
-                if (count % 5 === 0) {
-                    if (count >= chunkSize || (performance.now() - start > timeBudget)) {
-                        break;
-                    }
-                }
-            }
-            container.appendChild(fragment);
-
-            if (index < total) {
-                requestAnimationFrame(renderBlock);
-            } else {
-                resolve();
-            }
-        };
-
-        // First chunk sync
-        if (effectiveInitialSize > 0 && index < total) {
-            const fragment = document.createDocumentFragment();
-            const end = Math.min(index + effectiveInitialSize, total);
-            for (; index < end; index++) {
-                fragment.appendChild(renderFn(items[index], index));
-            }
-            container.appendChild(fragment);
-        }
-
-        if (index < total) {
-            requestAnimationFrame(renderBlock);
-        } else {
-            resolve();
-        }
-    });
-}
-
-/**
- * Creates a section of cards (e.g., Grammar, Vocab) dynamically.
- * Uses skeleton loading for performance - renders lightweight placeholders first,
- * then hydrates them to real cards when they enter the viewport.
- * 
- * @param {string} title - The section title.
- * @param {Array} data - Array of data items to render.
- * @param {string} category - Category identifier (e.g., 'vocab').
- * @param {string} backGradient - CSS class or value for card back gradient.
- * @param {string} titleKey - Localization key for the title.
- * @param {string} tabId - The ID of the tab this section belongs to.
- * @returns {object} { element: HTMLElement, renderPromise: Promise }
+ * @returns {object} { element: HTMLElement }
  */
 function createCardSection(title, data, category, backGradient, titleKey, tabId) {
-    const cardGrid = document.createElement('div');
-    // Using 2-column grid on mobile, scaling up on larger screens
-    cardGrid.className = 'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6';
-
-    // Create skeleton placeholder cards - lightweight placeholders that match real card dimensions
-    const createSkeletonCard = (item, index) => {
-        const skeleton = document.createElement('div');
-        skeleton.className = 'skeleton-card';
-        skeleton.innerHTML = `
-            <div class="skeleton-card-inner">
-                <div class="skeleton-line skeleton-line-lg"></div>
-                <div class="skeleton-line skeleton-line-sm"></div>
-            </div>
-        `;
-
-        // Tag the skeleton so the shared observer knows how to hydration it
-        skeleton._hydrate = () => {
-            if (!skeleton.isConnected || skeleton.classList.contains('skeleton-hydrated')) return;
-
-            const realCard = createCard(item, category, backGradient);
-            const cardElement = realCard.firstElementChild;
-            cardElement.classList.add('skeleton-hydrated');
-            skeleton.replaceWith(cardElement);
-        };
-
-        // Use requestIdleCallback for non-critical observation setup
-        if ('requestIdleCallback' in window) {
-            requestIdleCallback(() => getSharedCardObserver().observe(skeleton), { timeout: 100 });
-        } else {
-            setTimeout(() => getSharedCardObserver().observe(skeleton), 0);
-        }
-
-        return skeleton;
-    };
-
-    // Use chunked rendering for the skeletons
-    const renderPromise = renderChunks(data, createSkeletonCard, cardGrid, 48, 100);
-
     const accordionContentWrapper = document.createElement('div');
     accordionContentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
+
+    // Note: We don't create the grid children yet.
+    const cardGrid = document.createElement('div');
+    cardGrid.className = 'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6';
     accordionContentWrapper.appendChild(cardGrid);
 
     // Generate search terms for the whole section to help filtering
     const searchTermsForSection = generateSearchTerms([title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]);
 
-    const accordion = createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId, category, data.length);
+    const accordionFragment = createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId, category, data.length);
+    const accordionWrapper = accordionFragment.querySelector('.search-wrapper');
 
-    return { element: accordion, renderPromise };
+    // Attach the rendering logic to the wrapper element
+    if (accordionWrapper) {
+        accordionWrapper._isRendered = false;
+        accordionWrapper._renderContent = () => {
+            if (accordionWrapper._isRendered) return;
+
+            const fragment = document.createDocumentFragment();
+            data.forEach(item => {
+                const cardClone = createCard(item, category, backGradient);
+                fragment.appendChild(cardClone);
+            });
+            cardGrid.appendChild(fragment);
+            accordionWrapper._isRendered = true;
+        };
+    }
+
+    return { element: accordionFragment };
 }
 
 
@@ -631,26 +518,24 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
     wrapper.className = 'space-y-4';
     container.appendChild(wrapper);
 
-    const renderPromises = [];
+    // Collect search data for Fuse
+    const allItems = [];
 
     for (const key in data) {
         const section = data[key];
         if (!section.items) continue;
+        allItems.push(...section.items);
 
         const title = getLangText(section);
-        const { element, renderPromise } = createCardSection(title, section.items, category, gradient, key, containerId);
+        const { element } = createCardSection(title, section.items, category, gradient, key, containerId);
         wrapper.appendChild(element);
-        renderPromises.push(renderPromise);
     }
 
     // Call setupFuse initially for available content
+    // We now pass data directly to setupFuseForTab, or let it read from state.appData
+    // Since setupFuseForTab reads from DOM or state, we should probably ensure it reads from state.
+    // The previous implementation waited for rendering. Now we don't need to wait.
     setupFuseForTab(category);
-
-    // Re-index Fuse when all chunks are loaded to ensure everything is searchable
-    // This runs in the background
-    Promise.all(renderPromises).then(() => {
-        setupFuseForTab(category, true);
-    });
 }
 
 
@@ -1195,4 +1080,44 @@ export function closeCustomDialog() {
             contentContainer.innerHTML = '';
         }
     }
+}
+
+export async function setupFuseForTab(tabId, forceReindex = false) {
+    if (!state.appData[tabId]) return;
+
+    const workerData = [];
+    const tabData = state.appData[tabId];
+    for (const sectionKey in tabData) {
+        const section = tabData[sectionKey];
+        if (section.items) {
+            section.items.forEach(item => {
+                const terms = [
+                    item.kanji,
+                    item.word,
+                    item.onyomi,
+                    item.kunyomi,
+                    item.reading,
+                    item.meaning?.en,
+                    item.meaning?.vi,
+                    item.kana,
+                    item.romaji
+                ].flat().filter(Boolean).join(' ').toLowerCase();
+
+                workerData.push({
+                    id: item.id,
+                    searchData: terms,
+                    sectionKey: sectionKey
+                });
+            });
+        }
+    }
+
+    if (workerData.length === 0) return;
+
+    // Send data to worker for indexing
+    state.searchWorker.postMessage({
+        type: 'init',
+        tabId: tabId,
+        data: workerData
+    });
 }

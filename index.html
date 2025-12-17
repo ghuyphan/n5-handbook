@@ -165,8 +165,19 @@
                 <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
                 <feDisplacementMap in="SourceGraphic" in2="noise" scale="1" xChannelSelector="R" yChannelSelector="G" />
             </filter>
+            <!-- Squircle Clip Path -->
+            <clipPath id="squircle" clipPathUnits="objectBoundingBox">
+                <path d="M .5,0 C .1,0 0,.1 0,.5 0,.9 .1,1 .5,1 .9,1 1,.9 1,.5 1,.1 .9,0 .5,0 Z" />
+            </clipPath>
         </defs>
     </svg>
+
+    <style>
+        .squircle-clip {
+            clip-path: url(#squircle);
+        }
+    </style>
+
 
     <header class="mobile-header md:hidden sticky top-0 glass-effect z-40 px-3 py-1.5 flex items-center gap-2">
         <button id="menu-toggle" data-action="toggle-sidebar" class="p-2 -ml-2 flex-shrink-0" aria-label="Toggle menu">
@@ -178,8 +189,8 @@
         <!-- Default header content (hidden when search is open) -->
         <div id="mobile-header-default" class="flex items-center gap-2 min-w-0 flex-1">
             <a href="/" aria-label="Go to homepage. JLPT Handbook Logo">
-                <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo" class="h-8 w-8 flex-shrink-0 object-contain"
-                    width="32" height="32">
+                <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo"
+                    class="h-8 w-8 flex-shrink-0 object-contain squircle-clip" width="32" height="32">
             </a>
             <h1 id="mobile-header-title" class="text-lg font-bold text-header truncate"></h1>
         </div>
@@ -245,8 +256,8 @@
             <div class="flex-grow">
                 <div class="flex items-center gap-3 mb-6 md:mb-4 site-title-link">
                     <a href="/" aria-label="Go to homepage. JLPT Handbook Logo">
-                        <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo" class="h-10 w-10 object-contain"
-                            width="40" height="40">
+                        <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo"
+                            class="h-10 w-10 object-contain squircle-clip" width="40" height="40">
                     </a>
                     <h1 class="text-xl font-bold sidebar-title">Handbook</h1>
                 </div>
@@ -375,8 +386,8 @@
             <main id="main-content" class="relative">
                 <h2 class="sr-only">Main Content</h2>
                 <div id="loading-overlay">
-                    <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo" class="app-loader-logo object-contain"
-                        width="96" height="96">
+                    <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo"
+                        class="app-loader-logo object-contain squircle-clip" width="96" height="96">
                 </div>
                 <div id="universal-dictionary-container"></div>
                 <div id="progress" class="tab-content"></div>
@@ -643,8 +654,10 @@
                                 class="support-option-card brand-bmc group">
                                 <div class="flex flex-col items-center p-5 gap-3">
                                     <div
-                                        class="w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                        ☕</div>
+                                        class="w-14 h-14 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                        <img src="./assets/bmc.png" alt="Buy Me a Coffee"
+                                            class="w-full h-full object-cover squircle-clip" />
+                                    </div>
                                     <h3 class="font-bold text-primary" data-lang-key="buyMeCoffee">Buy me a coffee</h3>
                                     <span class="text-xs text-secondary opacity-75">buymeacoffee.com</span>
                                 </div>
@@ -655,12 +668,9 @@
                                 class="support-option-card brand-momo group">
                                 <div class="flex flex-col items-center p-5 gap-3">
                                     <div
-                                        class="w-14 h-14 rounded-xl bg-pink-100 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                        <!-- Simple Momo Logo SVG Placeholder -->
-                                        <svg class="w-8 h-8 text-[#A50064]" viewBox="0 0 24 24" fill="currentColor">
-                                            <path
-                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z" />
-                                        </svg>
+                                        class="w-14 h-14 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                        <img src="./assets/momo.png" alt="Momo"
+                                            class="w-full h-full object-cover squircle-clip" />
                                     </div>
                                     <h3 class="font-bold text-primary" data-lang-key="momo">Momo</h3>
                                     <span class="text-xs text-secondary opacity-75">0853300850</span>
@@ -696,7 +706,8 @@
     <!-- PWA Install Banner (Slide-up from bottom) -->
     <div id="pwa-install-banner" class="pwa-banner">
         <div class="pwa-banner-content">
-            <img src="./assets/siteIcon.png" alt="App Icon" class="pwa-banner-icon" width="40" height="40">
+            <img src="./assets/siteIcon.png" alt="App Icon" class="pwa-banner-icon squircle-clip" width="40"
+                height="40">
             <div class="pwa-banner-text">
                 <p class="pwa-banner-title" data-lang-key="installAppTitle">Install App</p>
                 <p class="pwa-banner-subtitle" data-lang-key="installBannerHint">Add to home screen for offline access

@@ -1,3 +1,10 @@
+import { els } from './dom.js';
+import { state, config } from './config.js';
+import { debounce } from './utils.js';
+import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote, saveAccordionState } from './database.js';
+import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm, setupTabsForLevel, setupFuseForTab } from './ui.js';
+import { handleExternalSearch } from './jotoba.js';
+
 // Web Worker for search offloading
 if (!state.searchWorker) {
     state.searchWorker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
@@ -14,64 +21,77 @@ function handleWorkerResults(tabId, results, query) {
     const container = document.getElementById(tabId);
     if (!container) return;
 
-    // Get the DOM map for this tab
-    const itemMap = state.domItemMap[tabId];
-    if (!itemMap) return;
-
-    const allWrappers = container.querySelectorAll('.search-wrapper');
-    const matchedWrapperElements = new Set();
     const resultIds = new Set(results.map(r => r.id));
 
-    // Iterate over all known items in the map
-    itemMap.forEach((element, itemId) => {
-        if (resultIds.has(itemId)) {
-            element.classList.remove('search-hidden');
+    // Group results by sectionKey to easily identify which sections need rendering
+    const sectionsWithMatches = new Set();
+    const itemMatches = new Map(); // itemId -> result
 
-            // Highlight matches if query exists
-            if (query) {
-                if (!element.dataset.originalHtml) {
-                    element.dataset.originalHtml = element.innerHTML;
-                }
-                highlightMatches(element, query);
-            } else {
-                // Restore original HTML if query is empty (though usually we reset before search)
-                const originalHTML = element.dataset.originalHtml;
-                if (originalHTML) {
-                    element.innerHTML = originalHTML;
-                    element.removeAttribute('data-original-html');
-                }
-            }
+    // Pass sectionKey from worker would be ideal, but if not available (old worker code), we might need to lookup.
+    // I updated setupFuseForTab to pass sectionKey, so results SHOULD contain it if I update worker?
+    // Wait, the worker just returns `results` which are the items I sent.
+    // Yes, 'data' sent to worker has {id, searchData, sectionKey}. Fuse returns the item.
+    // So 'r' in results should have 'sectionKey'.
 
-            const parentWrapper = element.closest('.search-wrapper');
-            if (parentWrapper) {
-                matchedWrapperElements.add(parentWrapper);
-            }
-        } else {
-            element.classList.add('search-hidden');
+    results.forEach(r => {
+        if (r.item && r.item.sectionKey) {
+            sectionsWithMatches.add(r.item.sectionKey);
         }
+        itemMatches.set(r.item.id || r.id, r);
     });
 
-    // Handle wrappers visibility
+    // Iterate over all section wrappers in the container
+    const allWrappers = container.querySelectorAll('.search-wrapper');
+
     allWrappers.forEach(wrapper => {
-        if (!matchedWrapperElements.has(wrapper)) {
-            wrapper.style.display = 'none';
-        } else {
+        const titleElement = wrapper.querySelector('[data-section-title-key]');
+        const sectionKey = titleElement?.dataset.sectionTitleKey;
+
+        // If this section has matches
+        if (sectionKey && sectionsWithMatches.has(sectionKey)) {
             wrapper.style.display = '';
-            // Ensure accordion is open if it has matches
+
+            // LAZY RENDERING: Force render content if matches found
+            if (typeof wrapper._renderContent === 'function') {
+                wrapper._renderContent();
+            }
+
             const accordionButton = wrapper.querySelector('.accordion-button');
             if (accordionButton && !accordionButton.classList.contains('open')) {
                 accordionButton.classList.add('open');
+            }
+
+            // Now handle individual item visibility within this section
+            const items = wrapper.querySelectorAll('[data-item-id]');
+            items.forEach(el => {
+                const itemId = el.dataset.itemId;
+                if (resultIds.has(itemId)) {
+                    el.classList.remove('search-hidden');
+                    if (query) {
+                        highlightMatches(el, query);
+                    }
+                } else {
+                    el.classList.add('search-hidden');
+                }
+            });
+
+        } else {
+            // No matches in this section
+            if (query) {
+                wrapper.style.display = 'none';
+            } else {
+                // If query is empty strings (reset), show everything
+                wrapper.style.display = '';
+
+                // Note: we don't necessarily want to render content for Reset.
+                // But if it WAS rendered, we should unhide items.
+                const items = wrapper.querySelectorAll('[data-item-id]');
+                items.forEach(el => el.classList.remove('search-hidden'));
             }
         }
     });
 }
 
-import { els } from './dom.js';
-import { state, config } from './config.js';
-import { debounce } from './utils.js';
-import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote, saveAccordionState } from './database.js';
-import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm, setupTabsForLevel } from './ui.js';
-import { handleExternalSearch } from './jotoba.js';
 
 // --- HELPER FUNCTIONS ---
 
@@ -180,6 +200,12 @@ export function toggleAccordion(buttonElement) {
 
     if (!tabId || !sectionKey) return;
 
+    // LAZY RENDERING: Ensure content is rendered before opening
+    const wrapper = buttonElement.closest('.search-wrapper');
+    if (wrapper && typeof wrapper._renderContent === 'function') {
+        wrapper._renderContent();
+    }
+
     const isOpen = buttonElement.classList.toggle('open');
 
     // Update aria-expanded for accessibility
@@ -198,44 +224,6 @@ export function toggleAccordion(buttonElement) {
     saveAccordionState();
 }
 
-export async function setupFuseForTab(tabId, forceReindex = false) {
-    // Optimization: If a DOM map already exists for this tab, don't rebuild it unless forced.
-    if (!forceReindex && state.domItemMap[tabId]) return;
-
-    if (!state.appData[tabId]) return;
-
-    const container = document.getElementById(tabId);
-    if (!container) return;
-
-    const searchableElements = Array.from(container.querySelectorAll('[data-search-item]'));
-
-    // If no elements found, return
-    if (searchableElements.length === 0) return;
-
-    const workerData = [];
-    const itemMap = new Map();
-
-    searchableElements.forEach((el) => {
-        const itemId = el.dataset.itemId || el.closest('[data-item-id]')?.dataset.itemId || el.textContent.trim();
-        // Store DOM reference in main thread map
-        itemMap.set(itemId, el);
-
-        // Prepare data for worker
-        workerData.push({
-            id: itemId,
-            searchData: el.dataset.searchItem
-        });
-    });
-
-    state.domItemMap[tabId] = itemMap;
-
-    // Send data to worker for indexing
-    state.searchWorker.postMessage({
-        type: 'init',
-        tabId: tabId,
-        data: workerData
-    });
-}
 
 export const handleSearch = debounce(() => {
     const query = getActiveSearchInput().value.trim().toLowerCase();
@@ -688,115 +676,73 @@ export async function jumpToSection(tabName, sectionTitleKey) {
     // Cancellation token - if user triggers another jumpToSection, we abandon the previous one
     const token = Symbol('jumpToSection');
     state._currentJumpToken = token;
+    const isCancelled = () => state._currentJumpToken !== token;
 
-    const isValidationCancelled = () => state._currentJumpToken !== token;
-    const isMobile = window.innerWidth <= 768;
-
-    // Navigate to tab if not already there
+    // Step 1: Navigate to tab if not already there
     const activeTab = document.querySelector('.tab-content.active');
     if (activeTab?.id !== tabName) {
         await changeTab(tabName, null, true);
-        if (isValidationCancelled()) return;
-    }
-
-    // Wait for the element to appear in DOM (with polling)
-    let sectionHeader = null;
-    for (let i = 0; i < 20; i++) {
-        if (isValidationCancelled()) return;
-        sectionHeader = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
-        if (sectionHeader?.isConnected) break;
+        if (isCancelled()) return;
+        // Wait for tab switch to complete and DOM to update
         await new Promise(r => setTimeout(r, 100));
+        if (isCancelled()) return;
     }
 
-    if (!sectionHeader || isValidationCancelled()) {
+    // Step 2: Find the accordion button for this section
+    const sectionButton = document.querySelector(`[data-section-title-key="${sectionTitleKey}"]`);
+    if (!sectionButton) {
         console.warn(`jumpToSection: Could not find section "${sectionTitleKey}"`);
         return;
     }
 
-    // Find the scroll target wrapper (which has scroll-margin-top CSS)
-    const scrollTarget = sectionHeader.closest(
-        '.progress-item-wrapper, .search-wrapper, .accordion-wrapper'
-    ) || sectionHeader;
+    // Step 3: Find the scroll target (the wrapper element with scroll-margin-top)
+    const scrollTarget = sectionButton.closest('.search-wrapper') ||
+        sectionButton.closest('.accordion-wrapper') ||
+        sectionButton;
 
-    // Check if this is inside an accordion that needs to be opened
-    const accordionWrapper = sectionHeader.closest('.accordion-wrapper');
-    const accordionButton = accordionWrapper?.querySelector('.accordion-button');
-    const needsToOpen = accordionButton && !accordionButton.classList.contains('open');
+    // Step 4: Check if accordion needs to be opened and content needs to be rendered
+    const isAccordion = sectionButton.classList.contains('accordion-button');
+    const needsToOpen = isAccordion && !sectionButton.classList.contains('open');
 
     if (needsToOpen) {
-        // Open the accordion programmatically (not via click to avoid side effects)
-        accordionButton.classList.add('open');
-        accordionButton.setAttribute('aria-expanded', 'true');
+        // LAZY RENDERING: Render content before opening
+        if (scrollTarget && typeof scrollTarget._renderContent === 'function') {
+            scrollTarget._renderContent();
+        }
 
-        // Save the accordion state
-        const tabId = state.activeTab;
-        if (tabId && sectionTitleKey) {
-            if (!state.openAccordions.has(tabId)) {
-                state.openAccordions.set(tabId, new Set());
+        // Open the accordion
+        sectionButton.classList.add('open');
+        sectionButton.setAttribute('aria-expanded', 'true');
+
+        // Save accordion state
+        if (tabName && sectionTitleKey) {
+            if (!state.openAccordions.has(tabName)) {
+                state.openAccordions.set(tabName, new Set());
             }
-            state.openAccordions.get(tabId).add(sectionTitleKey);
+            state.openAccordions.get(tabName).add(sectionTitleKey);
             saveAccordionState();
         }
 
-        // Wait for layout to update after opening accordion
-        await new Promise(r => setTimeout(r, 100));
-        if (isValidationCancelled()) return;
+        // Wait for DOM to update after rendering - use setTimeout for more reliable timing
+        // requestAnimationFrame alone isn't enough for large DOM updates
+        await new Promise(r => setTimeout(r, 50));
+        if (isCancelled()) return;
     }
 
-    // Mobile: Wait for chunked rendering to complete by monitoring layout stability
-    // This is necessary because mobile uses reduced initial chunk sizes for performance
-    if (isMobile) {
-        const tabContainer = document.getElementById(tabName);
-        if (tabContainer) {
-            let lastHeight = tabContainer.scrollHeight;
-            let stableFrames = 0;
-            const maxWaitFrames = 30; // ~500ms max wait at 60fps
+    // Step 5: Scroll to target using native scrollIntoView (respects scroll-margin-top CSS)
+    scrollTarget.scrollIntoView({ behavior: 'instant', block: 'start' });
 
-            for (let i = 0; i < maxWaitFrames; i++) {
-                if (isValidationCancelled()) return;
-                await new Promise(r => requestAnimationFrame(r));
+    // Step 6: Re-scroll after a short delay to handle:
+    // - Accordion animations completing
+    // - Layout shifts from fonts/images loading
+    // - Other elements above finishing their transitions
+    await new Promise(r => setTimeout(r, 100));
+    if (isCancelled()) return;
+    scrollTarget.scrollIntoView({ behavior: 'instant', block: 'start' });
 
-                const currentHeight = tabContainer.scrollHeight;
-                if (currentHeight === lastHeight) {
-                    stableFrames++;
-                    // Consider layout stable after 3 consecutive stable frames
-                    if (stableFrames >= 3) break;
-                } else {
-                    stableFrames = 0;
-                    lastHeight = currentHeight;
-                }
-            }
-        }
-        if (isValidationCancelled()) return;
-    }
-
-    // Helper function to scroll to the target
-    const scrollToTarget = () => {
-        const scrollMarginTop = parseInt(getComputedStyle(scrollTarget).scrollMarginTop, 10) || 0;
-        const targetRect = scrollTarget.getBoundingClientRect();
-        const targetTop = window.scrollY + targetRect.top - scrollMarginTop;
-        window.scrollTo({ top: targetTop, behavior: 'instant' });
-    };
-
-    // Scroll to target - use multiple attempts to ensure it sticks on mobile
-    scrollToTarget();
-
-    // Wait for next frame
-    await new Promise(r => requestAnimationFrame(r));
-    if (isValidationCancelled()) return;
-
-    // Scroll again after frame to ensure it persists
-    scrollToTarget();
-
-    // One more attempt after a short delay (for mobile layout shifts)
-    await new Promise(r => setTimeout(r, 50));
-    if (isValidationCancelled()) return;
-    scrollToTarget();
-
-    // Apply highlight animation
+    // Step 7: Apply highlight animation
     scrollTarget.classList.remove('is-highlighted');
-    // Force reflow to restart animation - CRITICAL for CSS animation restart
-    void scrollTarget.offsetWidth;
+    void scrollTarget.offsetWidth; // Force reflow
     scrollTarget.classList.add('is-highlighted');
     scrollTarget.addEventListener('animationend', () => {
         scrollTarget.classList.remove('is-highlighted');
