@@ -171,7 +171,7 @@ async function changeTab(tabName, ...args) {
     // Search visibility logic:
     // - progress: No search needed
     // - external-search: Search IS the feature, auto-expand it
-    // - other tabs: Show toggle for optional filtering
+    // - other tabs: Show toggle for optional filtering, close search when switching
     if (tabName === 'progress') {
         // Hide search on progress
         if (searchToggle) searchToggle.style.display = 'none';
@@ -192,7 +192,13 @@ async function changeTab(tabName, ...args) {
     } else {
         // Regular content tabs - show toggle for filtering
         if (searchToggle) searchToggle.style.display = '';
-        // Don't auto-close search when switching between searchable tabs
+        // Close search when switching to a different regular tab (clean slate per tab)
+        if (mobileHeader?.classList.contains('search-active')) {
+            mobileHeader.classList.remove('search-active');
+            els.mobileSearchInput?.blur();
+            // Clear search input when switching tabs
+            if (els.mobileSearchInput) els.mobileSearchInput.value = '';
+        }
         document.body.classList.remove('dictionary-active');
     }
 
