@@ -523,7 +523,7 @@ body.sidebar-open {
     .mobile-header.search-active #mobile-header-actions {
         opacity: 0;
         visibility: hidden;
-        pointer-events: none;
+        pointer-events: none !important;
     }
 
     /* Search bar slide-in animation */
@@ -538,6 +538,8 @@ body.sidebar-open {
         transition: opacity 0.25s var(--ease-out-quint),
             transform 0.25s var(--ease-out-quint),
             visibility 0.25s;
+        z-index: 25;
+        /* Ensure search is above actions */
     }
 
     .mobile-header.search-active .mobile-header-search {

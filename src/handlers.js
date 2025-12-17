@@ -787,55 +787,48 @@ export async function deleteLevel(level) {
 
 export function setupMobileHeaderScroll() {
     let lastScrollY = window.scrollY;
-    let ticking = false;
     const header = document.querySelector('.mobile-header');
 
     if (!header) return;
 
-    window.addEventListener('scroll', () => {
-        if (!ticking) {
-            window.requestAnimationFrame(() => {
-                const currentScrollY = window.scrollY;
-                const isMobile = window.innerWidth <= 768;
+    const onScroll = () => {
+        const currentScrollY = window.scrollY;
+        const isMobile = window.innerWidth <= 768;
 
-                // Only run on mobile
-                if (!isMobile) {
-                    ticking = false;
-                    return;
-                }
+        if (!isMobile) return;
 
-                // Don't hide if sidebar is open (optimization, though specific css handles it)
-                if (document.body.classList.contains('sidebar-open')) {
-                    ticking = false;
-                    return;
-                }
+        // If sidebar is open, do nothing (body scroll is locked usually)
+        if (document.body.classList.contains('sidebar-open')) return;
 
-                // Threshold to prevent jitter (e.g. 10px movement)
-                const scrollDiff = currentScrollY - lastScrollY;
-                if (Math.abs(scrollDiff) < 10) {
-                    ticking = false;
-                    return;
-                }
-
-                // Logic:
-                // 1. If at top (e.g. < 60px), ALWAYS show.
-                // 2. If scrolling DOWN (> 0 diff) -> Hide
-                // 3. If scrolling UP (< 0 diff) -> Show
-
-                if (currentScrollY <= 60) {
-                    header.classList.remove('header-hidden');
-                } else if (scrollDiff > 0) {
-                    // Scrolling down
-                    header.classList.add('header-hidden');
-                } else {
-                    // Scrolling up
-                    header.classList.remove('header-hidden');
-                }
-
-                lastScrollY = currentScrollY > 0 ? currentScrollY : 0;
-                ticking = false;
-            });
-            ticking = true;
+        // Always show if near top or negative (overscroll)
+        if (currentScrollY <= 10) {
+            header.classList.remove('header-hidden');
+            lastScrollY = currentScrollY;
+            return;
         }
+
+        const scrollDiff = currentScrollY - lastScrollY;
+
+        // Lower threshold for responsiveness (3px)
+        if (Math.abs(scrollDiff) < 3) return;
+
+        if (scrollDiff > 0) {
+            // Scrolling DOWN -> Hide
+            header.classList.add('header-hidden');
+        } else {
+            // Scrolling UP -> Show
+            header.classList.remove('header-hidden');
+        }
+
+        lastScrollY = currentScrollY;
+    };
+
+    let rafId = null;
+    window.addEventListener('scroll', () => {
+        if (rafId) return;
+        rafId = requestAnimationFrame(() => {
+            onScroll();
+            rafId = null;
+        });
     }, { passive: true });
 }
