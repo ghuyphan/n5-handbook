@@ -176,6 +176,12 @@ body {
     /* Performance-optimized Washi texture - single SVG pattern */
     background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.02' stroke-width='0.5'/%3E%3C/svg%3E");
     transition: background-color var(--transition-duration) var(--ease-in-out-quad), color var(--transition-duration) var(--ease-in-out-quad);
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+}
+
+html {
+    overflow-x: hidden;
 }
 
 h1,
@@ -676,6 +682,7 @@ body.sidebar-open {
     min-height: 100vh;
     padding: 1rem 1.5rem;
     background-color: var(--bg-main);
+    overflow-x: hidden;
 }
 
 /* Washi Paper Effect - replaces glass-effect */

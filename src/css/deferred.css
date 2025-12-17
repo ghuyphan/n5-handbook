@@ -2060,10 +2060,11 @@ input:checked+.slider:before {
         min-height: 120px;
     }
 
-    /* Level switcher buttons */
-    .level-switch-button {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
+    /* Level switcher buttons - maintain circular shape */
+    .level-switch .level-switch-button {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 0.6875rem;
     }
 
     /* Footer */
@@ -2156,13 +2157,27 @@ input:checked+.slider:before {
 /* Touch-friendly tap targets */
 @media (max-width: 768px) {
 
-    /* Ensure minimum tap target of 44px */
-    .btn-icon,
-    .modal-close-btn,
+    /* Ensure minimum tap target of 44px for non-circular elements */
     .accordion-button,
-    .nav-item,
-    .level-switch-button {
+    .nav-item {
         min-height: 44px;
+    }
+
+    /* Circular buttons - ensure both width and height match for circle */
+    .btn-icon,
+    .modal-close-btn {
+        min-width: 40px;
+        min-height: 40px;
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Level switch buttons keep their circular shape */
+    .level-switch .level-switch-button {
+        min-width: 40px;
+        min-height: 40px;
+        width: 40px;
+        height: 40px;
     }
 
     /* Better touch feedback */
