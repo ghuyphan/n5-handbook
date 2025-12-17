@@ -829,7 +829,7 @@ function prepareKanaData(originalData) {
 
     const LAYOUTS = {
         gojuon: ['a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so', 'ta', 'chi', 'tsu', 'te', 'to', 'na', 'ni', 'nu', 'ne', 'no', 'ha', 'hi', 'fu', 'he', 'ho', 'ma', 'mi', 'mu', 'me', 'mo', 'ya', null, 'yu', null, 'yo', 'ra', 'ri', 'ru', 're', 'ro', 'wa', null, null, null, 'wo', 'n', null, null, null, null],
-        dakuten: ['ga', 'gi', 'gu', 'ge', 'go', 'za', 'ji', 'zu', 'ze', 'zo', 'da', 'di', 'dzu', 'de', 'do', 'ba', 'bi', 'bu', 'be', 'bo'],
+        dakuten: ['ga', 'gi', 'gu', 'ge', 'go', 'za', 'ji', 'zu', 'ze', 'zo', 'da', 'di', 'dzu', 'de', 'do', 'ba', 'bi', 'bu', 'be', 'bo', 'pa', 'pi', 'pu', 'pe', 'po'],
         handakuten: ['pa', 'pi', 'pu', 'pe', 'po'],
         youon: ['kya', null, 'kyu', null, 'kyo', 'sha', null, 'shu', null, 'sho', 'cha', null, 'chu', null, 'cho', 'nya', null, 'nyu', null, 'nyo', 'hya', null, 'hyu', null, 'hyo', 'mya', null, 'myu', null, 'myo', 'rya', null, 'ryu', null, 'ryo', 'gya', null, 'gyu', null, 'gyo', 'ja', null, 'ju', null, 'jo', 'bya', null, 'byu', null, 'byo', 'pya', null, 'pyu', null, 'pyo']
     };

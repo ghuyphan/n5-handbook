@@ -563,9 +563,13 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
     updateTabUI(tabName);
     closeSidebar();
 
-    // Store scroll position of the PREVIOUS tab before hiding it
+    const isMobile = window.innerWidth <= 768;
+
+    // Store scroll position of the PREVIOUS tab before hiding it (desktop only)
     if (activeTabEl) {
-        state.tabScrollPositions.set(activeTabEl.id, window.scrollY);
+        if (!isMobile) {
+            state.tabScrollPositions.set(activeTabEl.id, window.scrollY);
+        }
         activeTabEl.classList.remove('active');
     }
 
@@ -573,6 +577,15 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
     if (!newTabContentEl) {
         console.error(`Tab container not found for tab: ${tabName}`);
         return;
+    }
+
+    // On mobile: always scroll to top
+    // On desktop: restore saved position if available
+    const targetScrollY = isMobile ? 0 : (state.tabScrollPositions.get(tabName) || 0);
+
+    // CRITICAL: Reset scroll IMMEDIATELY before showing the new tab
+    if (!suppressScroll) {
+        window.scrollTo({ top: targetScrollY, behavior: 'instant' });
     }
 
     // Show the new tab
@@ -644,17 +657,22 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         }
     }
 
+    // FINAL scroll position enforcement - after all async rendering is complete
+    // This ensures the scroll is correct even if rendering caused layout shifts
     if (!suppressScroll) {
-        // Restore scroll position for this tab
-        // Use requestAnimationFrame to ensure layout is stable especially on mobile
-        const restoreScroll = () => {
-            const scrollY = state.tabScrollPositions.get(tabName) || 0;
-            window.scrollTo({ top: scrollY, behavior: 'instant' });
-        };
+        // Use multiple strategies to ensure scroll position sticks:
+        // 1. Immediate scroll
+        window.scrollTo({ top: targetScrollY, behavior: 'instant' });
 
-        restoreScroll();
-        // Double check for mobile browsers where address bar/viewport changes might interfere
-        requestAnimationFrame(restoreScroll);
+        // 2. After next frame (after browser paints)
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: targetScrollY, behavior: 'instant' });
+        });
+
+        // 3. Short delay to handle any async layout updates (especially on mobile)
+        setTimeout(() => {
+            window.scrollTo({ top: targetScrollY, behavior: 'instant' });
+        }, 50);
     }
 }
 
