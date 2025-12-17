@@ -661,14 +661,24 @@ body.sidebar-open {
 
 
 .main-header {
-    background: rgba(var(--bg-main-rgb), 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: var(--bg-main);
+    /* Fallback */
     position: sticky;
     top: 0;
     z-index: 20;
     padding: 0.5rem 1.5rem 0.25rem 1.5rem;
     margin: 0;
+    border-bottom: 1px solid transparent;
+    /* Prevent layout shift */
+}
+
+/* Enhanced header for capable devices */
+@supports (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px)) {
+    .main-header {
+        background: rgba(var(--bg-main-rgb), 0.85);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
 }
 
 /* --- 5. CORE UI COMPONENTS (Initial State) --- */
@@ -688,8 +698,32 @@ body.sidebar-open {
     border-radius: var(--radius-lg);
 }
 
+/* Only apply backdrop-filter on devices that support it and haven't requested reduced transparency */
+@supports (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px)) {
+    @media (prefers-reduced-transparency: no-preference) {
+        .glass-effect {
+            /* Slightly more transparent for glass effect if supported */
+            background: rgba(250, 248, 243, 0.9);
+        }
+
+        .main-header {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+    }
+}
+
 .dark-mode .glass-effect {
     background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%23C8B496' stroke-opacity='0.02' stroke-width='0.5'/%3E%3C/svg%3E");
+}
+
+/* For dark mode glass support */
+@supports (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px)) {
+    @media (prefers-reduced-transparency: no-preference) {
+        .dark-mode .glass-effect {
+            background: rgba(36, 34, 32, 0.9);
+        }
+    }
 }
 
 /* Modal backdrop - used by modals, NOT sidebar */

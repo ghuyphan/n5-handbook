@@ -38,4 +38,9 @@ export const state = {
         vocabFuse: null,
         kanjiFuse: null,
     },
+    // Web Worker for search
+    searchWorker: null,
+    // Map to store DOM elements by ID for quick lookup after worker search
+    // Structure: { [tabId]: Map<itemId, HTMLElement> }
+    domItemMap: {},
 };

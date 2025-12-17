@@ -132,17 +132,29 @@ mark.search-highlight {
     border: 1px solid var(--washi-border);
     border-radius: var(--radius-lg);
     position: relative;
-    box-shadow: var(--shadow-paper);
-    /* Performance-optimized Washi texture */
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.02' stroke-width='0.5'/%3E%3C/svg%3E");
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    /* Simplified shadow for performance */
 }
 
-.dark-mode .progress-item-wrapper,
-.dark-mode .cell-bg,
-.dark-mode .grammar-card,
-.dark-mode .dict-card {
-    /* Performance-optimized Washi texture for dark mode */
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%23C8B496' stroke-opacity='0.015' stroke-width='0.5'/%3E%3C/svg%3E");
+/* Desktop/High-end: Restore textures and full shadows */
+@media (min-width: 769px) {
+
+    .progress-item-wrapper,
+    .cell-bg,
+    .grammar-card,
+    .dict-card {
+        box-shadow: var(--shadow-paper);
+        /* Performance-optimized Washi texture */
+        background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.02' stroke-width='0.5'/%3E%3C/svg%3E");
+    }
+
+    .dark-mode .progress-item-wrapper,
+    .dark-mode .cell-bg,
+    .dark-mode .grammar-card,
+    .dark-mode .dict-card {
+        /* Performance-optimized Washi texture for dark mode */
+        background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%23C8B496' stroke-opacity='0.015' stroke-width='0.5'/%3E%3C/svg%3E");
+    }
 }
 
 /* Fix hover flicker/death spot */
@@ -161,35 +173,19 @@ mark.search-highlight {
     pointer-events: auto;
 }
 
-@media (hover: hover) and (pointer: fine) {
-    .progress-item-wrapper:hover {
-        /* transform: translateY(-3px); REMOVED lift */
-        background-color: var(--nav-hover-bg);
-        /* box-shadow: var(--shadow-paper-hover); REMOVED shadow expansion */
-    }
+/* .nav-item-wrapper styles moved to main.css, removing from here if present or ensuring no conflict */
+.nav-item-wrapper:hover .nav-item:not(.active) {
+    /* Redundant if main.css handles it, but good to harmonize */
+    background-color: var(--nav-hover-bg);
+    transform: translateX(4px);
+    box-shadow: none;
+}
 
-    .cell-bg:hover,
-    .grammar-card:hover,
-    .dict-card:hover {
-        /* transform: translateY(-2px); REMOVED lift */
-        background-color: var(--nav-hover-bg);
-        /* Highlight background instead */
-    }
-
-    /* .nav-item-wrapper styles moved to main.css, removing from here if present or ensuring no conflict */
-    .nav-item-wrapper:hover .nav-item:not(.active) {
-        /* Redundant if main.css handles it, but good to harmonize */
-        background-color: var(--nav-hover-bg);
-        transform: translateX(4px);
-        box-shadow: none;
-    }
-
-    #close-sidebar-btn:hover {
-        color: var(--text-primary);
-        background-color: var(--nav-hover-bg);
-        transform: scale(1.05);
-        /* Icon scaling is fine */
-    }
+#close-sidebar-btn:hover {
+    color: var(--text-primary);
+    background-color: var(--nav-hover-bg);
+    transform: scale(1.05);
+    /* Icon scaling is fine */
 }
 
 .search-input-wrapper {

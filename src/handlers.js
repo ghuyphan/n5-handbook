@@ -1,11 +1,71 @@
-// Dynamic import cache for Fuse.js - loaded on first use
-let FuseModule = null;
-async function getFuse() {
-    if (!FuseModule) {
-        FuseModule = (await import('fuse.js')).default;
-    }
-    return FuseModule;
+// Web Worker for search offloading
+if (!state.searchWorker) {
+    state.searchWorker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+
+    state.searchWorker.onmessage = (e) => {
+        const { type, tabId, results, query } = e.data;
+        if (type === 'results') {
+            handleWorkerResults(tabId, results, query);
+        }
+    };
 }
+
+function handleWorkerResults(tabId, results, query) {
+    const container = document.getElementById(tabId);
+    if (!container) return;
+
+    // Get the DOM map for this tab
+    const itemMap = state.domItemMap[tabId];
+    if (!itemMap) return;
+
+    const allWrappers = container.querySelectorAll('.search-wrapper');
+    const matchedWrapperElements = new Set();
+    const resultIds = new Set(results.map(r => r.id));
+
+    // Iterate over all known items in the map
+    itemMap.forEach((element, itemId) => {
+        if (resultIds.has(itemId)) {
+            element.classList.remove('search-hidden');
+
+            // Highlight matches if query exists
+            if (query) {
+                if (!element.dataset.originalHtml) {
+                    element.dataset.originalHtml = element.innerHTML;
+                }
+                highlightMatches(element, query);
+            } else {
+                // Restore original HTML if query is empty (though usually we reset before search)
+                const originalHTML = element.dataset.originalHtml;
+                if (originalHTML) {
+                    element.innerHTML = originalHTML;
+                    element.removeAttribute('data-original-html');
+                }
+            }
+
+            const parentWrapper = element.closest('.search-wrapper');
+            if (parentWrapper) {
+                matchedWrapperElements.add(parentWrapper);
+            }
+        } else {
+            element.classList.add('search-hidden');
+        }
+    });
+
+    // Handle wrappers visibility
+    allWrappers.forEach(wrapper => {
+        if (!matchedWrapperElements.has(wrapper)) {
+            wrapper.style.display = 'none';
+        } else {
+            wrapper.style.display = '';
+            // Ensure accordion is open if it has matches
+            const accordionButton = wrapper.querySelector('.accordion-button');
+            if (accordionButton && !accordionButton.classList.contains('open')) {
+                accordionButton.classList.add('open');
+            }
+        }
+    });
+}
+
 import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
@@ -138,10 +198,9 @@ export function toggleAccordion(buttonElement) {
     saveAccordionState();
 }
 
-export async function setupFuseForTab(tabId) {
-    // Optimization: If a Fuse instance already exists for this tab, don't rebuild it.
-    // The DOM elements are now persisted, so the references in Fuse remain valid.
-    if (state.fuseInstances[tabId]) return;
+export async function setupFuseForTab(tabId, forceReindex = false) {
+    // Optimization: If a DOM map already exists for this tab, don't rebuild it unless forced.
+    if (!forceReindex && state.domItemMap[tabId]) return;
 
     if (!state.appData[tabId]) return;
 
@@ -150,38 +209,31 @@ export async function setupFuseForTab(tabId) {
 
     const searchableElements = Array.from(container.querySelectorAll('[data-search-item]'));
 
-    // If no elements found (e.g. data not loaded yet), don't create an empty Fuse instance
-    // or it will prevent future creation when data IS loaded.
+    // If no elements found, return
     if (searchableElements.length === 0) return;
 
-    const fuseCollection = searchableElements.map((el) => {
+    const workerData = [];
+    const itemMap = new Map();
+
+    searchableElements.forEach((el) => {
         const itemId = el.dataset.itemId || el.closest('[data-item-id]')?.dataset.itemId || el.textContent.trim();
-        return {
+        // Store DOM reference in main thread map
+        itemMap.set(itemId, el);
+
+        // Prepare data for worker
+        workerData.push({
             id: itemId,
-            element: el,
             searchData: el.dataset.searchItem
-        }
+        });
     });
 
-    // Defer Fuse initialization to unblock the main thread during render/tab switch.
-    // Use requestIdleCallback if available, otherwise fallback to setTimeout
-    const runIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+    state.domItemMap[tabId] = itemMap;
 
-    runIdle(async () => {
-        // Re-check existence inside idle callback in case of race conditions
-        if (state.fuseInstances[tabId]) return;
-
-        if (fuseCollection.length > 0) {
-            // Dynamic import - Fuse.js loaded only when first needed
-            const Fuse = await getFuse();
-            state.fuseInstances[tabId] = new Fuse(fuseCollection, {
-                keys: ['searchData'],
-                includeScore: true,
-                threshold: 0.3,
-                ignoreLocation: true,
-                useExtendedSearch: true,
-            });
-        }
+    // Send data to worker for indexing
+    state.searchWorker.postMessage({
+        type: 'init',
+        tabId: tabId,
+        data: workerData
     });
 }
 
@@ -197,17 +249,19 @@ export const handleSearch = debounce(() => {
     }
 
     const allWrappers = activeTab.querySelectorAll('.search-wrapper');
-    const allItems = activeTab.querySelectorAll('[data-search-item]');
+    const itemMap = state.domItemMap[activeTabId];
 
-    // First, reset everything to its default state
-    allItems.forEach(item => {
-        item.classList.remove('search-hidden');
-        const originalHTML = item.dataset.originalHtml;
-        if (originalHTML) {
-            item.innerHTML = originalHTML;
-            item.removeAttribute('data-original-html');
-        }
-    });
+    // Reset everything to default state before searching
+    if (itemMap) {
+        itemMap.forEach((element) => {
+            element.classList.remove('search-hidden');
+            const originalHTML = element.dataset.originalHtml;
+            if (originalHTML) {
+                element.innerHTML = originalHTML;
+                element.removeAttribute('data-original-html');
+            }
+        });
+    }
 
     allWrappers.forEach(wrapper => {
         wrapper.style.display = '';
@@ -223,40 +277,11 @@ export const handleSearch = debounce(() => {
         return; // If query is empty, we are done after resetting.
     }
 
-    const fuse = state.fuseInstances[activeTabId];
-    if (!fuse) return;
-
-    const results = fuse.search(query);
-    const matchedItemElements = new Set(results.map(result => result.item.element));
-    const matchedWrapperElements = new Set();
-
-    // Hide non-matching items and highlight matching ones
-    allItems.forEach(item => {
-        if (!matchedItemElements.has(item)) {
-            item.classList.add('search-hidden');
-        } else {
-            if (!item.dataset.originalHtml) {
-                item.dataset.originalHtml = item.innerHTML;
-            }
-            highlightMatches(item, query);
-            const parentWrapper = item.closest('.search-wrapper');
-            if (parentWrapper) {
-                matchedWrapperElements.add(parentWrapper);
-            }
-        }
-    });
-
-    // Hide entire wrappers if they contain no matched items
-    allWrappers.forEach(wrapper => {
-        if (!matchedWrapperElements.has(wrapper)) {
-            wrapper.style.display = 'none';
-        } else {
-            // If a wrapper has matches, ensure its accordion is open
-            const accordionButton = wrapper.querySelector('.accordion-button');
-            if (accordionButton && !accordionButton.classList.contains('open')) {
-                accordionButton.classList.add('open');
-            }
-        }
+    // Offload search to worker
+    state.searchWorker.postMessage({
+        type: 'search',
+        tabId: activeTabId,
+        query: query
     });
 }, 300);
 
@@ -374,10 +399,20 @@ async function loadLevelData(level) {
         (currentLevelSettings?.openAccordions || []).map(([tabId, keys]) => [tabId, new Set(keys)])
     );
 
-    state.fuseInstances = {};
     state.lastDictionaryQuery = '';
     state.notes.data = new Map();
     state.notes.originalContent = '';
+    // Clear DOM map for search when loading new level
+    state.domItemMap = {};
+    // Tell worker to clear its cache
+    if (state.searchWorker) {
+        // We can't easily iterate all tabs to clear, but reloading level usually implies full reset.
+        // For simplicity, we can let the worker keep old data (it's keyed by tabId) or implement a 'clearAll' message.
+        // Since tabIds might reuse keys (hiragana, kanji), we SHOULD clear.
+        // Sending a clear message for safety.
+        // Actually, loadLevelData resets state.appData and state.domItemMap, so worker data would be stale.
+        // We will just let new 'init' messages overwrite old data in worker for the same tabId.
+    }
     if (state.renderedTabs) state.renderedTabs.clear();
 
     const db = await dbPromise;

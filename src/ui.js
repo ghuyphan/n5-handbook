@@ -314,6 +314,55 @@ const createCard = (item, category, backGradient) => {
  * @param {string} tabId - The ID of the tab this section belongs to.
  * @returns {HTMLElement} The constructed section element.
  */
+// Helper for chunked rendering to avoid blocking main thread
+function renderChunks(items, renderFn, container, initialChunkSize = 48, chunkSize = 100) {
+    return new Promise((resolve) => {
+        let index = 0;
+
+        const renderBlock = (count) => {
+            const end = Math.min(index + count, items.length);
+            const fragment = document.createDocumentFragment();
+            for (let i = index; i < end; i++) {
+                fragment.appendChild(renderFn(items[i], i));
+            }
+            container.appendChild(fragment);
+            index = end;
+        };
+
+        // First chunk sync
+        renderBlock(initialChunkSize);
+
+        if (index >= items.length) {
+            resolve();
+            return;
+        }
+
+        const next = () => {
+            renderBlock(chunkSize);
+            if (index < items.length) {
+                setTimeout(next, 0);
+            } else {
+                resolve();
+            }
+        };
+
+        setTimeout(next, 0);
+    });
+}
+
+/**
+ * Creates a section of cards (e.g., Grammar, Vocab) dynamically.
+ * Uses skeleton loading for performance - renders lightweight placeholders first,
+ * then hydrates them to real cards when they enter the viewport.
+ * 
+ * @param {string} title - The section title.
+ * @param {Array} data - Array of data items to render.
+ * @param {string} category - Category identifier (e.g., 'vocab').
+ * @param {string} backGradient - CSS class or value for card back gradient.
+ * @param {string} titleKey - Localization key for the title.
+ * @param {string} tabId - The ID of the tab this section belongs to.
+ * @returns {object} { element: HTMLElement, renderPromise: Promise }
+ */
 function createCardSection(title, data, category, backGradient, titleKey, tabId) {
     const cardGrid = document.createElement('div');
     // Using 2-column grid on mobile, scaling up on larger screens
@@ -323,29 +372,15 @@ function createCardSection(title, data, category, backGradient, titleKey, tabId)
     const createSkeletonCard = (item, index) => {
         const skeleton = document.createElement('div');
         skeleton.className = 'skeleton-card';
-        // Removed dataset.itemIndex as we use closure for hydration
         skeleton.innerHTML = `
             <div class="skeleton-card-inner">
                 <div class="skeleton-line skeleton-line-lg"></div>
                 <div class="skeleton-line skeleton-line-sm"></div>
             </div>
         `;
-        return skeleton;
-    };
-
-    // Hydrate skeleton to real card when visible
-    // hydrateCard function removed - logic moved into skeleton._hydrate closure
-
-    // Render skeleton placeholders and observe them using shared observer
-    const fragment = document.createDocumentFragment();
-    data.forEach((item, index) => {
-        const skeleton = createSkeletonCard(item, index);
-        fragment.appendChild(skeleton);
 
         // Tag the skeleton so the shared observer knows how to hydration it
-        // We attach the hydration function directly to the element for easy access
         skeleton._hydrate = () => {
-            // Check if already hydrated (race condition safety)
             if (!skeleton.isConnected || skeleton.classList.contains('skeleton-hydrated')) return;
 
             const realCard = createCard(item, category, backGradient);
@@ -358,25 +393,25 @@ function createCardSection(title, data, category, backGradient, titleKey, tabId)
         if ('requestIdleCallback' in window) {
             requestIdleCallback(() => getSharedCardObserver().observe(skeleton), { timeout: 100 });
         } else {
-            // Fallback for Safari
             setTimeout(() => getSharedCardObserver().observe(skeleton), 0);
         }
-    });
 
-    cardGrid.appendChild(fragment);
+        return skeleton;
+    };
+
+    // Use chunked rendering for the skeletons
+    const renderPromise = renderChunks(data, createSkeletonCard, cardGrid, 48, 100);
 
     const accordionContentWrapper = document.createElement('div');
     accordionContentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
     accordionContentWrapper.appendChild(cardGrid);
 
     // Generate search terms for the whole section to help filtering
-    // Note: This matches the previous logic, ensuring Fuse works on the whole block
     const searchTermsForSection = generateSearchTerms([title, ...data.flatMap(item => [item.kanji, item.word, item.meaning?.en, item.meaning?.vi])]);
 
-    // Critical: Use the existing logic which handles 'title' correctly (via re-render)
-    // rather than injecting data-lang-key which might be missing in UI dictionary.
-    // Pass category and count for hanko-style progress counter
-    return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId, category, data.length);
+    const accordion = createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId, category, data.length);
+
+    return { element: accordion, renderPromise };
 }
 
 
@@ -385,6 +420,7 @@ const createStaticSection = (data, icon, color) => {
     if (!data) return fragment;
 
     Object.entries(data).forEach(([sectionKey, sectionData]) => {
+        // Static sections (kana) are usually small enough to not need chunking
         if (!sectionData.items) return;
         const items = sectionData.items;
         const title = getLangText(sectionData);
@@ -574,18 +610,26 @@ async function renderCardBasedSection(containerId, data, category, gradient) {
     wrapper.className = 'space-y-4';
     container.appendChild(wrapper);
 
-
+    const renderPromises = [];
 
     for (const key in data) {
         const section = data[key];
         if (!section.items) continue;
 
         const title = getLangText(section);
-        const accordionFragment = createCardSection(title, section.items, category, gradient, key, containerId);
-        wrapper.appendChild(accordionFragment);
+        const { element, renderPromise } = createCardSection(title, section.items, category, gradient, key, containerId);
+        wrapper.appendChild(element);
+        renderPromises.push(renderPromise);
     }
 
+    // Call setupFuse initially for available content
     setupFuseForTab(category);
+
+    // Re-index Fuse when all chunks are loaded to ensure everything is searchable
+    // This runs in the background
+    Promise.all(renderPromises).then(() => {
+        setupFuseForTab(category, true);
+    });
 }
 
 

@@ -14,10 +14,13 @@ import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState
 import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion } from './handlers.js';
 
 // --- PWA Installation ---
-let deferredPrompt;
+let deferredPrompt = null;
 let pwaInstallModalShown = false;
 
-// Detect platform
+/**
+ * Detect the user's platform for PWA install hints
+ * @returns {'ios' | 'android' | 'other'}
+ */
 function getPlatform() {
     const ua = navigator.userAgent || navigator.vendor || window.opera;
     if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios';
@@ -25,31 +28,43 @@ function getPlatform() {
     return 'other';
 }
 
-// Check if running as standalone PWA
+/**
+ * Check if the app is running as a standalone PWA
+ * @returns {boolean}
+ */
 function isStandalonePWA() {
     return window.matchMedia('(display-mode: standalone)').matches ||
         window.navigator.standalone === true ||
         document.referrer.includes('android-app://');
 }
 
-// Check if mobile device
+/**
+ * Check if the device is mobile
+ * @returns {boolean}
+ */
 function isMobileDevice() {
     return window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-// Check if PWA install prompt was dismissed recently
+/**
+ * Check if PWA install prompt was dismissed recently (within 7 days)
+ * @returns {boolean}
+ */
 function wasPWAPromptDismissed() {
     const dismissedAt = localStorage.getItem('pwaPromptDismissedAt');
     if (!dismissedAt) return false;
-    // Show again after 7 days
     const sevenDays = 7 * 24 * 60 * 60 * 1000;
     return (Date.now() - parseInt(dismissedAt, 10)) < sevenDays;
 }
 
+/**
+ * Mark PWA prompt as dismissed
+ */
 function dismissPWAPrompt() {
     localStorage.setItem('pwaPromptDismissedAt', Date.now().toString());
 }
 
+// Listen for the beforeinstallprompt event
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -58,6 +73,9 @@ window.addEventListener('beforeinstallprompt', (e) => {
     }
 });
 
+/**
+ * Handle the install button click
+ */
 async function handleInstallClick() {
     if (deferredPrompt) {
         deferredPrompt.prompt();
@@ -86,6 +104,7 @@ async function handleInstallClick() {
     }
 }
 
+// Handle successful app installation
 window.addEventListener('appinstalled', () => {
     if (els.installAppBtn) {
         els.installAppBtn.style.display = 'none';
@@ -97,6 +116,10 @@ window.addEventListener('appinstalled', () => {
 });
 
 // --- PWA Install Banner ---
+
+/**
+ * Open the PWA install banner
+ */
 function openPWAInstallBanner() {
     const banner = document.getElementById('pwa-install-banner');
     if (!banner) return;
@@ -113,12 +136,18 @@ function openPWAInstallBanner() {
     pwaInstallModalShown = true;
 }
 
+/**
+ * Close the PWA install banner
+ */
 function closePWAInstallBanner() {
     const banner = document.getElementById('pwa-install-banner');
     if (!banner) return;
     banner.classList.remove('active');
 }
 
+/**
+ * Set up PWA install banner event listeners
+ */
 function setupPWAInstallBanner() {
     const installBtn = document.getElementById('pwa-banner-install-btn');
     const dismissBtn = document.getElementById('pwa-banner-dismiss-btn');
@@ -130,26 +159,31 @@ function setupPWAInstallBanner() {
     });
 }
 
+/**
+ * Determine if we should show the PWA install prompt
+ * @returns {boolean}
+ */
 function shouldShowPWAInstallPrompt() {
-    // Don't show if already in standalone mode
     if (isStandalonePWA()) return false;
-    // Don't show if not on mobile
     if (!isMobileDevice()) return false;
-    // Don't show if user dismissed recently
     if (wasPWAPromptDismissed()) return false;
-    // Don't show if modal was already shown this session
     if (pwaInstallModalShown) return false;
     return true;
 }
 
+/**
+ * Load required data for the progress dashboard
+ */
 async function loadRequiredDataForProgress() {
     const requiredDataTypes = ['kanji', 'vocab'];
     const promises = [];
+
     for (const type of requiredDataTypes) {
         if (!state.appData[type]) {
             promises.push(loadTabData(state.currentLevel, type));
         }
     }
+
     if (promises.length > 0) {
         try {
             await Promise.all(promises);
@@ -159,8 +193,14 @@ async function loadRequiredDataForProgress() {
     }
 }
 
+/**
+ * Enhanced changeTab wrapper with additional UI handling
+ * @param {string} tabName - The tab to switch to
+ * @param {...any} args - Additional arguments to pass to originalChangeTab
+ */
 async function changeTab(tabName, ...args) {
     await originalChangeTab(tabName, ...args);
+
     if (tabName === 'progress') {
         updateProgressDashboard();
     }
@@ -173,7 +213,6 @@ async function changeTab(tabName, ...args) {
     // - external-search: Search IS the feature, auto-expand it
     // - other tabs: Show toggle for optional filtering, close search when switching
     if (tabName === 'progress') {
-        // Hide search on progress
         if (searchToggle) searchToggle.style.display = 'none';
         if (mobileHeader?.classList.contains('search-active')) {
             mobileHeader.classList.remove('search-active');
@@ -181,27 +220,22 @@ async function changeTab(tabName, ...args) {
         }
         document.body.classList.remove('dictionary-active');
     } else if (tabName === 'external-search') {
-        // On dictionary search tab, auto-expand the search
-        if (searchToggle) searchToggle.style.display = 'none'; // Hide toggle since search is always visible
+        if (searchToggle) searchToggle.style.display = 'none';
         if (mobileHeader && !mobileHeader.classList.contains('search-active')) {
             mobileHeader.classList.add('search-active');
-            // Don't auto-focus to avoid keyboard popping up
         }
-        // Add class to body for CSS to hide close button on mobile
         document.body.classList.add('dictionary-active');
     } else {
-        // Regular content tabs - show toggle for filtering
         if (searchToggle) searchToggle.style.display = '';
-        // Close search when switching to a different regular tab (clean slate per tab)
         if (mobileHeader?.classList.contains('search-active')) {
             mobileHeader.classList.remove('search-active');
             els.mobileSearchInput?.blur();
-            // Clear search input when switching tabs
             if (els.mobileSearchInput) els.mobileSearchInput.value = '';
         }
         document.body.classList.remove('dictionary-active');
     }
 
+    // Update notes button visibility
     const isNoteableTab = !['progress', 'external-search'].includes(tabName);
     const notesButtons = document.querySelectorAll('.notes-header-btn');
     notesButtons.forEach(btn => {
@@ -217,14 +251,26 @@ async function changeTab(tabName, ...args) {
     }
 }
 
+/**
+ * Generate HTML for theme toggle switch
+ * @returns {string}
+ */
 function getThemeToggleHTML() {
     return `<label class="theme-switch"><input type="checkbox" aria-label="Theme toggle"><span class="slider"></span></label>`;
 }
 
+/**
+ * Generate HTML for language switcher
+ * @returns {string}
+ */
 function getLangSwitcherHTML() {
     return `<div class="lang-switch-pill"></div><button data-lang="en">EN</button><button data-lang="vi">VI</button>`;
 }
 
+/**
+ * Handle browser history state changes
+ * @param {object} stateObj - The history state object
+ */
 function handleStateChange(stateObj) {
     if (!stateObj) return;
     if (stateObj.level !== state.currentLevel) {
@@ -234,21 +280,24 @@ function handleStateChange(stateObj) {
     }
 }
 
+/**
+ * Set up all event listeners for the application
+ */
 function setupEventListeners() {
+    // Delegated click handler for data-action attributes
     document.body.addEventListener('click', (e) => {
         const actionTarget = e.target.closest('[data-action]');
         if (!actionTarget) return;
 
         const action = actionTarget.dataset.action;
+
         const immediateActions = {
             'change-tab': () => changeTab(actionTarget.dataset.tabName, actionTarget),
             'toggle-sidebar': () => {
-                // Save scroll position before locking scroll
                 document.body.style.top = `-${window.scrollY}px`;
                 els.sidebar?.classList.add('open');
                 els.overlay?.classList.add('active');
                 document.body.classList.add('sidebar-open');
-                // Force update language pill position in case of layout shifts
                 requestAnimationFrame(() => {
                     document.querySelectorAll('.lang-switch').forEach(moveLangPill);
                 });
@@ -284,6 +333,7 @@ function setupEventListeners() {
             }
         }
 
+        // Lazy-loaded modal actions
         if (action === 'open-notes') {
             import('./modals.js').then(module => module.openNotesModal());
         }
@@ -292,6 +342,7 @@ function setupEventListeners() {
         }
     });
 
+    // Sidebar and search event listeners
     els.overlay?.addEventListener('click', closeSidebar);
     els.searchInput?.addEventListener('input', handleSearch);
     els.mobileSearchInput?.addEventListener('input', handleSearch);
@@ -305,7 +356,6 @@ function setupEventListeners() {
     function openMobileSearch() {
         if (mobileHeader) {
             mobileHeader.classList.add('search-active');
-            // Focus the search input after animation
             setTimeout(() => {
                 els.mobileSearchInput?.focus();
             }, 50);
@@ -322,13 +372,13 @@ function setupEventListeners() {
     mobileSearchToggle?.addEventListener('click', openMobileSearch);
     mobileSearchClose?.addEventListener('click', closeMobileSearch);
 
-    // Close search on Escape key
     els.mobileSearchInput?.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeMobileSearch();
         }
     });
 
+    // Resize handler
     const debouncedResize = debounce(() => {
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
         const isMobileView = window.innerWidth <= 768;
@@ -342,27 +392,28 @@ function setupEventListeners() {
     }, 100);
     window.addEventListener('resize', debouncedResize, { passive: true });
 
+    // Browser history navigation
     window.addEventListener('popstate', (e) => {
         handleStateChange(e.state);
     });
 
+    // Install button
     if (els.installAppBtn) {
         els.installAppBtn.addEventListener('click', handleInstallClick);
     }
 
-    // Keyboard shortcuts for accessibility and power users
+    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-        // Skip if user is typing in an input/textarea
         const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
 
-        // '/' to focus search (common pattern: GitHub, Reddit, YouTube)
+        // '/' to focus search
         if (e.key === '/' && !isTyping) {
             e.preventDefault();
             const searchInput = window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;
             searchInput?.focus();
         }
 
-        // Escape to close sidebar on mobile
+        // Escape to close sidebar
         if (e.key === 'Escape') {
             if (els.sidebar?.classList.contains('open')) {
                 closeSidebar();
@@ -370,94 +421,174 @@ function setupEventListeners() {
         }
     });
 
-    // Mobile header scroll-aware hide/show (polished, iOS-style behavior)
-    if (window.innerWidth <= 768) {
-        let lastScrollY = window.scrollY;
-        let ticking = false;
-        let isHeaderHidden = false;
-        let scrollDownAccumulator = 0;
-        const mobileHeader = document.querySelector('.mobile-header');
-
-        // Tuned thresholds for natural feel
-        const TOP_ZONE = 80;           // Always show header in this zone
-        const HIDE_THRESHOLD = 80;     // Scroll down this much to hide
-        const JITTER_THRESHOLD = 3;    // Ignore micro-movements
-
-        if (mobileHeader) {
-            window.addEventListener('scroll', () => {
-                if (!ticking) {
-                    window.requestAnimationFrame(() => {
-                        const currentScrollY = window.scrollY;
-                        const scrollDelta = currentScrollY - lastScrollY;
-
-                        // Always show header when near top of page
-                        if (currentScrollY < TOP_ZONE) {
-                            if (isHeaderHidden) {
-                                mobileHeader.classList.remove('header-hidden');
-                                isHeaderHidden = false;
-                            }
-                            scrollDownAccumulator = 0;
-                            lastScrollY = currentScrollY;
-                            ticking = false;
-                            return;
-                        }
-
-                        // Ignore jitter/micro-movements
-                        if (Math.abs(scrollDelta) < JITTER_THRESHOLD) {
-                            ticking = false;
-                            return;
-                        }
-
-                        if (scrollDelta < 0) {
-                            // SCROLLING UP - Reveal immediately (no threshold)
-                            // This is what makes it feel snappy and responsive
-                            scrollDownAccumulator = 0;
-                            if (isHeaderHidden) {
-                                mobileHeader.classList.remove('header-hidden');
-                                isHeaderHidden = false;
-                            }
-                        } else {
-                            // SCROLLING DOWN - Accumulate before hiding
-                            // Reset accumulator if direction just changed
-                            scrollDownAccumulator += scrollDelta;
-
-                            // Hide only after sustained downward scroll
-                            if (!isHeaderHidden && scrollDownAccumulator >= HIDE_THRESHOLD) {
-                                mobileHeader.classList.add('header-hidden');
-                                isHeaderHidden = true;
-                                scrollDownAccumulator = 0;
-                            }
-                        }
-
-                        lastScrollY = currentScrollY;
-                        ticking = false;
-                    });
-                    ticking = true;
-                }
-            }, { passive: true });
-        }
-    }
+    // Mobile header scroll-aware hide/show
+    setupMobileHeaderScroll();
 }
 
+/**
+ * Set up mobile header scroll behavior with accordion-aware tracking
+ */
+function setupMobileHeaderScroll() {
+    const mobileHeader = document.querySelector('.mobile-header');
+    if (!mobileHeader) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    let scrollDownAccumulator = 0;
+    let scrollUpAccumulator = 0;
+    let lastDirection = 0; // -1 = up, 1 = down, 0 = none
+
+    // Tuned thresholds for natural feel
+    const TOP_ZONE = 80;           // Always show header in this zone
+    const HIDE_THRESHOLD = 100;    // Scroll down this much to hide
+    const SHOW_THRESHOLD = 15;     // Scroll up this much to show
+    const JITTER_THRESHOLD = 5;    // Ignore micro-movements
+
+    /**
+     * Update header visibility based on scroll position and direction
+     */
+    const updateHeaderVisibility = () => {
+        // Skip if sidebar is open (scroll is locked anyway)
+        if (document.body.classList.contains('sidebar-open')) {
+            ticking = false;
+            return;
+        }
+
+        const currentScrollY = window.scrollY;
+        const scrollDelta = currentScrollY - lastScrollY;
+        const isCurrentlyHidden = mobileHeader.classList.contains('header-hidden');
+
+        // Always show header when near top of page
+        if (currentScrollY < TOP_ZONE) {
+            if (isCurrentlyHidden) {
+                mobileHeader.classList.remove('header-hidden');
+            }
+            scrollDownAccumulator = 0;
+            scrollUpAccumulator = 0;
+            lastDirection = 0;
+            lastScrollY = currentScrollY;
+            ticking = false;
+            return;
+        }
+
+        // Ignore jitter/micro-movements (helps with accordion animations)
+        if (Math.abs(scrollDelta) < JITTER_THRESHOLD) {
+            ticking = false;
+            return;
+        }
+
+        const currentDirection = scrollDelta > 0 ? 1 : -1;
+
+        // Reset accumulators on direction change
+        if (currentDirection !== lastDirection) {
+            scrollDownAccumulator = 0;
+            scrollUpAccumulator = 0;
+            lastDirection = currentDirection;
+        }
+
+        if (scrollDelta < 0) {
+            // SCROLLING UP - Show header after threshold
+            scrollUpAccumulator += Math.abs(scrollDelta);
+
+            if (isCurrentlyHidden && scrollUpAccumulator >= SHOW_THRESHOLD) {
+                mobileHeader.classList.remove('header-hidden');
+                scrollUpAccumulator = 0;
+            }
+        } else {
+            // SCROLLING DOWN - Hide after sustained scroll
+            scrollDownAccumulator += scrollDelta;
+
+            if (!isCurrentlyHidden && scrollDownAccumulator >= HIDE_THRESHOLD) {
+                mobileHeader.classList.add('header-hidden');
+                scrollDownAccumulator = 0;
+            }
+        }
+
+        lastScrollY = currentScrollY;
+        ticking = false;
+    };
+
+    // Scroll event listener with requestAnimationFrame throttling
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(updateHeaderVisibility);
+            ticking = true;
+        }
+    }, { passive: true });
+
+    /**
+     * Reset scroll tracking after layout changes
+     */
+    const resetScrollTracking = () => {
+        // Small delay to let the layout settle
+        setTimeout(() => {
+            lastScrollY = window.scrollY;
+            scrollDownAccumulator = 0;
+            scrollUpAccumulator = 0;
+            lastDirection = 0;
+        }, 100);
+    };
+
+    // Observe DOM changes that might cause layout shifts (accordion open/close)
+    const contentObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const target = mutation.target;
+                // Reset when accordion opens/closes
+                if (target.classList.contains('accordion-button') ||
+                    target.classList.contains('accordion-content')) {
+                    resetScrollTracking();
+                    break;
+                }
+            }
+        }
+    });
+
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+        contentObserver.observe(mainContent, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: ['class']
+        });
+    }
+
+    // Also reset on tab changes (content might be different height)
+    document.addEventListener('tabChanged', resetScrollTracking);
+}
+
+/**
+ * Populate sidebar controls and bind their event handlers
+ */
 function populateAndBindControls() {
     if (els.sidebarControls) {
         els.sidebarControls.innerHTML = `
-            <div class="sidebar-control-group"><label class="sidebar-control-label" data-lang-key="level">Level</label><div id="level-switcher-sidebar" class="level-switch"></div></div>
+            <div class="sidebar-control-group">
+                <label class="sidebar-control-label" data-lang-key="level">Level</label>
+                <div id="level-switcher-sidebar" class="level-switch"></div>
+            </div>
             <div class="flex items-end gap-4 mt-4 md:hidden">
                 <div class="flex-1">
                     <label class="sidebar-control-label mb-2 block" data-lang-key="language">Language</label>
                     <div id="sidebar-lang-switcher" class="lang-switch w-full justify-center">${getLangSwitcherHTML()}</div>
                 </div>
                 <div class="flex-1">
-                     <label class="sidebar-control-label mb-2 block" data-lang-key="theme">Theme</label>
-                     <div class="theme-switch-container">${getThemeToggleHTML()}</div>
+                    <label class="sidebar-control-label mb-2 block" data-lang-key="theme">Theme</label>
+                    <div class="theme-switch-container">${getThemeToggleHTML()}</div>
                 </div>
             </div>
             <button id="install-app-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button" style="display: none;">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1h4a1 1 0 001-1V2zm-1 5a1 1 0 011 1v10a1 1 0 11-2 0V8a1 1 0 011-1zm-4-4h2V2H5v2zM15 4h-2V2h2v2zm-2 4h-2v10h2V8z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1h4a1 1 0 001-1V2zm-1 5a1 1 0 011 1v10a1 1 0 11-2 0V8a1 1 0 011-1zm-4-4h2V2H5v2zM15 4h-2V2h2v2zm-2 4h-2v10h2V8z"/>
+                </svg>
                 <span class="pointer-events-none">Install App</span>
             </button>
-            <button id="sidebar-import-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg><span data-lang-key="importLevel" class="pointer-events-none">Import New Level</span></button>
+            <button id="sidebar-import-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+                <span data-lang-key="importLevel" class="pointer-events-none">Import New Level</span>
+            </button>
             <button id="sidebar-support-btn" class="w-full mt-2 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors support-button group">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none text-accent-vermilion group-hover:scale-110 transition-transform" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clip-rule="evenodd" />
@@ -467,28 +598,41 @@ function populateAndBindControls() {
             </button>`;
     }
 
+    // Header language switcher
     const headerLangSwitcher = document.getElementById('header-lang-switcher');
     if (headerLangSwitcher) {
         headerLangSwitcher.innerHTML = getLangSwitcherHTML();
     }
 
-    document.querySelectorAll('.theme-switch input').forEach(el => el.addEventListener('change', toggleTheme));
-    document.querySelectorAll('.lang-switch button').forEach(el => el.addEventListener('click', (e) => {
-        setLanguage(e.currentTarget.dataset.lang);
-    }));
+    // Bind theme toggle events
+    document.querySelectorAll('.theme-switch input').forEach(el => {
+        el.addEventListener('change', toggleTheme);
+    });
+
+    // Bind language switch events
+    document.querySelectorAll('.lang-switch button').forEach(el => {
+        el.addEventListener('click', (e) => {
+            setLanguage(e.currentTarget.dataset.lang);
+        });
+    });
 }
 
+/**
+ * Main application initialization
+ */
 async function init() {
     populateEls();
     await loadGlobalUI();
     await loadState();
 
+    // Parse URL parameters
     const params = new URLSearchParams(window.location.search);
     let initialTab = params.get('tab') || state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'hiragana');
     const urlLevel = params.get('level');
+
     if (urlLevel && urlLevel !== state.currentLevel) {
         state.currentLevel = urlLevel;
-        // Reload level-specific settings (including accordion state) for the URL-specified level
+        // Reload level-specific settings for the URL-specified level
         const db = await dbPromise;
         const levelSettings = await db.get('settings', 'levelSettings');
         const currentLevelSettings = levelSettings?.[state.currentLevel];
@@ -496,12 +640,12 @@ async function init() {
         state.openAccordions = new Map(
             (currentLevelSettings?.openAccordions || []).map(([tabId, keys]) => [tabId, new Set(keys)])
         );
-        // Update initialTab if there's a pinned tab for this level
         if (!params.get('tab') && state.pinnedTab) {
             initialTab = state.pinnedTab;
         }
     }
 
+    // Show initial loader for the target tab
     const initialTabEl = document.getElementById(initialTab);
     const loaderTemplate = document.getElementById('content-loader-template');
 
@@ -511,6 +655,7 @@ async function init() {
         initialTabEl.innerHTML = loaderTemplate.innerHTML;
     }
 
+    // Fade out loading overlay
     if (els.loadingOverlay) {
         els.loadingOverlay.style.opacity = '0';
         els.loadingOverlay.addEventListener('transitionend', () => {
@@ -524,6 +669,7 @@ async function init() {
         setupEventListeners();
         setupTheme();
 
+        // Lazy load modals
         if (document.getElementById('sidebar-import-btn')) {
             import('./modals.js').then(module => {
                 module.setupImportModal();
@@ -531,7 +677,6 @@ async function init() {
             });
         }
 
-        // Setup PWA install modal
         setupPWAInstallBanner();
 
         // Enable transitions after initial render
@@ -540,6 +685,8 @@ async function init() {
         });
 
         const db = await dbPromise;
+
+        // Fetch available levels
         const remoteLevelsPromise = fetch(`${config.dataPath}/levels.json`)
             .then(res => res.ok ? res.json() : { levels: [] })
             .catch(err => {
@@ -548,12 +695,12 @@ async function init() {
             });
 
         const customLevelsPromise = db.getAllKeys('levels');
-
         const [remoteData, customLevels] = await Promise.all([remoteLevelsPromise, customLevelsPromise]);
 
         const remoteLevels = remoteData.levels || [config.defaultLevel];
         state.allAvailableLevels = [...new Set([...remoteLevels, ...customLevels])];
 
+        // Validate current level exists
         if (!state.allAvailableLevels.includes(state.currentLevel)) {
             state.currentLevel = config.defaultLevel;
             initialTab = state.pinnedTab || (window.innerWidth <= 768 ? 'external-search' : 'hiragana');
@@ -561,20 +708,20 @@ async function init() {
 
         await loadAllData(state.currentLevel);
 
+        // Build level switcher UI
         buildLevelSwitcher(remoteLevels, customLevels);
         document.querySelector(`.level-switch-button[data-level-name="${state.currentLevel}"]`)?.classList.add('active');
         scrollActiveLevelIntoView();
 
+        // Setup tabs and load initial content
         await setupTabsForLevel(state.currentLevel);
         await loadRequiredDataForProgress();
-
         await changeTab(initialTab, null, false, true, true);
 
         // Restore scroll position from sessionStorage
         const scrollKey = `scroll_${state.currentLevel}_${initialTab}`;
         const savedScrollY = sessionStorage.getItem(scrollKey);
         if (savedScrollY) {
-            // Use requestAnimationFrame to ensure DOM is ready
             requestAnimationFrame(() => {
                 window.scrollTo({ top: parseInt(savedScrollY, 10), behavior: 'instant' });
             });
@@ -582,8 +729,6 @@ async function init() {
 
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
-
-        // THIS IS THE FIX: Explicitly update the sidebar pin icons after all state is loaded.
         updateSidebarPinIcons();
 
         // Show PWA install prompt on mobile after a short delay
@@ -593,11 +738,13 @@ async function init() {
             }
         }, 2000);
 
+        // Display app version
         const versionElement = document.getElementById('app-version');
         if (versionElement) {
             versionElement.textContent = `v${process.env.APP_VERSION}`;
         }
 
+        // Set initial history state
         const initialState = { type: 'tab', tabName: initialTab, level: state.currentLevel };
         const initialUrl = `?level=${state.currentLevel}&tab=${initialTab}`;
         history.replaceState(initialState, '', initialUrl);
@@ -613,6 +760,7 @@ async function init() {
     }
 }
 
+// Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', init);
 
 // --- SERVICE WORKER REGISTRATION ---
@@ -620,7 +768,6 @@ document.addEventListener('DOMContentLoaded', init);
 
 // --- SCROLL POSITION PERSISTENCE ---
 window.addEventListener('beforeunload', () => {
-    // Save current scroll position for the active level+tab combo
     const activeTab = document.querySelector('.tab-content.active');
     if (activeTab && state.currentLevel) {
         const scrollKey = `scroll_${state.currentLevel}_${activeTab.id}`;

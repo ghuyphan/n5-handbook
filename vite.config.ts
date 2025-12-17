@@ -22,7 +22,7 @@ export default defineConfig({
             output: {
                 // Separate vendor chunks for better caching
                 manualChunks: {
-                    vendor: ['fuse.js', 'idb', 'wanakana']
+                    vendor: ['idb', 'wanakana']
                 }
             }
         }
