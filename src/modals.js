@@ -6,6 +6,25 @@ import { setLevel } from './handlers.js';
 import { closeSidebar } from './ui.js';
 import { getUIText } from './utils.js';
 
+// Sidebar close transition duration (matches --transition-duration in CSS)
+const SIDEBAR_TRANSITION_MS = 300;
+
+/**
+ * Close sidebar and wait for animation to complete on mobile.
+ * On desktop, returns immediately as sidebar is not modal.
+ */
+async function closeSidebarAndDelay() {
+    const isMobile = window.innerWidth <= 768;
+    const sidebarWasOpen = els.sidebar?.classList.contains('open');
+
+    closeSidebar();
+
+    // Only delay on mobile if sidebar was actually open
+    if (isMobile && sidebarWasOpen) {
+        await new Promise(resolve => setTimeout(resolve, SIDEBAR_TRANSITION_MS));
+    }
+}
+
 // --- Support Modal ---
 export function setupSupportModal() {
     const supportModal = document.getElementById('support-modal');
@@ -16,9 +35,9 @@ export function setupSupportModal() {
     const backdrop = document.getElementById('support-modal-backdrop');
     const wrapper = document.getElementById('support-modal-wrapper');
 
-    const openModal = () => {
+    const openModal = async () => {
         document.body.classList.add('body-no-scroll');
-        closeSidebar();
+        await closeSidebarAndDelay();
 
         // Update locales
         supportModal.querySelectorAll('[data-lang-key]').forEach(el => {
@@ -352,9 +371,9 @@ export function setupImportModal() {
         els.importModal.querySelectorAll('[data-lang-placeholder-key]').forEach(el => el.placeholder = getUIText(el.dataset.langPlaceholderKey));
     };
 
-    const openModal = () => {
+    const openModal = async () => {
         document.body.classList.add('body-no-scroll');
-        closeSidebar();
+        await closeSidebarAndDelay();
         resetModal();
         updateModalLocale();
         els.importModal.classList.remove('modal-hidden');

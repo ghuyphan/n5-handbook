@@ -582,16 +582,19 @@ body.sidebar-open {
 
     body.sidebar-open .mobile-header,
     body.sidebar-open .main-grid>.flex:not(#sidebar):not(.right-sidebar) {
-        transform: translateX(min(80%, 280px));
+        transform: translateX(min(75%, 260px));
     }
 
     #sidebar {
         position: fixed;
         top: 0;
         left: -100%;
-        width: 80%;
-        max-width: 280px;
+        width: 75%;
+        max-width: 260px;
         height: 100vh;
+        /* Fallback for older browsers */
+        height: 100dvh;
+        /* Dynamic viewport height - accounts for mobile browser UI */
         z-index: 100;
         transition: left var(--transition-duration) var(--ease-out-quint),
             box-shadow var(--transition-duration) var(--ease-out-quint);
@@ -599,7 +602,7 @@ body.sidebar-open {
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        padding: 1.5rem 1rem;
+        padding: 1.25rem 0.875rem;
         -ms-overflow-style: none;
         scrollbar-width: none;
 
