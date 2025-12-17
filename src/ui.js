@@ -317,6 +317,11 @@ function createCardSection(title, data, category, backGradient, titleKey, tabId)
             cardGrid.appendChild(fragment);
             accordionWrapper._isRendered = true;
         };
+
+        // If the accordion is already open (persisted state), render content immediately
+        if (state.openAccordions.get(tabId)?.has(titleKey)) {
+            accordionWrapper._renderContent();
+        }
     }
 
     return { element: accordionFragment };
@@ -833,17 +838,13 @@ export async function renderContent(tabId = null) {
             els.keyPointsTab.appendChild(wrapper);
             setupFuseForTab('keyPoints');
         }, 'keyPoints'),
-        grammar: () => renderSafely(async () => {
+        grammar: () => renderSafely(() => {
             if (!els.grammarTab || !state.appData.grammar) return;
             els.grammarTab.innerHTML = '';
 
-            const wrapper = document.createElement('div');
-            wrapper.className = 'space-y-4';
-            els.grammarTab.appendChild(wrapper);
+            const fragment = document.createDocumentFragment();
 
-            const sections = Object.keys(state.appData.grammar);
-
-            const renderSection = (sectionKey) => {
+            for (const sectionKey in state.appData.grammar) {
                 const sectionData = state.appData.grammar[sectionKey];
                 const sectionTitle = getLangText(sectionData);
                 const grid = document.createElement('div');
@@ -872,12 +873,13 @@ export async function renderContent(tabId = null) {
                 contentWrapper.appendChild(grid);
                 const searchData = generateSearchTerms([sectionTitle, ...sectionData.items.flatMap(item => [item.en?.title, item.en?.content, item.vi?.title, item.vi?.content])]);
 
-                return createAccordion(sectionTitle, contentWrapper, searchData, sectionKey, 'grammar');
-            };
+                fragment.appendChild(createAccordion(sectionTitle, contentWrapper, searchData, sectionKey, 'grammar'));
+            }
 
-            // Use chunked rendering for grammar sections
-            await renderChunks(sections, renderSection, wrapper, 5, 20);
-
+            const wrapper = document.createElement('div');
+            wrapper.className = 'space-y-4';
+            wrapper.appendChild(fragment);
+            els.grammarTab.appendChild(wrapper);
             setupFuseForTab('grammar');
         }, 'grammar'),
         kanji: () => renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, #3D5A66, var(--accent-indigo))'), 'kanji'),
