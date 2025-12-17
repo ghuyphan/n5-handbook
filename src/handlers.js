@@ -76,14 +76,42 @@ export function toggleLearned(category, id, element) {
     if (!state.progress[category]) state.progress[category] = [];
     const arr = state.progress[category];
     const idx = arr.indexOf(id);
-    if (idx > -1) {
-        arr.splice(idx, 1);
-        element.classList.remove('learned');
-    } else {
+    const isAdding = idx === -1;
+
+    if (isAdding) {
         arr.push(id);
         element.classList.add('learned');
+    } else {
+        arr.splice(idx, 1);
+        element.classList.remove('learned');
     }
     saveProgress();
+
+    // Update the hanko counter badge in the accordion header
+    const cardWrapper = element.closest('[data-item-id]');
+    const accordionWrapper = cardWrapper?.closest('.accordion-wrapper');
+    const hankoCounter = accordionWrapper?.querySelector('.hanko-counter');
+
+    if (hankoCounter && hankoCounter.dataset.category === category) {
+        // Parse current count and update
+        const [currentLearned, total] = hankoCounter.textContent.split('/').map(Number);
+        const newLearned = isAdding ? currentLearned + 1 : Math.max(0, currentLearned - 1);
+        hankoCounter.textContent = `${newLearned}/${total}`;
+
+        // Update has-progress class
+        hankoCounter.classList.toggle('has-progress', newLearned > 0);
+
+        // Trigger hanko stamp pulse animation
+        hankoCounter.classList.remove('hanko-pulse');
+        // Force reflow to restart animation
+        void hankoCounter.offsetWidth;
+        hankoCounter.classList.add('hanko-pulse');
+
+        // Remove animation class after it completes
+        hankoCounter.addEventListener('animationend', () => {
+            hankoCounter.classList.remove('hanko-pulse');
+        }, { once: true });
+    }
 }
 
 export function toggleAccordion(buttonElement) {

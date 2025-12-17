@@ -179,6 +179,7 @@ async function changeTab(tabName, ...args) {
             mobileHeader.classList.remove('search-active');
             els.mobileSearchInput?.blur();
         }
+        document.body.classList.remove('dictionary-active');
     } else if (tabName === 'external-search') {
         // On dictionary search tab, auto-expand the search
         if (searchToggle) searchToggle.style.display = 'none'; // Hide toggle since search is always visible
@@ -186,10 +187,13 @@ async function changeTab(tabName, ...args) {
             mobileHeader.classList.add('search-active');
             // Don't auto-focus to avoid keyboard popping up
         }
+        // Add class to body for CSS to hide close button on mobile
+        document.body.classList.add('dictionary-active');
     } else {
         // Regular content tabs - show toggle for filtering
         if (searchToggle) searchToggle.style.display = '';
         // Don't auto-close search when switching between searchable tabs
+        document.body.classList.remove('dictionary-active');
     }
 
     const isNoteableTab = !['progress', 'external-search'].includes(tabName);

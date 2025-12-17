@@ -546,6 +546,16 @@ body.sidebar-open {
         transform: translateX(0);
     }
 
+    /* Hide close search button on dictionary tab - search is always active there */
+    body.dictionary-active .mobile-header #mobile-search-close {
+        display: none;
+    }
+
+    /* Extend search input to fill the space when close button is hidden */
+    body.dictionary-active .mobile-header .mobile-header-search {
+        right: 0.75rem;
+    }
+
     #main-content {
         padding: 0.75rem !important;
         /* Comfortable padding for mobile */

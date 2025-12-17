@@ -117,13 +117,14 @@ export function renderContentNotAvailable(tabName) {
     `;
 }
 
-function createAccordion(title, contentNode, searchData, titleKey, tabId) {
+function createAccordion(title, contentNode, searchData, titleKey, tabId, category = null, totalCount = 0) {
     const template = document.getElementById('accordion-template');
     const clone = template.content.cloneNode(true);
 
     const wrapper = clone.querySelector('.search-wrapper');
     const button = clone.querySelector('.accordion-button');
     const titleSpan = clone.querySelector('.accordion-title');
+    const hankoCounter = clone.querySelector('.hanko-counter');
     const contentDiv = clone.querySelector('.accordion-content');
 
     const tabAccordions = state.openAccordions.get(tabId);
@@ -137,8 +138,28 @@ function createAccordion(title, contentNode, searchData, titleKey, tabId) {
     titleSpan.textContent = title;
     contentDiv.appendChild(contentNode);
 
+    // Add hanko-style progress counter for card-based sections (kanji, vocab)
+    if (category && totalCount > 0 && hankoCounter) {
+        const learnedCount = state.progress[category]?.filter(id => {
+            // Find items in the current section
+            const sectionData = state.appData[category]?.[titleKey];
+            return sectionData?.items?.some(item => item.id === id);
+        }).length || 0;
+
+        hankoCounter.textContent = `${learnedCount}/${totalCount}`;
+        hankoCounter.style.display = '';
+        hankoCounter.dataset.category = category;
+        hankoCounter.dataset.sectionKey = titleKey;
+
+        // Add pulse animation class if recently updated
+        if (learnedCount > 0) {
+            hankoCounter.classList.add('has-progress');
+        }
+    }
+
     return clone;
 }
+
 
 function createCheatSheetList(headers, content) {
     const fragment = document.createDocumentFragment();
@@ -354,7 +375,8 @@ function createCardSection(title, data, category, backGradient, titleKey, tabId)
 
     // Critical: Use the existing logic which handles 'title' correctly (via re-render)
     // rather than injecting data-lang-key which might be missing in UI dictionary.
-    return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId);
+    // Pass category and count for hanko-style progress counter
+    return createAccordion(title, accordionContentWrapper, searchTermsForSection, titleKey, tabId, category, data.length);
 }
 
 
