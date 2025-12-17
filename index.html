@@ -168,20 +168,53 @@
         </defs>
     </svg>
 
-    <header class="mobile-header md:hidden sticky top-0 glass-effect z-40 px-3 py-1.5 flex items-center gap-4">
-        <button id="menu-toggle" data-action="toggle-sidebar" class="p-2 -ml-2" aria-label="Toggle menu">
+    <header class="mobile-header md:hidden sticky top-0 glass-effect z-40 px-3 py-1.5 flex items-center gap-2">
+        <button id="menu-toggle" data-action="toggle-sidebar" class="p-2 -ml-2 flex-shrink-0" aria-label="Toggle menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
             </svg>
         </button>
-        <div class="flex items-center gap-2 min-w-0">
+
+        <!-- Default header content (hidden when search is open) -->
+        <div id="mobile-header-default" class="flex items-center gap-2 min-w-0 flex-1">
             <a href="/" aria-label="Go to homepage. JLPT Handbook Logo">
                 <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo" class="h-8 w-8 flex-shrink-0 object-contain"
                     width="32" height="32">
             </a>
             <h1 id="mobile-header-title" class="text-lg font-bold text-header truncate"></h1>
         </div>
-        <div class="ml-auto flex items-center gap-2">
+
+        <!-- Expandable search container (animated via CSS) -->
+        <div id="mobile-header-search" class="mobile-header-search">
+            <div class="flex items-center gap-2 flex-1">
+                <svg class="w-5 h-5 text-secondary pointer-events-none flex-shrink-0" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <div class="relative flex-1">
+                    <input type="search" id="mobile-search-input" class="search-input w-full"
+                        data-lang-placeholder-key="searchPlaceholder">
+                    <button class="clear-btn" data-action="clear-search" data-target="#mobile-search-input"
+                        aria-label="Clear search"></button>
+                </div>
+            </div>
+            <button id="mobile-search-close" class="p-2 flex-shrink-0" aria-label="Close search">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Right side buttons -->
+        <div id="mobile-header-actions" class="ml-auto flex items-center gap-1">
+            <button id="mobile-search-toggle" class="btn btn-icon" aria-label="Open search">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </button>
             <button id="mobile-notes-btn" data-action="open-notes" class="btn btn-icon notes-header-btn"
                 style="display: none;" aria-label="Open notes">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 448 512">
@@ -338,23 +371,6 @@
                 </div>
             </header>
 
-            <div class="mobile-search-bar md:hidden mt-2 mb-2 px-3">
-                <div class="glass-effect flex items-center gap-2 rounded-full py-1.5 px-4">
-                    <div class="flex flex-grow items-center gap-3">
-                        <svg class="w-5 h-5 text-secondary pointer-events-none flex-shrink-0" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                        <div class="relative w-full">
-                            <input type="search" id="mobile-search-input" class="search-input"
-                                data-lang-placeholder-key="searchPlaceholder">
-                            <button class="clear-btn" data-action="clear-search" data-target="#mobile-search-input"
-                                aria-label="Clear search"></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <main id="main-content" class="relative">
                 <h2 class="sr-only">Main Content</h2>
@@ -672,81 +688,24 @@
     </template>
 
 
-    <!-- PWA Install Prompt Modal -->
-    <div id="pwa-install-modal" class="modal-hidden">
-        <div id="pwa-install-backdrop" class="modal-backdrop"></div>
-        <div id="pwa-install-wrapper" class="modal-wrapper">
-            <div class="modal-content-container">
-                <div class="modal-content glass-effect washi-card">
-                    <div class="modal-header">
-                        <h2 class="modal-title flex items-center gap-2">
-                            <span class="text-accent-indigo">📲</span>
-                            <span data-lang-key="installAppTitle">Install App</span>
-                        </h2>
-                        <button id="close-pwa-install-btn" class="modal-close-btn" aria-label="Close install dialog">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="modal-body p-6">
-                        <p class="text-secondary mb-4 leading-relaxed" data-lang-key="installAppMessage">Install this
-                            app on your device for a better experience and offline access!</p>
-
-                        <!-- iOS Instructions -->
-                        <div id="pwa-ios-instructions" class="pwa-install-instructions" style="display: none;">
-                            <div class="pwa-instruction-step">
-                                <span class="pwa-step-number">1</span>
-                                <p data-lang-key="installStep1iOS">Tap the <strong>Share</strong> button <span
-                                        class="pwa-icon-inline">⬆</span> at the bottom of your browser</p>
-                            </div>
-                            <div class="pwa-instruction-step">
-                                <span class="pwa-step-number">2</span>
-                                <p data-lang-key="installStep2iOS">Scroll down and tap <strong>"Add to Home
-                                        Screen"</strong></p>
-                            </div>
-                            <div class="pwa-instruction-step">
-                                <span class="pwa-step-number">3</span>
-                                <p data-lang-key="installStep3iOS">Tap <strong>"Add"</strong> to confirm</p>
-                            </div>
-                        </div>
-
-                        <!-- Android Instructions -->
-                        <div id="pwa-android-instructions" class="pwa-install-instructions" style="display: none;">
-                            <div class="pwa-instruction-step">
-                                <span class="pwa-step-number">1</span>
-                                <p data-lang-key="installStep1Android">Tap the <strong>menu</strong> button <span
-                                        class="pwa-icon-inline">⋮</span> in your browser</p>
-                            </div>
-                            <div class="pwa-instruction-step">
-                                <span class="pwa-step-number">2</span>
-                                <p data-lang-key="installStep2Android">Tap <strong>"Install app"</strong> or
-                                    <strong>"Add to Home Screen"</strong></p>
-                            </div>
-                            <div class="pwa-instruction-step">
-                                <span class="pwa-step-number">3</span>
-                                <p data-lang-key="installStep3Android">Tap <strong>"Install"</strong> to confirm</p>
-                            </div>
-                        </div>
-
-                        <!-- Native Install Button (for browsers that support beforeinstallprompt) -->
-                        <button id="pwa-native-install-btn" class="btn btn-primary w-full mt-4" style="display: none;">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
-                                fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            <span data-lang-key="installNowButton">Install Now</span>
-                        </button>
-                    </div>
-                    <div class="modal-footer justify-center">
-                        <button id="pwa-install-dismiss-btn"
-                            class="text-sm text-secondary hover:text-primary transition-colors"
-                            data-lang-key="maybeLater">Maybe Later</button>
-                    </div>
-                </div>
+    <!-- PWA Install Banner (Slide-up from bottom) -->
+    <div id="pwa-install-banner" class="pwa-banner">
+        <div class="pwa-banner-content">
+            <img src="./assets/siteIcon.png" alt="App Icon" class="pwa-banner-icon" width="40" height="40">
+            <div class="pwa-banner-text">
+                <p class="pwa-banner-title" data-lang-key="installAppTitle">Install App</p>
+                <p class="pwa-banner-subtitle" data-lang-key="installBannerHint">Add to home screen for offline access
+                </p>
+            </div>
+            <div class="pwa-banner-actions">
+                <button id="pwa-banner-install-btn" class="pwa-banner-btn-install"
+                    data-lang-key="installButton">Install</button>
+                <button id="pwa-banner-dismiss-btn" class="pwa-banner-btn-dismiss" aria-label="Dismiss">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
             </div>
         </div>
     </div>

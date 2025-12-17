@@ -27,7 +27,6 @@ export function populateEls() {
     // Search
     els.searchInput = document.getElementById('search-input');
     els.mobileSearchInput = document.getElementById('mobile-search-input');
-    els.mobileSearchBar = document.querySelector('.mobile-search-bar');
 
     // Controls
     els.menuToggle = document.getElementById('menu-toggle');
@@ -80,7 +79,7 @@ export function populateEls() {
     els.kanjiModalBackdrop = document.querySelector('#kanji-detail-modal #kanji-modal-backdrop');
     els.kanjiModalContentContainer = document.querySelector('#kanji-detail-modal #modal-content-container');
     els.kanjiModalWrapper = document.querySelector('#kanji-detail-modal .modal-wrapper');
-    
+
     // Custom Dialog Elements
     els.customDialogContainer = document.getElementById('custom-dialog-container');
     els.customDialogBackdrop = document.getElementById('custom-dialog-backdrop');

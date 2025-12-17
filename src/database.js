@@ -73,7 +73,12 @@ export async function loadGlobalUI() {
             momo: "Momo",
             vietqr: "VietQR",
             madeWithLove: "Made with ❤️ by",
-            supportMessage: "If you find this handbook helpful, consider supporting its development!"
+            supportMessage: "If you find this handbook helpful, consider supporting its development!",
+            installAppTitle: "Install App",
+            installBannerHint: "Add to home screen for offline access",
+            installButton: "Install",
+            installHintIOS: "Tap Share ⬆ then \"Add to Home Screen\"",
+            installHintAndroid: "Tap menu ⋮ then \"Install app\""
         },
         vi: {
             dictionarySearch: "Tra Từ Điển",
@@ -116,7 +121,12 @@ export async function loadGlobalUI() {
             momo: "Momo",
             vietqr: "VietQR",
             madeWithLove: "Được làm bằng ❤️ bởi",
-            supportMessage: "Nếu bạn thấy sổ tay này hữu ích, hãy cân nhắc ủng hộ nhé!"
+            supportMessage: "Nếu bạn thấy sổ tay này hữu ích, hãy cân nhắc ủng hộ nhé!",
+            installAppTitle: "Cài Đặt Ứng Dụng",
+            installBannerHint: "Thêm vào màn hình chính để sử dụng ngoại tuyến",
+            installButton: "Cài Đặt",
+            installHintIOS: "Nhấn Chia sẻ ⬆ rồi \"Thêm vào Màn hình chính\"",
+            installHintAndroid: "Nhấn menu ⋮ rồi \"Cài đặt ứng dụng\""
         }
     };
 

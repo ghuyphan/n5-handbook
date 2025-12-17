@@ -362,6 +362,8 @@ mark.search-highlight {
 .card {
     perspective: 1500px;
     transition: background-color var(--transition-duration) var(--ease-out-quint);
+    /* Performance: CSS containment for render optimization */
+    contain: layout paint style;
 }
 
 /* Flip hint icon - appears on hover to indicate card is flippable */
@@ -1288,28 +1290,6 @@ mark.search-highlight {
 }
 
 /* --- MISC DEFERRED COMPONENTS --- */
-.mobile-search-bar {
-    padding: 0 0.75rem;
-    margin-bottom: 0;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    visibility: hidden;
-    transition: max-height 0.4s var(--ease-out-quint), opacity 0.4s var(--ease-in-out-quad), visibility 0s 0.4s, margin-bottom 0.4s var(--ease-out-quint);
-}
-
-.mobile-search-bar .glass-effect {
-    border-radius: var(--radius-full);
-}
-
-.mobile-search-bar.visible {
-    margin-bottom: 1rem;
-    max-height: 100px;
-    opacity: 1;
-    visibility: visible;
-    transition: max-height 0.4s var(--ease-out-quint), opacity 0.4s var(--ease-in-out-quad) 0.1s, visibility 0s, margin-bottom 0.4s var(--ease-out-quint);
-}
-
 .accordion-button {
     padding: 1rem;
     padding-left: 1.25rem;

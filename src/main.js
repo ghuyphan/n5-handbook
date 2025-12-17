@@ -56,11 +56,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
     if (els.installAppBtn) {
         els.installAppBtn.style.display = 'flex';
     }
-    // Show native install button in modal if available
-    const nativeBtn = document.getElementById('pwa-native-install-btn');
-    if (nativeBtn) {
-        nativeBtn.style.display = 'flex';
-    }
 });
 
 async function handleInstallClick() {
@@ -72,7 +67,22 @@ async function handleInstallClick() {
         if (els.installAppBtn) {
             els.installAppBtn.style.display = 'none';
         }
-        closePWAInstallModal();
+        closePWAInstallBanner();
+    } else {
+        // No native prompt available - show guidance message
+        const platform = getPlatform();
+        let message = '';
+        if (platform === 'ios') {
+            message = getUIText('installHintIOS') || 'Tap Share ⬆ then "Add to Home Screen"';
+        } else if (platform === 'android') {
+            message = getUIText('installHintAndroid') || 'Tap menu ⋮ then "Install app"';
+        }
+        if (message) {
+            import('./ui.js').then(module => {
+                module.showCustomAlert(getUIText('installAppTitle') || 'Install App', message);
+            });
+        }
+        closePWAInstallBanner();
     }
 }
 
@@ -82,82 +92,41 @@ window.addEventListener('appinstalled', () => {
     }
     deferredPrompt = null;
     pwaInstallModalShown = true;
-    closePWAInstallModal();
+    closePWAInstallBanner();
     console.log('PWA was installed');
 });
 
-// --- PWA Install Modal ---
-function openPWAInstallModal() {
-    const modal = document.getElementById('pwa-install-modal');
-    const backdrop = document.getElementById('pwa-install-backdrop');
-    const wrapper = document.getElementById('pwa-install-wrapper');
-    const iosInstructions = document.getElementById('pwa-ios-instructions');
-    const androidInstructions = document.getElementById('pwa-android-instructions');
-    const nativeBtn = document.getElementById('pwa-native-install-btn');
-
-    if (!modal) return;
-
-    const platform = getPlatform();
+// --- PWA Install Banner ---
+function openPWAInstallBanner() {
+    const banner = document.getElementById('pwa-install-banner');
+    if (!banner) return;
 
     // Update locale texts
-    modal.querySelectorAll('[data-lang-key]').forEach(el => {
-        el.innerHTML = getUIText(el.dataset.langKey) || el.innerHTML;
+    banner.querySelectorAll('[data-lang-key]').forEach(el => {
+        el.textContent = getUIText(el.dataset.langKey) || el.textContent;
     });
 
-    // Show platform-specific instructions
-    if (iosInstructions) iosInstructions.style.display = platform === 'ios' ? 'block' : 'none';
-    if (androidInstructions) androidInstructions.style.display = platform === 'android' ? 'block' : 'none';
-
-    // Show native install button only if deferredPrompt is available
-    if (nativeBtn) {
-        nativeBtn.style.display = deferredPrompt ? 'flex' : 'none';
-    }
-
-    document.body.classList.add('body-no-scroll');
-    modal.classList.remove('modal-hidden');
-    modal.style.display = 'block';
-
     requestAnimationFrame(() => {
-        backdrop.classList.add('active');
-        wrapper.classList.add('active');
+        banner.classList.add('active');
     });
 
     pwaInstallModalShown = true;
 }
 
-function closePWAInstallModal() {
-    const modal = document.getElementById('pwa-install-modal');
-    const backdrop = document.getElementById('pwa-install-backdrop');
-    const wrapper = document.getElementById('pwa-install-wrapper');
-
-    if (!modal) return;
-
-    document.body.classList.remove('body-no-scroll');
-    backdrop.classList.remove('active');
-    wrapper.classList.remove('active');
-
-    wrapper.addEventListener('transitionend', () => {
-        modal.classList.add('modal-hidden');
-        modal.style.display = 'none';
-    }, { once: true });
+function closePWAInstallBanner() {
+    const banner = document.getElementById('pwa-install-banner');
+    if (!banner) return;
+    banner.classList.remove('active');
 }
 
-function setupPWAInstallModal() {
-    const closeBtn = document.getElementById('close-pwa-install-btn');
-    const dismissBtn = document.getElementById('pwa-install-dismiss-btn');
-    const nativeBtn = document.getElementById('pwa-native-install-btn');
-    const backdrop = document.getElementById('pwa-install-backdrop');
-    const wrapper = document.getElementById('pwa-install-wrapper');
+function setupPWAInstallBanner() {
+    const installBtn = document.getElementById('pwa-banner-install-btn');
+    const dismissBtn = document.getElementById('pwa-banner-dismiss-btn');
 
-    if (closeBtn) closeBtn.addEventListener('click', closePWAInstallModal);
+    if (installBtn) installBtn.addEventListener('click', handleInstallClick);
     if (dismissBtn) dismissBtn.addEventListener('click', () => {
         dismissPWAPrompt();
-        closePWAInstallModal();
-    });
-    if (nativeBtn) nativeBtn.addEventListener('click', handleInstallClick);
-    if (backdrop) backdrop.addEventListener('click', closePWAInstallModal);
-    if (wrapper) wrapper.addEventListener('click', (e) => {
-        if (e.target === wrapper) closePWAInstallModal();
+        closePWAInstallBanner();
     });
 }
 
@@ -195,6 +164,34 @@ async function changeTab(tabName, ...args) {
     if (tabName === 'progress') {
         updateProgressDashboard();
     }
+
+    const mobileHeader = document.querySelector('.mobile-header');
+    const searchToggle = document.getElementById('mobile-search-toggle');
+
+    // Search visibility logic:
+    // - progress: No search needed
+    // - external-search: Search IS the feature, auto-expand it
+    // - other tabs: Show toggle for optional filtering
+    if (tabName === 'progress') {
+        // Hide search on progress
+        if (searchToggle) searchToggle.style.display = 'none';
+        if (mobileHeader?.classList.contains('search-active')) {
+            mobileHeader.classList.remove('search-active');
+            els.mobileSearchInput?.blur();
+        }
+    } else if (tabName === 'external-search') {
+        // On dictionary search tab, auto-expand the search
+        if (searchToggle) searchToggle.style.display = 'none'; // Hide toggle since search is always visible
+        if (mobileHeader && !mobileHeader.classList.contains('search-active')) {
+            mobileHeader.classList.add('search-active');
+            // Don't auto-focus to avoid keyboard popping up
+        }
+    } else {
+        // Regular content tabs - show toggle for filtering
+        if (searchToggle) searchToggle.style.display = '';
+        // Don't auto-close search when switching between searchable tabs
+    }
+
     const isNoteableTab = !['progress', 'external-search'].includes(tabName);
     const notesButtons = document.querySelectorAll('.notes-header-btn');
     notesButtons.forEach(btn => {
@@ -236,6 +233,8 @@ function setupEventListeners() {
         const immediateActions = {
             'change-tab': () => changeTab(actionTarget.dataset.tabName, actionTarget),
             'toggle-sidebar': () => {
+                // Save scroll position before locking scroll
+                document.body.style.top = `-${window.scrollY}px`;
                 els.sidebar?.classList.add('open');
                 els.overlay?.classList.add('active');
                 document.body.classList.add('sidebar-open');
@@ -288,6 +287,38 @@ function setupEventListeners() {
     els.mobileSearchInput?.addEventListener('input', handleSearch);
     els.closeSidebarBtn?.addEventListener('click', closeSidebar);
 
+    // Mobile header expandable search
+    const mobileHeader = document.querySelector('.mobile-header');
+    const mobileSearchToggle = document.getElementById('mobile-search-toggle');
+    const mobileSearchClose = document.getElementById('mobile-search-close');
+
+    function openMobileSearch() {
+        if (mobileHeader) {
+            mobileHeader.classList.add('search-active');
+            // Focus the search input after animation
+            setTimeout(() => {
+                els.mobileSearchInput?.focus();
+            }, 50);
+        }
+    }
+
+    function closeMobileSearch() {
+        if (mobileHeader) {
+            mobileHeader.classList.remove('search-active');
+            els.mobileSearchInput?.blur();
+        }
+    }
+
+    mobileSearchToggle?.addEventListener('click', openMobileSearch);
+    mobileSearchClose?.addEventListener('click', closeMobileSearch);
+
+    // Close search on Escape key
+    els.mobileSearchInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeMobileSearch();
+        }
+    });
+
     const debouncedResize = debounce(() => {
         document.querySelectorAll('.lang-switch').forEach(moveLangPill);
         const isMobileView = window.innerWidth <= 768;
@@ -329,11 +360,18 @@ function setupEventListeners() {
         }
     });
 
-    // Mobile header scroll-aware hide/show
+    // Mobile header scroll-aware hide/show (polished, iOS-style behavior)
     if (window.innerWidth <= 768) {
         let lastScrollY = window.scrollY;
         let ticking = false;
+        let isHeaderHidden = false;
+        let scrollDownAccumulator = 0;
         const mobileHeader = document.querySelector('.mobile-header');
+
+        // Tuned thresholds for natural feel
+        const TOP_ZONE = 80;           // Always show header in this zone
+        const HIDE_THRESHOLD = 80;     // Scroll down this much to hide
+        const JITTER_THRESHOLD = 3;    // Ignore micro-movements
 
         if (mobileHeader) {
             window.addEventListener('scroll', () => {
@@ -343,24 +381,45 @@ function setupEventListeners() {
                         const scrollDelta = currentScrollY - lastScrollY;
 
                         // Always show header when near top of page
-                        if (currentScrollY < 60) {
-                            mobileHeader.classList.remove('header-hidden');
+                        if (currentScrollY < TOP_ZONE) {
+                            if (isHeaderHidden) {
+                                mobileHeader.classList.remove('header-hidden');
+                                isHeaderHidden = false;
+                            }
+                            scrollDownAccumulator = 0;
                             lastScrollY = currentScrollY;
                             ticking = false;
                             return;
                         }
 
-                        // Scrolling up - more responsive (5px threshold)
-                        if (scrollDelta < -5) {
-                            mobileHeader.classList.remove('header-hidden');
-                            lastScrollY = currentScrollY;
-                        }
-                        // Scrolling down - hide after 10px
-                        else if (scrollDelta > 10) {
-                            mobileHeader.classList.add('header-hidden');
-                            lastScrollY = currentScrollY;
+                        // Ignore jitter/micro-movements
+                        if (Math.abs(scrollDelta) < JITTER_THRESHOLD) {
+                            ticking = false;
+                            return;
                         }
 
+                        if (scrollDelta < 0) {
+                            // SCROLLING UP - Reveal immediately (no threshold)
+                            // This is what makes it feel snappy and responsive
+                            scrollDownAccumulator = 0;
+                            if (isHeaderHidden) {
+                                mobileHeader.classList.remove('header-hidden');
+                                isHeaderHidden = false;
+                            }
+                        } else {
+                            // SCROLLING DOWN - Accumulate before hiding
+                            // Reset accumulator if direction just changed
+                            scrollDownAccumulator += scrollDelta;
+
+                            // Hide only after sustained downward scroll
+                            if (!isHeaderHidden && scrollDownAccumulator >= HIDE_THRESHOLD) {
+                                mobileHeader.classList.add('header-hidden');
+                                isHeaderHidden = true;
+                                scrollDownAccumulator = 0;
+                            }
+                        }
+
+                        lastScrollY = currentScrollY;
                         ticking = false;
                     });
                     ticking = true;
@@ -463,7 +522,7 @@ async function init() {
         }
 
         // Setup PWA install modal
-        setupPWAInstallModal();
+        setupPWAInstallBanner();
 
         // Enable transitions after initial render
         requestAnimationFrame(() => {
@@ -520,7 +579,7 @@ async function init() {
         // Show PWA install prompt on mobile after a short delay
         setTimeout(() => {
             if (shouldShowPWAInstallPrompt()) {
-                openPWAInstallModal();
+                openPWAInstallBanner();
             }
         }, 2000);
 

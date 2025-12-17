@@ -1,4 +1,11 @@
-import Fuse from 'fuse.js';
+// Dynamic import cache for Fuse.js - loaded on first use
+let FuseModule = null;
+async function getFuse() {
+    if (!FuseModule) {
+        FuseModule = (await import('fuse.js')).default;
+    }
+    return FuseModule;
+}
 import { els } from './dom.js';
 import { state, config } from './config.js';
 import { debounce } from './utils.js';
@@ -103,7 +110,7 @@ export function toggleAccordion(buttonElement) {
     saveAccordionState();
 }
 
-export function setupFuseForTab(tabId) {
+export async function setupFuseForTab(tabId) {
     // Optimization: If a Fuse instance already exists for this tab, don't rebuild it.
     // The DOM elements are now persisted, so the references in Fuse remain valid.
     if (state.fuseInstances[tabId]) return;
@@ -132,11 +139,13 @@ export function setupFuseForTab(tabId) {
     // Use requestIdleCallback if available, otherwise fallback to setTimeout
     const runIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
 
-    runIdle(() => {
+    runIdle(async () => {
         // Re-check existence inside idle callback in case of race conditions
         if (state.fuseInstances[tabId]) return;
 
         if (fuseCollection.length > 0) {
+            // Dynamic import - Fuse.js loaded only when first needed
+            const Fuse = await getFuse();
             state.fuseInstances[tabId] = new Fuse(fuseCollection, {
                 keys: ['searchData'],
                 includeScore: true,

@@ -28,7 +28,7 @@ function getSharedCardObserver() {
                 }
             });
         }, {
-            rootMargin: '300% 0px', // Pre-load cards 3 screens ahead
+            rootMargin: '150% 0px', // Pre-load cards 1.5 screens ahead (reduced from 300% for memory efficiency)
             threshold: 0
         });
     }
@@ -524,9 +524,18 @@ export function updateSidebarPinIcons() {
 }
 
 export function closeSidebar() {
+    // Get scroll position before removing fixed positioning
+    const scrollY = document.body.style.top;
+
     els.sidebar?.classList.remove('open');
     els.overlay?.classList.remove('active');
     document.body.classList.remove('sidebar-open');
+
+    // Restore scroll position
+    document.body.style.top = '';
+    if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
 }
 
 async function renderCardBasedSection(containerId, data, category, gradient) {
