@@ -646,7 +646,15 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 
     if (!suppressScroll) {
         // Restore scroll position for this tab
-        window.scrollTo({ top: state.tabScrollPositions.get(tabName) || 0, behavior: 'instant' });
+        // Use requestAnimationFrame to ensure layout is stable especially on mobile
+        const restoreScroll = () => {
+            const scrollY = state.tabScrollPositions.get(tabName) || 0;
+            window.scrollTo({ top: scrollY, behavior: 'instant' });
+        };
+
+        restoreScroll();
+        // Double check for mobile browsers where address bar/viewport changes might interfere
+        requestAnimationFrame(restoreScroll);
     }
 }
 
@@ -775,4 +783,59 @@ export async function deleteLevel(level) {
         console.error("Failed to delete level:", error);
         showCustomAlert(getUIText('errorTitle', 'Error'), getUIText('errorDeleteLevel'));
     }
+}
+
+export function setupMobileHeaderScroll() {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    const header = document.querySelector('.mobile-header');
+
+    if (!header) return;
+
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const currentScrollY = window.scrollY;
+                const isMobile = window.innerWidth <= 768;
+
+                // Only run on mobile
+                if (!isMobile) {
+                    ticking = false;
+                    return;
+                }
+
+                // Don't hide if sidebar is open (optimization, though specific css handles it)
+                if (document.body.classList.contains('sidebar-open')) {
+                    ticking = false;
+                    return;
+                }
+
+                // Threshold to prevent jitter (e.g. 10px movement)
+                const scrollDiff = currentScrollY - lastScrollY;
+                if (Math.abs(scrollDiff) < 10) {
+                    ticking = false;
+                    return;
+                }
+
+                // Logic:
+                // 1. If at top (e.g. < 60px), ALWAYS show.
+                // 2. If scrolling DOWN (> 0 diff) -> Hide
+                // 3. If scrolling UP (< 0 diff) -> Show
+
+                if (currentScrollY <= 60) {
+                    header.classList.remove('header-hidden');
+                } else if (scrollDiff > 0) {
+                    // Scrolling down
+                    header.classList.add('header-hidden');
+                } else {
+                    // Scrolling up
+                    header.classList.remove('header-hidden');
+                }
+
+                lastScrollY = currentScrollY > 0 ? currentScrollY : 0;
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
 }

@@ -580,6 +580,10 @@ body.sidebar-open {
         transition: transform 0.35s var(--ease-out-quint);
     }
 
+    .mobile-header.header-hidden {
+        transform: translateY(-110%);
+    }
+
     /* Lock scroll when sidebar is open */
     body.sidebar-open {
         overflow: hidden;

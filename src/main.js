@@ -11,7 +11,7 @@ import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting, loadGlobalUI } from './database.js';
 import { debounce, getUIText } from './utils.js';
 import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui.js';
-import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion } from './handlers.js';
+import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion, setupMobileHeaderScroll } from './handlers.js';
 
 // --- PWA Installation ---
 let deferredPrompt = null;
@@ -422,7 +422,7 @@ function setupEventListeners() {
     });
 
     // Mobile header scroll-aware hide/show
-    // setupMobileHeaderScroll() was removed in favor of CSS sticky positioning
+    setupMobileHeaderScroll();
 }
 
 
@@ -491,6 +491,9 @@ function populateAndBindControls() {
  * Main application initialization
  */
 async function init() {
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
     populateEls();
     await loadGlobalUI();
     await loadState();

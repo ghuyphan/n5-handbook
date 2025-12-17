@@ -315,38 +315,59 @@ const createCard = (item, category, backGradient) => {
  * @returns {HTMLElement} The constructed section element.
  */
 // Helper for chunked rendering to avoid blocking main thread
+// Helper for chunked rendering to avoid blocking main thread
 function renderChunks(items, renderFn, container, initialChunkSize = 48, chunkSize = 100) {
     return new Promise((resolve) => {
         let index = 0;
+        const total = items.length;
 
-        const renderBlock = (count) => {
-            const end = Math.min(index + count, items.length);
+        // Optimization: Reduce initial sync chunk on mobile to unblock main thread faster
+        const isMobile = window.innerWidth <= 768;
+        const effectiveInitialSize = isMobile ? Math.min(initialChunkSize, 30) : initialChunkSize;
+
+        const renderBlock = () => {
+            const start = performance.now();
             const fragment = document.createDocumentFragment();
-            for (let i = index; i < end; i++) {
-                fragment.appendChild(renderFn(items[i], i));
+            // 8ms budget to maintain ~60fps
+            const timeBudget = 8;
+            let count = 0;
+
+            while (index < total) {
+                fragment.appendChild(renderFn(items[index], index));
+                index++;
+                count++;
+
+                // Check budget every 5 items to minimize overhead
+                if (count % 5 === 0) {
+                    if (count >= chunkSize || (performance.now() - start > timeBudget)) {
+                        break;
+                    }
+                }
             }
             container.appendChild(fragment);
-            index = end;
-        };
 
-        // First chunk sync
-        renderBlock(initialChunkSize);
-
-        if (index >= items.length) {
-            resolve();
-            return;
-        }
-
-        const next = () => {
-            renderBlock(chunkSize);
-            if (index < items.length) {
-                setTimeout(next, 0);
+            if (index < total) {
+                requestAnimationFrame(renderBlock);
             } else {
                 resolve();
             }
         };
 
-        setTimeout(next, 0);
+        // First chunk sync
+        if (effectiveInitialSize > 0 && index < total) {
+            const fragment = document.createDocumentFragment();
+            const end = Math.min(index + effectiveInitialSize, total);
+            for (; index < end; index++) {
+                fragment.appendChild(renderFn(items[index], index));
+            }
+            container.appendChild(fragment);
+        }
+
+        if (index < total) {
+            requestAnimationFrame(renderBlock);
+        } else {
+            resolve();
+        }
     });
 }
 
@@ -927,15 +948,22 @@ export async function renderContent(tabId = null) {
             els.keyPointsTab.appendChild(wrapper);
             setupFuseForTab('keyPoints');
         }, 'keyPoints'),
-        grammar: () => renderSafely(() => {
+        grammar: () => renderSafely(async () => {
             if (!els.grammarTab || !state.appData.grammar) return;
             els.grammarTab.innerHTML = '';
-            const fragment = document.createDocumentFragment();
-            for (const sectionKey in state.appData.grammar) {
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'space-y-4';
+            els.grammarTab.appendChild(wrapper);
+
+            const sections = Object.keys(state.appData.grammar);
+
+            const renderSection = (sectionKey) => {
                 const sectionData = state.appData.grammar[sectionKey];
                 const sectionTitle = getLangText(sectionData);
                 const grid = document.createElement('div');
                 grid.className = 'grammar-grid';
+
                 sectionData.items.forEach(item => {
                     const langItem = item[state.currentLang] || item.en;
                     const itemSearchData = generateSearchTerms([langItem.title, langItem.content]);
@@ -953,16 +981,18 @@ export async function renderContent(tabId = null) {
                     card.innerHTML = `<h4 class="font-semibold text-primary noto-sans">${langItem.title}</h4><div class="grammar-description mt-2 text-secondary leading-relaxed text-sm">${description}</div>${exampleHTML ? `<div class="grammar-example mt-3 text-sm">${exampleHTML}</div>` : ''}`;
                     grid.appendChild(card);
                 });
+
                 const contentWrapper = document.createElement('div');
                 contentWrapper.className = 'p-4 sm:p-5 sm:pt-0';
                 contentWrapper.appendChild(grid);
                 const searchData = generateSearchTerms([sectionTitle, ...sectionData.items.flatMap(item => [item.en?.title, item.en?.content, item.vi?.title, item.vi?.content])]);
-                fragment.appendChild(createAccordion(sectionTitle, contentWrapper, searchData, sectionKey, 'grammar'));
-            }
-            const wrapper = document.createElement('div');
-            wrapper.className = 'space-y-4';
-            wrapper.appendChild(fragment);
-            els.grammarTab.appendChild(wrapper);
+
+                return createAccordion(sectionTitle, contentWrapper, searchData, sectionKey, 'grammar');
+            };
+
+            // Use chunked rendering for grammar sections
+            await renderChunks(sections, renderSection, wrapper, 5, 20);
+
             setupFuseForTab('grammar');
         }, 'grammar'),
         kanji: () => renderSafely(() => renderCardBasedSection('kanji', state.appData.kanji, 'kanji', 'linear-gradient(135deg, #3D5A66, var(--accent-indigo))'), 'kanji'),
