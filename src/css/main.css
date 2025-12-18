@@ -25,6 +25,8 @@
     /* Faded/diluted ink */
     --text-header: #1A1816;
     /* Deep black for headers */
+    --font-serif: "Hiragino Mincho ProN", "Yu Mincho", YuMincho, "BIZ UDPMincho", "Times New Roman", serif;
+
 
     /* Borders - subtle fiber/edge appearance */
     --border-subtle: #D8D2C5;
@@ -37,8 +39,9 @@
     --shadow-color: rgba(45, 42, 38, 0.08);
     /* More diffuse, less "floaty", more "layered" */
     --shadow-paper: 0 4px 12px rgba(45, 42, 38, 0.06), 0 1px 3px rgba(45, 42, 38, 0.04);
-    /* Deeper but softer hover */
-    --shadow-paper-hover: 0 10px 25px rgba(45, 42, 38, 0.1), 0 4px 10px rgba(45, 42, 38, 0.05);
+    /* Deeper but softer hover - like lifting paper */
+    --shadow-paper-hover: 0 12px 28px rgba(45, 42, 38, 0.08), 0 6px 12px rgba(45, 42, 38, 0.04);
+
 
     /* Traditional Japanese accent colors */
     --accent-vermilion: #C53D43;
@@ -177,9 +180,11 @@ body {
     background-color: var(--bg-main);
     overflow-x: hidden;
     /* Ensure body also clips horizontal overflow */
-    /* Performance-optimized Washi texture - single SVG pattern */
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.02' stroke-width='0.5'/%3E%3C/svg%3E");
+    /* Performance-optimized Washi texture - Organic Fiber Noise */
+    /* Slightly coarser noise for better "fiber" visibility */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
     transition: background-color var(--transition-duration) var(--ease-in-out-quad), color var(--transition-duration) var(--ease-in-out-quad);
+
 }
 
 h1,
@@ -191,13 +196,15 @@ h6,
 .sidebar-title,
 .modal-title,
 .font-serif {
-    font-family: inherit;
+    font-family: var(--font-serif);
     font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
+
 .dark-mode body {
-    /* Performance-optimized Washi texture for dark mode */
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%23C8B496' stroke-opacity='0.015' stroke-width='0.5'/%3E%3C/svg%3E");
+    /* Performance-optimized Washi texture for dark mode - lighter opacity noise */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 .body-no-scroll,
@@ -340,7 +347,8 @@ body.sidebar-open {
     border-radius: 0;
     padding: 1rem 0.75rem 1rem 1.25rem;
     /* Performance-optimized Washi texture */
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.025' stroke-width='0.5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+
 }
 
 .right-sidebar {
@@ -448,6 +456,13 @@ body.sidebar-open {
         position: sticky;
         top: 0;
         z-index: 20;
+        background-color: var(--bg-paper);
+        /* Washi texture (same as body but fully opaque backing) */
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+
+        box-shadow: var(--shadow-paper);
+        /* Subtle bottom border feels like paper edge */
+        border-bottom: 1px solid var(--border-subtle);
     }
 
     /* Expandable search in header */
@@ -587,6 +602,7 @@ body.sidebar-open {
     }
 
     /* Lock scroll when sidebar is open */
+    .body-no-scroll,
     body.sidebar-open {
         overflow: hidden;
         position: fixed;
@@ -605,8 +621,8 @@ body.sidebar-open {
         position: fixed;
         top: 0;
         left: -100%;
-        width: 75%;
-        max-width: 260px;
+        width: 85%;
+        max-width: 300px;
         height: 100vh;
         /* Fallback for older browsers */
         height: 100dvh;
@@ -627,7 +643,8 @@ body.sidebar-open {
         border-right: 1px solid var(--border-medium);
         background-color: var(--bg-paper);
         /* Performance-optimized Washi texture */
-        background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%238B7765' stroke-opacity='0.025' stroke-width='0.5'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+
     }
 
     #sidebar.open {
@@ -654,7 +671,7 @@ body.sidebar-open {
 
     .nav-item {
         font-size: 0.9rem;
-        padding: 0.75rem 0.875rem;
+        padding: 0.875rem 1rem;
         margin-bottom: 0.25rem;
         border-radius: 8px;
     }
@@ -697,8 +714,8 @@ body.sidebar-open {
 /* Washi Paper Effect - replaces glass-effect */
 .glass-effect {
     background: var(--bg-paper);
-    /* Performance-optimized Washi texture - subtle cross-hatch lines */
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%23B4A082' stroke-opacity='0.025' stroke-width='0.5'/%3E%3C/svg%3E");
+    /* Performance-optimized Washi texture - subtle noise */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
     border: 1px solid var(--washi-border);
     transition: background var(--transition-duration) var(--ease-in-out-quad), box-shadow var(--transition-duration) var(--ease-in-out-quad), border-color var(--transition-duration) var(--ease-in-out-quad);
     border-radius: var(--radius-lg);
@@ -709,7 +726,7 @@ body.sidebar-open {
     @media (prefers-reduced-transparency: no-preference) {
         .glass-effect {
             /* Slightly more transparent for glass effect if supported */
-            background: rgba(250, 248, 243, 0.9);
+            background: rgba(250, 248, 243, 1);
         }
 
         .main-header {
@@ -720,7 +737,7 @@ body.sidebar-open {
 }
 
 .dark-mode .glass-effect {
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%23C8B496' stroke-opacity='0.02' stroke-width='0.5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 /* For dark mode glass support */
@@ -1140,6 +1157,27 @@ body.sidebar-open {
     .modal-title {
         font-size: clamp(1.1rem, 4vw, 1.25rem);
     }
+
+    /* Optimize inputs for mobile to prevent zoom */
+    input[type='text'],
+    input[type='search'],
+    input[type='number'],
+    input[type='email'],
+    input[type='password'],
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+
+    /* Modal padding adjustment */
+    .modal-body {
+        padding: 1rem 1rem !important;
+    }
+
+    /* Adjust large Kanji in cards */
+    .noto-sans.text-6xl {
+        font-size: clamp(3rem, 15vw, 4rem);
+    }
 }
 
 @media (max-width: 480px) {
@@ -1185,13 +1223,14 @@ body.sidebar-open {
 
 .washi-card {
     /* Enhanced Washi texture for modals - subtle cross-hatch */
+    /* Enhanced Washi texture for modals - subtle noise */
     background-color: var(--bg-paper-elevated);
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%23B4A082' stroke-opacity='0.03' stroke-width='0.5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
     border: 1px solid var(--border-medium);
 }
 
 .dark-mode .washi-card {
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L40 40M40 0L0 40' stroke='%23C8B496' stroke-opacity='0.025' stroke-width='0.5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
 }
 
 .support-option-card {

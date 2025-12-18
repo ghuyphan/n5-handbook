@@ -28,9 +28,9 @@ self.onmessage = (e) => {
             }
 
             const results = fuse.search(query);
-            // We only need to return the IDs to the main thread
+            // Return item data including sectionKey for proper filtering
             const simplifiedResults = results.map(result => ({
-                id: result.item.id,
+                item: result.item,
                 score: result.score
             }));
 

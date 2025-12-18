@@ -366,6 +366,11 @@ function setupEventListeners() {
         if (mobileHeader) {
             mobileHeader.classList.remove('search-active');
             els.mobileSearchInput?.blur();
+            // Also clear the search and reset results
+            if (els.mobileSearchInput && els.mobileSearchInput.value) {
+                els.mobileSearchInput.value = '';
+                els.mobileSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         }
     }
 
@@ -591,15 +596,6 @@ async function init() {
         await loadRequiredDataForProgress();
         await changeTab(initialTab, null, false, true, true);
 
-        // Restore scroll position from sessionStorage
-        const scrollKey = `scroll_${state.currentLevel}_${initialTab}`;
-        const savedScrollY = sessionStorage.getItem(scrollKey);
-        if (savedScrollY) {
-            requestAnimationFrame(() => {
-                window.scrollTo({ top: parseInt(savedScrollY, 10), behavior: 'instant' });
-            });
-        }
-
         updateProgressDashboard();
         setLanguage(state.currentLang, true);
         updateSidebarPinIcons();
@@ -640,10 +636,5 @@ document.addEventListener('DOMContentLoaded', init);
 // Managed automatically by vite-plugin-pwa via 'registerType: autoUpdate'
 
 // --- SCROLL POSITION PERSISTENCE ---
-window.addEventListener('beforeunload', () => {
-    const activeTab = document.querySelector('.tab-content.active');
-    if (activeTab && state.currentLevel) {
-        const scrollKey = `scroll_${state.currentLevel}_${activeTab.id}`;
-        sessionStorage.setItem(scrollKey, window.scrollY.toString());
-    }
-});
+// Removed to force top scroll on reload as per user request
+// window.addEventListener('beforeunload', () => { ... });

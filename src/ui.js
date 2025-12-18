@@ -339,12 +339,14 @@ const createStaticSection = (data, icon, color) => {
         const title = getLangText(sectionData);
         const searchTerms = generateSearchTerms([title, ...items.flatMap(i => i.isPlaceholder ? [] : [i.kana, i.romaji])]);
 
-        const content = `<div class="kana-grid">${items.map((item) => {
+        const content = `<div class="kana-grid">${items.map((item, index) => {
             if (item.isPlaceholder) return `<div></div>`;
             const isDigraph = item.kana && item.kana.length > 1;
             const fontClass = isDigraph ? 'kana-font-digraph' : 'kana-font';
             const itemSearchData = generateSearchTerms([item.kana, item.romaji]);
-            return `<div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg" data-search-item="${itemSearchData}"><p class="noto-sans ${fontClass}" style="color:${color};">${item.kana}</p><p class="text-xs sm:text-sm text-secondary">${item.romaji}</p></div>`;
+            // Generate matching ID for search filtering
+            const itemId = `${sectionKey}-${item.kana || item.romaji || index}`;
+            return `<div class="flex flex-col items-center justify-center p-2 rounded-xl h-20 sm:h-24 text-center cell-bg" data-search-item="${itemSearchData}" data-item-id="${itemId}"><p class="noto-sans ${fontClass}" style="color:${color};">${item.kana}</p><p class="text-xs sm:text-sm text-secondary">${item.romaji}</p></div>`;
         }).join('')}</div>`;
 
         const sectionHTML = `<div class="search-wrapper glass-effect rounded-2xl p-4 sm:p-5 mb-6" data-search="${searchTerms}"><h3 class="text-lg sm:text-lg font-bold mb-4 flex items-center gap-2 text-primary" data-section-title-key="${sectionKey}"><span class="text-2xl">${icon}</span> ${title}</h3>${content}</div>`;
@@ -1092,7 +1094,10 @@ export async function setupFuseForTab(tabId, forceReindex = false) {
     for (const sectionKey in tabData) {
         const section = tabData[sectionKey];
         if (section.items) {
-            section.items.forEach(item => {
+            section.items.forEach((item, index) => {
+                // Skip placeholder items (used in kana grids)
+                if (item.isPlaceholder) return;
+
                 const terms = [
                     item.kanji,
                     item.word,
@@ -1105,8 +1110,11 @@ export async function setupFuseForTab(tabId, forceReindex = false) {
                     item.romaji
                 ].flat().filter(Boolean).join(' ').toLowerCase();
 
+                // Use item.id if available, otherwise generate one for kana items
+                const itemId = item.id || `${sectionKey}-${item.kana || item.romaji || index}`;
+
                 workerData.push({
-                    id: item.id,
+                    id: itemId,
                     searchData: terms,
                     sectionKey: sectionKey
                 });

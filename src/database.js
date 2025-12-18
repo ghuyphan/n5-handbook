@@ -37,7 +37,7 @@ export async function loadGlobalUI() {
             keyPoints: "Key Points",
             vocabulary: "Vocabulary",
             grammar: "Grammar",
-            dashboard: "Dashboard",
+            dashboard: "ダッシュボード",
             dashboardSubtitle: "Your learning progress",
             progressOverview: "Progress Overview",
             dictionarySubtitle: "Universal Dictionary", // Added missing key
@@ -85,7 +85,7 @@ export async function loadGlobalUI() {
             keyPoints: "Điểm Chính",
             vocabulary: "Từ Vựng",
             grammar: "Ngữ Pháp",
-            dashboard: "Bảng Điều Khiển",
+            dashboard: "ダッシュボード",
             dashboardSubtitle: "Tiến độ học tập của bạn",
             progressOverview: "Tổng quan tiến độ",
             dictionarySubtitle: "Từ điển tổng hợp", // Added missing key

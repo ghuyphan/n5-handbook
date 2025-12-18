@@ -21,7 +21,7 @@ function handleWorkerResults(tabId, results, query) {
     const container = document.getElementById(tabId);
     if (!container) return;
 
-    const resultIds = new Set(results.map(r => r.id));
+    const resultIds = new Set(results.map(r => r.item.id));
 
     // Group results by sectionKey to easily identify which sections need rendering
     const sectionsWithMatches = new Set();
@@ -42,6 +42,30 @@ function handleWorkerResults(tabId, results, query) {
 
     // Iterate over all section wrappers in the container
     const allWrappers = container.querySelectorAll('.search-wrapper');
+
+    // Handle "no results" state
+    let noResultsEl = container.querySelector('.search-no-results');
+    if (query && results.length === 0) {
+        // Show no results message
+        if (!noResultsEl) {
+            noResultsEl = document.createElement('div');
+            noResultsEl.className = 'search-no-results text-center py-12';
+            noResultsEl.innerHTML = `
+                <svg class="w-16 h-16 mx-auto text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <p class="text-secondary text-lg">No results found for "<span class="text-accent-teal font-semibold">${query}</span>"</p>
+            `;
+            container.appendChild(noResultsEl);
+        } else {
+            // Update the query text in existing element
+            const querySpan = noResultsEl.querySelector('.text-accent-teal');
+            if (querySpan) querySpan.textContent = query;
+            noResultsEl.style.display = '';
+        }
+    } else if (noResultsEl) {
+        noResultsEl.style.display = 'none';
+    }
 
     allWrappers.forEach(wrapper => {
         const titleElement = wrapper.querySelector('[data-section-title-key]');
@@ -259,6 +283,17 @@ export const handleSearch = debounce(() => {
         if (accordionButton && sectionKey) {
             accordionButton.classList.toggle('open', tabAccordions?.has(sectionKey));
         }
+        // Also unhide all items within this wrapper
+        const items = wrapper.querySelectorAll('[data-item-id]');
+        items.forEach(el => {
+            el.classList.remove('search-hidden');
+            // Remove search highlights
+            const highlights = el.querySelectorAll('mark.search-highlight');
+            highlights.forEach(mark => {
+                const textNode = document.createTextNode(mark.textContent);
+                mark.parentNode.replaceChild(textNode, mark);
+            });
+        });
     });
 
     if (!query) {
@@ -304,7 +339,7 @@ export function setLanguage(lang, skipRender = false) {
     if (!skipRender) {
         const activeTab = document.querySelector('.tab-content.active');
         if (activeTab) {
-            changeTab(activeTab.id, null, true, true, true);
+            changeTab(activeTab.id, null, true, true, true, true);
         }
         updateProgressDashboard();
     }
@@ -450,6 +485,12 @@ export async function setLevel(level, fromHistory = false) {
         return;
     }
 
+    // Close sidebar immediately and wait for transition if on mobile
+    if (els.sidebar?.classList.contains('open')) {
+        closeSidebar();
+        await new Promise(resolve => setTimeout(resolve, 300));
+    }
+
     state.isSwitchingLevel = true;
     state.loadingStatus = 'loading';
     const minimumDisplayTimePromise = new Promise(resolve => setTimeout(resolve, 500));
@@ -476,7 +517,8 @@ export async function setLevel(level, fromHistory = false) {
         if (state.loadingStatus !== 'error') {
             await hideLoader();
         }
-        closeSidebar();
+        // Sidebar closed at start, no need to force close here unless something went wrong
+        if (state.loadingStatus === 'error') closeSidebar();
     }
 }
 
@@ -538,26 +580,24 @@ function updateTabUI(tabName) {
     updateSearchPlaceholders(tabName);
 }
 
-export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false, forceRender = false) {
+export async function changeTab(tabName, buttonElement, suppressScroll = false, fromHistory = false, forceRender = false, suppressSidebarClose = false) {
     const activeTabEl = document.querySelector('.tab-content.active');
 
     // If clicking the already active tab, just return unless forcing a re-render.
     if (activeTabEl?.id === tabName && !forceRender) {
-        closeSidebar();
+        if (!suppressSidebarClose) closeSidebar();
         return;
     }
 
     state.activeTab = tabName;
     updateTabUI(tabName);
-    closeSidebar();
+    if (!suppressSidebarClose) closeSidebar();
 
     const isMobile = window.innerWidth <= 768;
 
     // Store scroll position of the PREVIOUS tab before hiding it (desktop only)
     if (activeTabEl) {
-        if (!isMobile) {
-            state.tabScrollPositions.set(activeTabEl.id, window.scrollY);
-        }
+        // Removed scroll saving logic
         activeTabEl.classList.remove('active');
     }
 
@@ -567,13 +607,15 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
         return;
     }
 
-    // On mobile: always scroll to top
-    // On desktop: restore saved position if available
-    const targetScrollY = isMobile ? 0 : (state.tabScrollPositions.get(tabName) || 0);
+    // On mobile AND desktop: always scroll to top
+    // We removed state.tabScrollPositions usage to ensure fresh start on tab switch
+    const targetScrollY = 0;
 
     // CRITICAL: Reset scroll IMMEDIATELY before showing the new tab
     if (!suppressScroll) {
         window.scrollTo({ top: targetScrollY, behavior: 'instant' });
+        document.body.scrollTop = targetScrollY;
+        document.documentElement.scrollTop = targetScrollY;
     }
 
     // Show the new tab
@@ -647,20 +689,24 @@ export async function changeTab(tabName, buttonElement, suppressScroll = false, 
 
     // FINAL scroll position enforcement - after all async rendering is complete
     // This ensures the scroll is correct even if rendering caused layout shifts
+    // FINAL scroll position enforcement - after all async rendering is complete
+    // This ensures the scroll is correct even if rendering caused layout shifts
     if (!suppressScroll) {
         // Use multiple strategies to ensure scroll position sticks:
+        const resetScroll = () => {
+            window.scrollTo({ top: targetScrollY, behavior: 'instant' });
+            document.body.scrollTop = targetScrollY;
+            document.documentElement.scrollTop = targetScrollY;
+        };
+
         // 1. Immediate scroll
-        window.scrollTo({ top: targetScrollY, behavior: 'instant' });
+        resetScroll();
 
         // 2. After next frame (after browser paints)
-        requestAnimationFrame(() => {
-            window.scrollTo({ top: targetScrollY, behavior: 'instant' });
-        });
+        requestAnimationFrame(resetScroll);
 
         // 3. Short delay to handle any async layout updates (especially on mobile)
-        setTimeout(() => {
-            window.scrollTo({ top: targetScrollY, behavior: 'instant' });
-        }, 50);
+        setTimeout(resetScroll, 50);
     }
 }
 
@@ -729,18 +775,18 @@ export async function jumpToSection(tabName, sectionTitleKey) {
         if (isCancelled()) return;
     }
 
-    // Step 5: Scroll to target using native scrollIntoView (respects scroll-margin-top CSS)
+    // Step 5: Disable mobile header scroll behavior during programmatic scroll
+    state._isJumpingToSection = true;
+
+    // Step 6: Scroll to target using native scrollIntoView (respects scroll-margin-top CSS)
     scrollTarget.scrollIntoView({ behavior: 'instant', block: 'start' });
 
-    // Step 6: Re-scroll after a short delay to handle:
-    // - Accordion animations completing
-    // - Layout shifts from fonts/images loading
-    // - Other elements above finishing their transitions
-    await new Promise(r => setTimeout(r, 100));
-    if (isCancelled()) return;
-    scrollTarget.scrollIntoView({ behavior: 'instant', block: 'start' });
+    // Step 7: Re-enable header scroll after a short delay to let scroll settle
+    setTimeout(() => {
+        state._isJumpingToSection = false;
+    }, 300);
 
-    // Step 7: Apply highlight animation
+    // Step 8: Apply highlight animation
     scrollTarget.classList.remove('is-highlighted');
     void scrollTarget.offsetWidth; // Force reflow
     scrollTarget.classList.add('is-highlighted');
@@ -800,6 +846,12 @@ export function setupMobileHeaderScroll() {
         const isMobile = window.innerWidth <= 768;
 
         if (!isMobile) return;
+
+        // Skip during programmatic jumps to prevent interfering with navigation
+        if (state._isJumpingToSection) {
+            lastScrollY = currentScrollY;
+            return;
+        }
 
         // If sidebar is open, do nothing (body scroll is locked usually)
         if (document.body.classList.contains('sidebar-open')) return;

@@ -9,6 +9,28 @@ import { getUIText } from './utils.js';
 // Sidebar close transition duration (matches --transition-duration in CSS)
 const SIDEBAR_TRANSITION_MS = 300;
 
+// --- Scroll Locking Helpers ---
+function lockBodyScroll() {
+    // On mobile, we fix the body to prevent background scrolling (rubber-banding)
+    if (window.innerWidth <= 768) {
+        const scrollY = window.scrollY;
+        document.body.style.top = `-${scrollY}px`;
+    }
+    document.body.classList.add('body-no-scroll');
+}
+
+function unlockBodyScroll() {
+    document.body.classList.remove('body-no-scroll');
+    // Restore scroll position on mobile
+    if (window.innerWidth <= 768) {
+        const scrollY = document.body.style.top;
+        document.body.style.top = '';
+        if (scrollY) {
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
+    }
+}
+
 /**
  * Close sidebar and wait for animation to complete on mobile.
  * On desktop, returns immediately as sidebar is not modal.
@@ -36,7 +58,7 @@ export function setupSupportModal() {
     const wrapper = document.getElementById('support-modal-wrapper');
 
     const openModal = async () => {
-        document.body.classList.add('body-no-scroll');
+        lockBodyScroll();
         await closeSidebarAndDelay();
 
         // Update locales
@@ -52,7 +74,7 @@ export function setupSupportModal() {
     };
 
     const closeModal = () => {
-        document.body.classList.remove('body-no-scroll');
+        unlockBodyScroll();
         backdrop.classList.remove('active');
         wrapper.classList.remove('active');
 
@@ -200,7 +222,8 @@ export function openKanjiDetailModal(kanjiId) {
         closeKanjiModalWithListeners = null;
     };
 
-    document.body.classList.add('body-no-scroll');
+    // Lock scroll with position fix
+    lockBodyScroll();
     els.kanjiDetailModal.classList.remove('modal-hidden');
     requestAnimationFrame(() => {
         els.kanjiDetailModal.classList.add('active');
@@ -222,7 +245,7 @@ export function closeKanjiDetailModal() {
         els.kanjiModalWrapper.classList.remove('active');
     }
 
-    document.body.classList.remove('body-no-scroll');
+    unlockBodyScroll();
 
     els.kanjiModalWrapper.addEventListener('transitionend', () => {
         els.kanjiDetailModal.classList.add('modal-hidden');
@@ -296,7 +319,7 @@ export async function openNotesModal() {
         closeNotesModalWithListeners = null;
     };
 
-    document.body.classList.add('body-no-scroll');
+    lockBodyScroll();
     els.notesModal.classList.remove('modal-hidden');
 
     requestAnimationFrame(() => {
@@ -314,7 +337,7 @@ function closeNotesModal() {
         if (closeNotesModalWithListeners) {
             closeNotesModalWithListeners();
         }
-        document.body.classList.remove('body-no-scroll');
+        unlockBodyScroll();
         els.notesModalBackdrop.classList.remove('active');
         els.notesModalWrapper.classList.remove('active');
 
@@ -372,7 +395,7 @@ export function setupImportModal() {
     };
 
     const openModal = async () => {
-        document.body.classList.add('body-no-scroll');
+        lockBodyScroll();
         await closeSidebarAndDelay();
         resetModal();
         updateModalLocale();
@@ -385,7 +408,7 @@ export function setupImportModal() {
     };
 
     const closeModal = () => {
-        document.body.classList.remove('body-no-scroll');
+        unlockBodyScroll();
         els.importModalBackdrop.classList.remove('active');
         els.modalWrapper.classList.remove('active');
 
