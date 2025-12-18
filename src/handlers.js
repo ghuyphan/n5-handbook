@@ -1,6 +1,6 @@
 import { els } from './dom.js';
 import { state, config } from './config.js';
-import { debounce } from './utils.js';
+import { debounce, getUIText } from './utils.js';
 import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote, saveAccordionState } from './database.js';
 import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm, setupTabsForLevel, setupFuseForTab } from './ui.js';
 import { handleExternalSearch } from './jotoba.js';
@@ -118,14 +118,6 @@ function handleWorkerResults(tabId, results, query) {
 
 
 // --- HELPER FUNCTIONS ---
-
-function getUIText(key, replacements = {}) {
-    let text = state.appData.ui?.[state.currentLang]?.[key] || state.appData.ui?.['en']?.[key] || `[${key}]`;
-    for (const [placeholder, value] of Object.entries(replacements)) {
-        text = text.replace(`{${placeholder}}`, value);
-    }
-    return text;
-}
 
 function getActiveSearchInput() {
     return window.innerWidth <= 768 ? els.mobileSearchInput : els.searchInput;

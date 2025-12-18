@@ -32,7 +32,6 @@ export function populateEls() {
     els.menuToggle = document.getElementById('menu-toggle');
     els.pinToggle = document.getElementById('pin-toggle');
     els.themeEmoji = document.getElementById('theme-emoji');
-    els.installAppBtn = document.getElementById('install-app-btn'); // Added install button
 
     // Content containers
     els.progressOverview = document.getElementById('progress-overview');

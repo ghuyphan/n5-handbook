@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Browser theme color for Washi Paper aesthetic (mobile & desktop Chrome) -->
-    <meta name="theme-color" content="#F7F3ED" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#2D2A26" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#F0EFE9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1A1816" media="(prefers-color-scheme: dark)">
     <title>JLPT Handbook</title>
     <link rel="icon" type="image/png" href="./assets/siteIcon.png">
     <!-- DNS prefetch for API endpoints -->
@@ -60,16 +60,19 @@
     <!-- Critical Loader CSS to prevent Flash of Unstyled Content -->
     <style>
         :root {
-            --bg-main: #F1F5F9;
-            --text-primary: #1a1a2e;
-            --backdrop-bg: rgba(255, 255, 255, 0.9);
-            --accent-blue: #3B82F6;
+            /* Washi Paper Light */
+            --bg-main: #F0EFE9;
+            --text-primary: #2D2A26;
+            --backdrop-bg: rgba(240, 239, 233, 0.9);
+            --accent-blue: #4A7C8C;
+            /* Muted teal/blue */
         }
 
         .dark-mode {
-            --bg-main: #0F172A;
-            --text-primary: #F3F4F6;
-            --backdrop-bg: rgba(17, 24, 39, 0.95);
+            /* Washi Paper Dark (Ink Stone) */
+            --bg-main: #1A1816;
+            --text-primary: #F0EBE0;
+            --backdrop-bg: rgba(26, 24, 22, 0.95);
         }
 
         /* Fallback for no-js/system preference if script fails (optional but good practice) */
@@ -704,7 +707,8 @@
 
 
     <!-- PWA Install Banner (Slide-up from bottom) -->
-    <div id="pwa-install-banner" class="pwa-banner">
+    <div id="pwa-install-banner" class="pwa-banner"
+        style="transform: translateY(100%); opacity: 0; visibility: hidden;">
         <div class="pwa-banner-content">
             <img src="./assets/siteIcon.png" alt="App Icon" class="pwa-banner-icon squircle-clip" width="40"
                 height="40">

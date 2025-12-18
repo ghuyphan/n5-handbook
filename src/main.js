@@ -12,164 +12,11 @@ import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, sav
 import { debounce, getUIText } from './utils.js';
 import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui.js';
 import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion, setupMobileHeaderScroll } from './handlers.js';
+import { initPWAListeners, setupPWAInstallBanner, shouldShowPWAInstallPrompt, openPWAInstallBanner } from './pwa.js';
 
-// --- PWA Installation ---
-let deferredPrompt = null;
-let pwaInstallModalShown = false;
+// Initialize PWA event listeners early
+initPWAListeners();
 
-/**
- * Detect the user's platform for PWA install hints
- * @returns {'ios' | 'android' | 'other'}
- */
-function getPlatform() {
-    const ua = navigator.userAgent || navigator.vendor || window.opera;
-    if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios';
-    if (/android/i.test(ua)) return 'android';
-    return 'other';
-}
-
-/**
- * Check if the app is running as a standalone PWA
- * @returns {boolean}
- */
-function isStandalonePWA() {
-    return window.matchMedia('(display-mode: standalone)').matches ||
-        window.navigator.standalone === true ||
-        document.referrer.includes('android-app://');
-}
-
-/**
- * Check if the device is mobile
- * @returns {boolean}
- */
-function isMobileDevice() {
-    return window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-/**
- * Check if PWA install prompt was dismissed recently (within 7 days)
- * @returns {boolean}
- */
-function wasPWAPromptDismissed() {
-    const dismissedAt = localStorage.getItem('pwaPromptDismissedAt');
-    if (!dismissedAt) return false;
-    const sevenDays = 7 * 24 * 60 * 60 * 1000;
-    return (Date.now() - parseInt(dismissedAt, 10)) < sevenDays;
-}
-
-/**
- * Mark PWA prompt as dismissed
- */
-function dismissPWAPrompt() {
-    localStorage.setItem('pwaPromptDismissedAt', Date.now().toString());
-}
-
-// Listen for the beforeinstallprompt event
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (els.installAppBtn) {
-        els.installAppBtn.style.display = 'flex';
-    }
-});
-
-/**
- * Handle the install button click
- */
-async function handleInstallClick() {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-        deferredPrompt = null;
-        if (els.installAppBtn) {
-            els.installAppBtn.style.display = 'none';
-        }
-        closePWAInstallBanner();
-    } else {
-        // No native prompt available - show guidance message
-        const platform = getPlatform();
-        let message = '';
-        if (platform === 'ios') {
-            message = getUIText('installHintIOS') || 'Tap Share ⬆ then "Add to Home Screen"';
-        } else if (platform === 'android') {
-            message = getUIText('installHintAndroid') || 'Tap menu ⋮ then "Install app"';
-        }
-        if (message) {
-            import('./ui.js').then(module => {
-                module.showCustomAlert(getUIText('installAppTitle') || 'Install App', message);
-            });
-        }
-        closePWAInstallBanner();
-    }
-}
-
-// Handle successful app installation
-window.addEventListener('appinstalled', () => {
-    if (els.installAppBtn) {
-        els.installAppBtn.style.display = 'none';
-    }
-    deferredPrompt = null;
-    pwaInstallModalShown = true;
-    closePWAInstallBanner();
-    console.log('PWA was installed');
-});
-
-// --- PWA Install Banner ---
-
-/**
- * Open the PWA install banner
- */
-function openPWAInstallBanner() {
-    const banner = document.getElementById('pwa-install-banner');
-    if (!banner) return;
-
-    // Update locale texts
-    banner.querySelectorAll('[data-lang-key]').forEach(el => {
-        el.textContent = getUIText(el.dataset.langKey) || el.textContent;
-    });
-
-    requestAnimationFrame(() => {
-        banner.classList.add('active');
-    });
-
-    pwaInstallModalShown = true;
-}
-
-/**
- * Close the PWA install banner
- */
-function closePWAInstallBanner() {
-    const banner = document.getElementById('pwa-install-banner');
-    if (!banner) return;
-    banner.classList.remove('active');
-}
-
-/**
- * Set up PWA install banner event listeners
- */
-function setupPWAInstallBanner() {
-    const installBtn = document.getElementById('pwa-banner-install-btn');
-    const dismissBtn = document.getElementById('pwa-banner-dismiss-btn');
-
-    if (installBtn) installBtn.addEventListener('click', handleInstallClick);
-    if (dismissBtn) dismissBtn.addEventListener('click', () => {
-        dismissPWAPrompt();
-        closePWAInstallBanner();
-    });
-}
-
-/**
- * Determine if we should show the PWA install prompt
- * @returns {boolean}
- */
-function shouldShowPWAInstallPrompt() {
-    if (isStandalonePWA()) return false;
-    if (!isMobileDevice()) return false;
-    if (wasPWAPromptDismissed()) return false;
-    if (pwaInstallModalShown) return false;
-    return true;
-}
 
 /**
  * Load required data for the progress dashboard
@@ -402,11 +249,6 @@ function setupEventListeners() {
         handleStateChange(e.state);
     });
 
-    // Install button
-    if (els.installAppBtn) {
-        els.installAppBtn.addEventListener('click', handleInstallClick);
-    }
-
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
@@ -452,12 +294,6 @@ function populateAndBindControls() {
                     <div class="theme-switch-container">${getThemeToggleHTML()}</div>
                 </div>
             </div>
-            <button id="install-app-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button" style="display: none;">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M10 2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1h4a1 1 0 001-1V2zm-1 5a1 1 0 011 1v10a1 1 0 11-2 0V8a1 1 0 011-1zm-4-4h2V2H5v2zM15 4h-2V2h2v2zm-2 4h-2v10h2V8z"/>
-                </svg>
-                <span class="pointer-events-none">Install App</span>
-            </button>
             <button id="sidebar-import-btn" class="w-full mt-4 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors import-button">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
@@ -490,6 +326,9 @@ function populateAndBindControls() {
             setLanguage(e.currentTarget.dataset.lang);
         });
     });
+
+    // RE-BIND DOM ELEMENTS that were just injected
+    els.openModalBtn = document.getElementById('sidebar-import-btn'); // Matches dom.js naming (sidebar-import-btn)
 }
 
 /**

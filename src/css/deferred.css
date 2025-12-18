@@ -7,7 +7,7 @@
 /* Using Noto Sans JP for better readability in UI elements */
 .font-jp,
 .noto-sans {
-    font-family: "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-main);
 }
 
 /* Hanko (判子) Stamp Icon Styles */
@@ -21,7 +21,7 @@
     border: 2px solid currentColor;
     font-size: 0.75rem;
     font-weight: 700;
-    font-family: "Noto Sans JP", serif;
+    font-family: var(--font-main);
     flex-shrink: 0;
     /* Worn stamp effect - simplified for performance */
     box-shadow:
@@ -42,7 +42,7 @@
     border-radius: 50%;
     color: var(--accent-vermilion);
     font-weight: 700;
-    font-family: var(--font-serif);
+    font-family: var(--font-main);
     /* Multiply blend mode for ink-on-paper look (where supported) */
     mix-blend-mode: multiply;
     /* Irregular border radius for hand-stamped look */
@@ -50,12 +50,18 @@
     transform: rotate(-5deg);
     opacity: 0.9;
     box-shadow: inset 0 0 0 1px rgba(197, 61, 67, 0.1);
+    background-color: transparent;
+    transition: all 0.3s ease;
 }
 
 .dark-mode .hanko-stamp {
     mix-blend-mode: normal;
-    /* Multiply doesn't work well on dark */
-    background: rgba(197, 61, 67, 0.1);
+    /* In dark mode, vermilion needs to be brighter and opaque */
+    border-color: #FF6B6B;
+    color: #FF6B6B;
+    background: rgba(255, 107, 107, 0.1);
+    box-shadow: 0 0 8px rgba(255, 107, 107, 0.2), inset 0 0 0 1px rgba(255, 107, 107, 0.2);
+    text-shadow: 0 0 2px rgba(255, 107, 107, 0.3);
 }
 
 .hanko-stamp.animate-stamp {
@@ -76,12 +82,19 @@
 
 /* Active state - solid white stamp for visibility */
 .nav-item.active .hanko-icon {
-    background-color: rgba(255, 255, 255, 0.95);
-    border-color: rgba(255, 255, 255, 0.95);
+    background-color: var(--bg-paper-elevated);
+    border-color: var(--accent-vermilion);
     color: var(--accent-vermilion);
     box-shadow:
-        0 4px 6px rgba(45, 42, 38, 0.15),
-        0 0 0 2px rgba(255, 255, 255, 0.3);
+        0 4px 12px rgba(197, 61, 67, 0.2),
+        inset 0 0 0 1px rgba(197, 61, 67, 0.1);
+}
+
+.dark-mode .nav-item.active .hanko-icon {
+    background-color: #2D2A26;
+    border-color: #FF6B6B;
+    color: #FF6B6B;
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.15);
 }
 
 /* Hover lift effect */
@@ -89,7 +102,7 @@
     transform: scale(1.1) rotate(5deg);
 }
 
-/* Dark mode adjustments */
+/* Dark mode adjustments for icon */
 .dark-mode .hanko-icon {
     box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.05),
@@ -1464,16 +1477,19 @@ mark.search-highlight {
 
 /* Dark mode adjustments */
 .dark-mode .hanko-counter {
-    background-color: rgba(232, 114, 106, 0.12);
-    border-color: #E8726A;
-    color: #E8726A;
+    mix-blend-mode: normal;
+    background-color: rgba(232, 114, 106, 0.15);
+    border-color: #FF6B6B;
+    color: #FF6B6B;
     box-shadow:
-        inset 0 0 0 0.5px rgba(232, 114, 106, 0.3),
-        0 1px 2px rgba(232, 114, 106, 0.15);
+        inset 0 0 0 0.5px rgba(232, 114, 106, 0.4),
+        0 0 8px rgba(232, 114, 106, 0.2);
+    text-shadow: 0 0 2px rgba(232, 114, 106, 0.2);
 }
 
 .dark-mode .hanko-counter.has-progress {
-    background-color: rgba(232, 114, 106, 0.18);
+    background-color: rgba(232, 114, 106, 0.25);
+    box-shadow: 0 0 10px rgba(232, 114, 106, 0.3);
 }
 
 /* Mobile: slightly smaller counter */
