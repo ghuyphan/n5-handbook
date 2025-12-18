@@ -1,9 +1,9 @@
-import { els } from './dom.js';
+import { els } from './utils/dom.js';
 import { state, config } from './config.js';
-import { debounce, getUIText } from './utils.js';
-import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote, saveAccordionState } from './database.js';
-import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm, setupTabsForLevel, setupFuseForTab } from './ui.js';
-import { handleExternalSearch } from './jotoba.js';
+import { debounce, getUIText } from './utils/common.js';
+import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote, saveAccordionState } from './services/database.js';
+import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm, setupTabsForLevel, setupFuseForTab } from './ui/ui.js';
+import { handleExternalSearch } from './services/jotoba.js';
 
 // Web Worker for search offloading
 if (!state.searchWorker) {

@@ -1193,6 +1193,108 @@ mark.search-highlight {
     color: var(--text-secondary);
 }
 
+/* Speaker button for pronunciation */
+.dict-speaker-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    margin-left: auto;
+    flex-shrink: 0;
+    border: none;
+    border-radius: var(--radius-full);
+    background-color: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out-quint);
+}
+
+.dict-speaker-btn svg {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.dict-speaker-btn:hover {
+    background-color: var(--nav-hover-bg);
+    color: var(--accent-teal);
+    transform: scale(1.1);
+}
+
+.dict-speaker-btn:active {
+    transform: scale(0.95);
+}
+
+/* Playing state - pulse animation */
+.dict-speaker-btn.playing {
+    color: var(--accent-teal);
+    animation: speaker-pulse 0.6s ease-in-out infinite;
+}
+
+@keyframes speaker-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.15);
+    }
+}
+
+/* Hanko-style level badge for vocab matches */
+.dict-level-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    font-family: "Noto Sans JP", monospace;
+    color: var(--accent-vermilion);
+    background-color: rgba(197, 61, 67, 0.08);
+    border: 1px solid var(--accent-vermilion);
+    padding: 0.0625rem 0.25rem;
+    border-radius: 2px;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    /* Hanko stamp texture */
+    background-image:
+        repeating-linear-gradient(135deg,
+            transparent 0px,
+            rgba(197, 61, 67, 0.03) 1px,
+            transparent 2px,
+            transparent 4px);
+    mix-blend-mode: multiply;
+}
+
+.dark-mode .dict-level-badge {
+    mix-blend-mode: normal;
+    background-color: rgba(232, 114, 106, 0.15);
+    border-color: #FF6B6B;
+    color: #FF6B6B;
+}
+
+/* Kanji in current level - always highlighted with subtle teal */
+.dict-kanji-in-level {
+    color: var(--accent-teal);
+    cursor: pointer;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+    /* Subtle ink effect */
+    text-shadow: 0 0 1px rgba(45, 157, 143, 0.2);
+}
+
+.dict-kanji-in-level:hover {
+    color: var(--accent-teal);
+    text-shadow: 0 0 4px rgba(45, 157, 143, 0.4);
+}
+
 .dict-vocab-definitions {
     font-size: clamp(0.85rem, 3vw, 0.9rem);
     line-height: 1.7;

@@ -1,10 +1,10 @@
-import { els } from './dom.js';
-import { state, config } from './config.js';
-import { dbPromise, saveNote, loadNote } from './database.js';
+import { els } from '../utils/dom.js';
+import { state, config } from '../config.js';
+import { dbPromise, saveNote, loadNote } from '../services/database.js';
 import { buildLevelSwitcher, showCustomAlert, showCustomConfirm } from './ui.js';
-import { setLevel } from './handlers.js';
+import { setLevel } from '../handlers.js';
 import { closeSidebar } from './ui.js';
-import { getUIText } from './utils.js';
+import { getUIText } from '../utils/common.js';
 
 // Sidebar close transition duration (matches --transition-duration in CSS)
 const SIDEBAR_TRANSITION_MS = 300;

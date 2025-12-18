@@ -3,8 +3,8 @@
  * @description UI component rendering helpers - cards, accordions, kana grids, etc.
  */
 
-import { state } from './config.js';
-import { generateSearchTerms } from './utils.js';
+import { state } from '../config.js';
+import { generateSearchTerms } from '../utils/common.js';
 
 /**
  * Centralized helper function to get localized text safely.

@@ -4,20 +4,20 @@
  */
 import {
     els
-} from './dom.js';
+} from '../utils/dom.js';
 import {
     state
-} from './config.js';
+} from '../config.js';
 import {
     updateExternalSearchTab
-} from './ui.js';
+} from '../ui/ui.js';
 
 import {
     dbPromise
 } from './database.js';
 import {
     debounce
-} from './utils.js';
+} from '../utils/common.js';
 
 // --- Constants ---
 const JAPANESE_REGEX = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
@@ -270,12 +270,63 @@ function renderErrorState(error, query) {
 
 // --- Main Search Logic ---
 
+// Fetch audio from Jotoba for a given query (used to enhance Mazii results)
+async function fetchJotobaAudio(query, isJP, signal) {
+    try {
+        const response = await fetchWithTimeoutAndRetry(JOTOBA_BASE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                query: query.trim(),
+                language: 'English',
+                no_english: false
+            }),
+        }, signal);
+        const data = await response.json();
+
+        // Build a map of kanji/kana -> audio path
+        const audioMap = new Map();
+        if (data?.words) {
+            data.words.forEach(word => {
+                if (word.audio) {
+                    // Map by both kanji and kana for matching
+                    if (word.reading?.kanji) audioMap.set(word.reading.kanji, word.audio);
+                    if (word.reading?.kana) audioMap.set(word.reading.kana, word.audio);
+                }
+            });
+        }
+        return audioMap;
+    } catch (error) {
+        // Silent fail - audio is optional
+        return new Map();
+    }
+}
+
 // Implements the fallback strategy: try Mazii first (if applicable), then fall back to Jotoba.
 async function performSearch(query, isJP, signal) {
     if (state.currentLang === 'vi') {
         try {
-            const maziiResults = await searchMazii(query, isJP, signal);
-            if (maziiResults) return maziiResults;
+            // Fetch Mazii results and Jotoba audio in parallel
+            const [maziiResults, audioMap] = await Promise.all([
+                searchMazii(query, isJP, signal),
+                fetchJotobaAudio(query, isJP, signal)
+            ]);
+
+            if (maziiResults) {
+                // Enhance Mazii results with Jotoba audio
+                if (maziiResults.words && audioMap.size > 0) {
+                    maziiResults.words.forEach(word => {
+                        const kanji = word.reading?.kanji;
+                        const kana = word.reading?.kana;
+                        // Try to find audio by kanji first, then kana
+                        word.audio = audioMap.get(kanji) || audioMap.get(kana) || null;
+                    });
+                }
+                return maziiResults;
+            }
             console.log('Mazii failed or returned no results, falling back to Jotoba.');
         } catch (error) {
             if (error.name === 'AbortError') throw error;

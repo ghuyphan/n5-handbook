@@ -4,7 +4,7 @@
  */
 
 import * as wanakana from 'wanakana';
-import { state } from './config.js';
+import { state } from '../config.js';
 
 /**
  * Creates a debounced function that delays invoking `func` until after `wait` milliseconds.

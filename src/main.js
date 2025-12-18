@@ -6,16 +6,20 @@
 import './css/main.css';
 import './css/deferred.css';
 
-import { els, populateEls } from './dom.js';
+import { els, populateEls } from './utils/dom.js';
 import { state, config } from './config.js';
-import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting, loadGlobalUI } from './database.js';
-import { debounce, getUIText } from './utils.js';
-import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui.js';
+import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting, loadGlobalUI } from './services/database.js';
+import { debounce, getUIText } from './utils/common.js';
+import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui/ui.js';
 import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion, setupMobileHeaderScroll } from './handlers.js';
-import { initPWAListeners, setupPWAInstallBanner, shouldShowPWAInstallPrompt, openPWAInstallBanner } from './pwa.js';
+import { initPWAListeners, setupPWAInstallBanner, shouldShowPWAInstallPrompt, openPWAInstallBanner } from './services/pwa.js';
+import { playPronunciation, initVoices } from './services/audio.js';
 
 // Initialize PWA event listeners early
 initPWAListeners();
+
+// Initialize Web Speech API voices early
+initVoices();
 
 
 /**
@@ -169,6 +173,19 @@ function setupEventListeners() {
                         inputElement.dispatchEvent(new Event('input', { bubbles: true }));
                     }
                 }
+            },
+            'play-pronunciation': async () => {
+                const audioPath = actionTarget.dataset.audio || null;
+                const text = actionTarget.dataset.text || '';
+
+                // Add playing state for visual feedback
+                actionTarget.classList.add('playing');
+
+                try {
+                    await playPronunciation(audioPath, text);
+                } finally {
+                    actionTarget.classList.remove('playing');
+                }
             }
         };
 
@@ -182,10 +199,10 @@ function setupEventListeners() {
 
         // Lazy-loaded modal actions
         if (action === 'open-notes') {
-            import('./modals.js').then(module => module.openNotesModal());
+            import('./ui/modals.js').then(module => module.openNotesModal());
         }
         if (action === 'show-kanji-details') {
-            import('./modals.js').then(module => module.openKanjiDetailModal(actionTarget.dataset.id));
+            import('./ui/modals.js').then(module => module.openKanjiDetailModal(actionTarget.dataset.id));
         }
     });
 
@@ -388,7 +405,7 @@ async function init() {
 
         // Lazy load modals
         if (document.getElementById('sidebar-import-btn')) {
-            import('./modals.js').then(module => {
+            import('./ui/modals.js').then(module => {
                 module.setupImportModal();
                 module.setupSupportModal();
             });

@@ -3,7 +3,7 @@
  * @description PWA installation logic and banner management.
  */
 
-import { getUIText } from './utils.js';
+import { getUIText } from '../utils/common.js';
 
 // --- PWA State ---
 let deferredPrompt = null;
@@ -76,7 +76,7 @@ export async function handleInstallClick() {
             message = getUIText('installHintAndroid') || 'Tap menu ⋮ then "Install app"';
         }
         if (message) {
-            import('./ui.js').then(module => {
+            import('../ui/ui.js').then(module => {
                 module.showCustomAlert(getUIText('installAppTitle') || 'Install App', message);
             });
         }

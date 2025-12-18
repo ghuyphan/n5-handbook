@@ -4,8 +4,8 @@
  */
 
 import { openDB } from 'idb';
-import { state, config } from './config.js';
-import { updateProgressDashboard } from './ui.js';
+import { state, config } from '../config.js';
+import { updateProgressDashboard } from '../ui/ui.js';
 
 // MODIFIED: Bumped version to 3
 export const dbPromise = openDB('HandbookDB', 3, {
