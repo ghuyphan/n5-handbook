@@ -648,3 +648,156 @@ export function setupImportModal() {
     els.fileImportArea?.addEventListener('dragleave', () => els.fileImportArea.classList.remove('drag-active'));
     els.fileImportArea?.addEventListener('drop', (e) => { e.preventDefault(); els.fileImportArea.classList.remove('drag-active'); handleFileSelect(e.dataTransfer.files); });
 }
+
+// --- Download Modal ---
+export function setupDownloadModal() {
+    const modal = document.getElementById('download-modal');
+    if (!modal) return;
+
+    const openBtn = document.getElementById('sidebar-download-btn');
+    const closeBtn = document.getElementById('close-download-btn');
+    const backdrop = document.getElementById('download-modal-backdrop');
+    const wrapper = document.getElementById('download-modal-wrapper');
+    const levelSelection = document.getElementById('download-level-selection');
+    const levelList = document.getElementById('download-level-list');
+    const progressSection = document.getElementById('download-progress-section');
+    const progressBar = document.getElementById('download-progress-bar');
+    const progressLevel = document.getElementById('download-progress-level');
+    const progressStatus = document.getElementById('download-progress-status');
+    const completeSection = document.getElementById('download-complete-section');
+    const startBtn = document.getElementById('download-start-btn');
+    const cancelBtn = document.getElementById('download-cancel-btn');
+    const doneBtn = document.getElementById('download-done-btn');
+
+    // Dynamically import offline module to avoid circular dependencies
+    let offlineModule = null;
+
+    const getOfflineModule = async () => {
+        if (!offlineModule) {
+            offlineModule = await import('../services/offline.js');
+        }
+        return offlineModule;
+    };
+
+    const updateLocale = () => {
+        modal.querySelectorAll('[data-lang-key]').forEach(el => {
+            el.textContent = getUIText(el.dataset.langKey);
+        });
+    };
+
+    const resetModal = () => {
+        levelSelection.style.display = 'block';
+        progressSection.style.display = 'none';
+        completeSection.style.display = 'none';
+        startBtn.style.display = 'inline-flex';
+        cancelBtn.style.display = 'none';
+        doneBtn.style.display = 'none';
+        progressBar.style.width = '0%';
+    };
+
+    const populateLevelList = async () => {
+        const offline = await getOfflineModule();
+        const availableLevels = state.allAvailableLevels || ['n5'];
+        const offlineLevels = await offline.getOfflineLevels();
+
+        levelList.innerHTML = '';
+
+        availableLevels.forEach(level => {
+            const isOffline = offlineLevels.includes(level);
+            const item = document.createElement('div');
+            item.className = 'download-level-item';
+            item.innerHTML = `
+                <input type="checkbox" id="dl-${level}" value="${level}" ${isOffline ? '' : 'checked'}>
+                <label for="dl-${level}">${level.toUpperCase()}</label>
+                ${isOffline ? `<span class="offline-badge">${getUIText('offlineAvailable')}</span>` : ''}
+            `;
+            levelList.appendChild(item);
+        });
+    };
+
+    const openModal = async () => {
+        lockBodyScroll();
+        await closeSidebarAndDelay();
+
+        resetModal();
+        updateLocale();
+        await populateLevelList();
+
+        modal.classList.remove('modal-hidden');
+        requestAnimationFrame(() => {
+            backdrop.classList.add('active');
+            wrapper.classList.add('active');
+        });
+    };
+
+    const closeModal = async () => {
+        const offline = await getOfflineModule();
+
+        // Cancel any ongoing download
+        if (offline.isDownloading()) {
+            offline.cancelDownload();
+        }
+
+        unlockBodyScroll();
+        backdrop.classList.remove('active');
+        wrapper.classList.remove('active');
+
+        wrapper.addEventListener('transitionend', () => {
+            modal.classList.add('modal-hidden');
+            resetModal();
+        }, { once: true });
+    };
+
+    const startDownload = async () => {
+        const offline = await getOfflineModule();
+
+        // Get selected levels
+        const selectedLevels = Array.from(levelList.querySelectorAll('input:checked'))
+            .map(cb => cb.value);
+
+        if (selectedLevels.length === 0) return;
+
+        // Switch to progress view
+        levelSelection.style.display = 'none';
+        progressSection.style.display = 'block';
+        startBtn.style.display = 'none';
+        cancelBtn.style.display = 'inline-flex';
+
+        const onProgress = (progress) => {
+            const { currentLevel, completedLevels, totalLevels, completedTabs, totalTabs } = progress;
+
+            // Calculate overall progress
+            const levelProgress = completedLevels / totalLevels;
+            const tabProgress = completedTabs / totalTabs / totalLevels;
+            const totalProgress = (levelProgress + tabProgress) * 100;
+
+            progressBar.style.width = `${Math.min(totalProgress, 100)}%`;
+            progressLevel.textContent = currentLevel.toUpperCase();
+            progressStatus.textContent = getUIText('downloadProgress', { level: currentLevel.toUpperCase() });
+        };
+
+        const success = await offline.downloadLevelsForOffline(selectedLevels, onProgress);
+
+        if (success) {
+            // Show complete state
+            progressSection.style.display = 'none';
+            completeSection.style.display = 'block';
+            cancelBtn.style.display = 'none';
+            doneBtn.style.display = 'inline-flex';
+        } else {
+            // Cancelled - close modal
+            closeModal();
+        }
+    };
+
+    // Event listeners
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+    if (wrapper) wrapper.addEventListener('click', (e) => {
+        if (e.target === wrapper) closeModal();
+    });
+    if (startBtn) startBtn.addEventListener('click', startDownload);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (doneBtn) doneBtn.addEventListener('click', closeModal);
+}

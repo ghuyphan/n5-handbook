@@ -75,17 +75,6 @@
             --backdrop-bg: rgba(26, 24, 22, 0.95);
         }
 
-        /* Fallback for no-js/system preference if script fails (optional but good practice) */
-        @media (prefers-color-scheme: dark) {
-            :root:not(.dark-mode) {
-                /* Only apply if class NOT present (script didn't run?) or handle generic case */
-                /* Actually, simpler to just rely on the script adding the class. 
-                    But strictly speaking, if we want robust no-js support (unlikely for this app), we'd need more.
-                    For now, relying on the class is fine as the script is blocking.
-                 */
-            }
-        }
-
         html,
         body {
             margin: 0;
@@ -705,6 +694,74 @@
         </div>
     </template>
 
+    <!-- Download for Offline Modal -->
+    <div id="download-modal" class="modal-hidden">
+        <div id="download-modal-backdrop" class="modal-backdrop"></div>
+        <div id="download-modal-wrapper" class="modal-wrapper">
+            <div class="modal-content-container">
+                <div class="modal-content glass-effect washi-card">
+                    <div class="modal-header">
+                        <h2 class="modal-title flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span data-lang-key="downloadForOffline">Download for Offline</span>
+                        </h2>
+                        <button id="close-download-btn" class="modal-close-btn" aria-label="Close download dialog">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal-body p-6">
+                        <!-- Initial state: Level selection -->
+                        <div id="download-level-selection">
+                            <p class="text-secondary mb-4" data-lang-key="downloadDescription">Select levels to download
+                                for offline access:</p>
+                            <div id="download-level-list" class="space-y-2 mb-4">
+                                <!-- Level checkboxes will be added here dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Progress state -->
+                        <div id="download-progress-section" style="display: none;">
+                            <div class="download-progress-header flex justify-between items-center mb-2">
+                                <span class="download-progress-title text-primary font-semibold"
+                                    data-lang-key="downloadingData">Downloading...</span>
+                                <span id="download-progress-level" class="text-secondary text-sm"></span>
+                            </div>
+                            <div class="download-progress-bar-container">
+                                <div id="download-progress-bar" class="download-progress-bar"></div>
+                                <div class="download-progress-ink"></div>
+                            </div>
+                            <p id="download-progress-status" class="text-secondary text-sm mt-2"></p>
+                        </div>
+
+                        <!-- Complete state -->
+                        <div id="download-complete-section" style="display: none;">
+                            <div class="text-center py-4">
+                                <div class="text-4xl mb-2">✨</div>
+                                <p class="text-primary font-semibold" data-lang-key="downloadComplete">Download
+                                    Complete!</p>
+                                <p class="text-secondary text-sm mt-1" data-lang-key="offlineReady">Ready for offline
+                                    use</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="download-cancel-btn" class="btn btn-secondary" style="display: none;"
+                            data-lang-key="cancelButton">Cancel</button>
+                        <button id="download-start-btn" class="btn btn-primary"
+                            data-lang-key="downloadButton">Download</button>
+                        <button id="download-done-btn" class="btn btn-primary" style="display: none;"
+                            data-lang-key="doneButton">Done</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- PWA Install Banner (Slide-up from bottom) -->
     <div id="pwa-install-banner" class="pwa-banner"

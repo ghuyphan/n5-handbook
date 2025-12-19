@@ -2125,3 +2125,133 @@ input:checked+.slider:before {
 .sentinel {
     height: 1px;
 }
+
+/* ==========================================================================
+   DOWNLOAD PROGRESS BAR - Washi Paper Style
+   ========================================================================== */
+
+/* Sidebar download button */
+.sidebar-control-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.sidebar-control-btn:hover {
+    background-color: var(--nav-hover-bg);
+}
+
+/* Download Progress Bar Container */
+.download-progress-bar-container {
+    position: relative;
+    height: 8px;
+    background: var(--cell-bg);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin: 1rem 0;
+    border: 1px solid var(--washi-border);
+}
+
+/* Progress Bar Fill - Washi Gradient */
+.download-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg,
+            var(--accent-vermilion) 0%,
+            var(--accent-gold) 50%,
+            var(--accent-matcha) 100%);
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease-out;
+    position: relative;
+}
+
+/* Ink Bleeding Effect - Washi Paper Aesthetic */
+.download-progress-ink {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(90deg,
+            transparent,
+            transparent 3px,
+            rgba(255, 255, 255, 0.08) 3px,
+            rgba(255, 255, 255, 0.08) 5px);
+    pointer-events: none;
+}
+
+/* Subtle paper texture overlay */
+.download-progress-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+}
+
+/* Level checkbox in download modal */
+.download-level-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--cell-bg);
+    border: 1px solid var(--washi-border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.download-level-item:hover {
+    background: var(--nav-hover-bg);
+}
+
+.download-level-item input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--accent-vermilion);
+    cursor: pointer;
+}
+
+.download-level-item label {
+    flex: 1;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+.download-level-item .level-status {
+    font-size: 0.75rem;
+    color: var(--accent-matcha);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Offline badge */
+.offline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: rgba(107, 142, 35, 0.15);
+    color: var(--accent-matcha);
+    border-radius: var(--radius-md);
+    font-size: 0.6875rem;
+    font-weight: 600;
+}
+
+.offline-badge::before {
+    content: '✓';
+}
+
+/* Dark mode adjustments */
+.dark-mode .download-progress-bar-container {
+    background: var(--border-subtle);
+}
+
+.dark-mode .download-level-item {
+    background: var(--border-subtle);
+}

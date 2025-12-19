@@ -251,6 +251,33 @@ export async function loadTabData(level, tabId) {
     }
 }
 
+/**
+ * Prefetch all data for a level in background (non-blocking)
+ * This enables offline access by caching data via service worker
+ * @param {string} level - Level to prefetch
+ */
+export function prefetchLevelData(level) {
+    const tabs = ['hiragana', 'katakana', 'kanji', 'vocab', 'grammar', 'keyPoints'];
+
+    const prefetch = () => {
+        tabs.forEach(tabId => {
+            // Only fetch if not already cached in memory
+            if (!state.appData[tabId]) {
+                loadTabData(level, tabId).catch(() => {
+                    // Silent fail for background prefetch - service worker will cache what it can
+                });
+            }
+        });
+    };
+
+    // Use requestIdleCallback for non-blocking prefetch, fallback to setTimeout
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(prefetch, { timeout: 5000 });
+    } else {
+        setTimeout(prefetch, 1000);
+    }
+}
+
 export async function loadAllData(level) {
     // The global UI is loaded separately now, so this function only handles level-specific data.
     const db = await dbPromise;

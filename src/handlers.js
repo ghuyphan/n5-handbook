@@ -1,7 +1,7 @@
 import { els } from './utils/dom.js';
 import { state, config } from './config.js';
 import { debounce, getUIText } from './utils/common.js';
-import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote, saveAccordionState } from './services/database.js';
+import { dbPromise, saveProgress, saveSetting, loadAllData, loadTabData, deleteNotesForLevel, saveNote, loadNote, saveAccordionState, prefetchLevelData } from './services/database.js';
 import { renderContent, updateProgressDashboard, updateSearchPlaceholders, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, renderContentNotAvailable, showCustomAlert, showCustomConfirm, setupTabsForLevel, setupFuseForTab } from './ui/ui.js';
 import { handleExternalSearch } from './services/jotoba.js';
 
@@ -495,6 +495,9 @@ export async function setLevel(level, fromHistory = false) {
         ]);
         await renderLevelUI(level, fromHistory);
         state.loadingStatus = 'idle';
+
+        // Background prefetch remaining tabs for offline caching
+        prefetchLevelData(level);
     } catch (error) {
         console.error(`Failed to load level ${level}:`, error);
         state.loadingStatus = 'error';

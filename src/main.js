@@ -317,13 +317,19 @@ function populateAndBindControls() {
                 </svg>
                 <span data-lang-key="importLevel" class="pointer-events-none">Import New Level</span>
             </button>
-            <button id="sidebar-support-btn" class="w-full mt-2 flex items-center justify-center gap-2 text-sm font-semibold p-3 rounded-lg transition-colors support-button group">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none text-accent-vermilion group-hover:scale-110 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clip-rule="evenodd" />
-                    <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
-                </svg>
-                <span data-lang-key="supportLabel" class="pointer-events-none text-accent-vermilion">Support</span>
-            </button>`;
+            <div class="flex gap-2 mt-2">
+                <button id="sidebar-support-btn" class="flex-1 flex items-center justify-center p-3 rounded-lg transition-colors support-button group" title="Support" aria-label="Support the developer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none text-accent-vermilion group-hover:scale-110 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clip-rule="evenodd" />
+                        <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
+                    </svg>
+                </button>
+                <button id="sidebar-download-btn" class="flex-1 flex items-center justify-center p-3 rounded-lg transition-colors support-button group" title="Download for Offline" aria-label="Download for offline use">
+                    <svg class="h-5 w-5 pointer-events-none text-accent-vermilion group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                </button>
+            </div>`;
     }
 
     // Header language switcher
@@ -408,6 +414,7 @@ async function init() {
             import('./ui/modals.js').then(module => {
                 module.setupImportModal();
                 module.setupSupportModal();
+                module.setupDownloadModal();
             });
             setupSidebarScrollIndicators();
         }
