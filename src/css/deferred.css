@@ -57,9 +57,11 @@
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.hanko-stamp:hover {
-    transform: rotate(-12deg) scale(1.05);
-    /* Organic, playful movement */
+@media (hover: hover) and (pointer: fine) {
+    .hanko-stamp:hover {
+        transform: rotate(-12deg) scale(1.05);
+        /* Organic, playful movement */
+    }
 }
 
 .dark-mode .hanko-stamp {
@@ -106,8 +108,11 @@
 }
 
 /* Hover lift effect */
-.nav-item:hover .hanko-icon {
-    transform: scale(1.1) rotate(5deg);
+/* Hover lift effect - Desktop only */
+@media (hover: hover) and (pointer: fine) {
+    .nav-item:hover .hanko-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
 }
 
 /* Dark mode adjustments for icon */
@@ -242,19 +247,40 @@ mark.search-highlight {
     pointer-events: auto;
 }
 
-/* .nav-item-wrapper styles moved to main.css, removing from here if present or ensuring no conflict */
-.nav-item-wrapper:hover .nav-item:not(.active) {
-    /* Redundant if main.css handles it, but good to harmonize */
-    background-color: var(--nav-hover-bg);
-    transform: translateX(4px);
-    box-shadow: none;
+/* Washi Dogear (folded corner) effect - consistent with nav items */
+.progress-item-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    background: linear-gradient(135deg,
+            transparent 50%,
+            var(--border-medium) 50%,
+            var(--bg-paper) 60%);
+    border-bottom-left-radius: 2px;
+    opacity: 0.7;
+    transition: opacity var(--transition-duration) var(--ease-out-quint);
+    z-index: 1;
 }
 
-#close-sidebar-btn:hover {
-    color: var(--text-primary);
-    background-color: var(--nav-hover-bg);
-    transform: scale(1.05);
-    /* Icon scaling is fine */
+@media (hover: hover) and (pointer: fine) {
+    .progress-item-wrapper:hover::before {
+        opacity: 1;
+    }
+}
+
+/* .nav-item-wrapper styles moved to main.css, removing from here if present or ensuring no conflict */
+/* .nav-item-wrapper styles moved to main.css */
+
+@media (hover: hover) and (pointer: fine) {
+    #close-sidebar-btn:hover {
+        color: var(--text-primary);
+        background-color: var(--nav-hover-bg);
+        transform: scale(1.05);
+        /* Icon scaling is fine */
+    }
 }
 
 .search-input-wrapper {

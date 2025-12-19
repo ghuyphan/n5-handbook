@@ -131,7 +131,7 @@ export function updateProgressDashboard() {
 
         if (container.id === 'progress-overview') {
             const headerWrapper = document.createElement('div');
-            headerWrapper.className = 'h-10 flex items-center mb-4';
+            headerWrapper.className = 'site-title-link mb-6 md:mb-4';
 
             const overviewTitle = document.createElement('h2');
             overviewTitle.className = 'text-xl font-bold sidebar-title';

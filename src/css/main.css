@@ -442,7 +442,7 @@ body.sidebar-open {
     -ms-overflow-style: none;
     /* IE/Edge - hide scrollbar */
     border-radius: 0;
-    padding: 1rem 0.75rem 1rem 1.25rem;
+    padding: 1rem 1.25rem 1rem 1.25rem;
     overflow-x: hidden;
     /* Prevent horizontal scroll from overlay */
     /* Performance-optimized Washi texture */
@@ -493,14 +493,14 @@ body.sidebar-open {
 /* Specific bleed margins to match different paddings */
 .left-sidebar::after {
     margin-left: -1.25rem;
-    margin-right: -0.75rem;
-    width: calc(100% + 2rem);
+    margin-right: -1.25rem;
+    width: calc(100% + 2.5rem);
 }
 
 .right-sidebar::after {
-    margin-left: -0.75rem;
+    margin-left: -1.25rem;
     margin-right: -1.25rem;
-    width: calc(100% + 2rem);
+    width: calc(100% + 2.5rem);
 }
 
 .dark-mode .left-sidebar::after,
@@ -522,7 +522,7 @@ body.sidebar-open {
 .right-sidebar {
     border-right: none;
     border-left: 1px solid var(--border-medium);
-    padding: 1rem 1.25rem 1rem 0.75rem;
+    padding: 1rem 1.25rem 1rem 1.25rem;
 }
 
 /* Decorative top edge - like torn paper */
@@ -550,6 +550,14 @@ body.sidebar-open {
 .sidebar-title {
     font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
     font-family: var(--font-serif);
+}
+
+.site-title-link {
+    height: 2.5rem;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 /* Search Header Structure */
@@ -1299,38 +1307,58 @@ body.sidebar-open {
         border: 1px solid var(--washi-border);
     }
 
-    .nav-item-wrapper:hover .nav-item:not(.active) {
-        background-color: var(--nav-hover-bg);
-        transform: translateX(4px);
-        /* Slide slightly right instead of lift */
-        box-shadow: none;
-        /* No shadow for hover */
-    }
+    /* Desktop-only interactions */
+    @media (hover: hover) and (pointer: fine) {
+        .nav-item-wrapper:hover .nav-item:not(.active) {
+            background-color: var(--nav-hover-bg);
+            transform: translateX(4px) translateY(-1px);
+            /* Consistent slide + subtle lift */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            /* Subtle shadow on hover */
+        }
 
-    /* Consisent Hover for Right Sidebar (Desktop) */
-    .progress-item-wrapper:hover,
-    .support-option-card:hover {
-        transform: translateX(4px) translateY(-1px);
-        /* Combine slide with existing lift */
-    }
+        .dark-mode .nav-item-wrapper:hover .nav-item:not(.active) {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
 
-    /* Desktop Press Animation */
-    @media (hover: hover) {
+        /* Consistent Hover for Right Sidebar (Desktop) - Moves LEFT */
+        .progress-item-wrapper:hover,
+        .support-option-card:hover {
+            transform: translateX(-4px) translateY(-1px);
+            /* Combine slide left with existing lift */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
 
-        .nav-item-wrapper:active .nav-item:not(.active),
-        .progress-item-wrapper:active {
-            transform: scale(0.98) translateX(4px);
-            /* Keep slide but scale down */
+        .dark-mode .progress-item-wrapper:hover,
+        .dark-mode .support-option-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Desktop Press Animation - Tactile Feel */
+        /* Left sidebar moves right on press */
+        .nav-item-wrapper:active .nav-item:not(.active) {
+            transform: scale(0.98) translateX(2px) translateY(0);
             transition-duration: 0.1s;
+            box-shadow: none;
         }
 
-        /* For progress items specifically if they don't have the slide */
-        .progress-item-wrapper:active {
-            transform: scale(0.98);
+        /* Right sidebar moves left on press */
+        .progress-item-wrapper:active,
+        .support-option-card:active {
+            transform: scale(0.98) translateX(-2px) translateY(0);
+            transition-duration: 0.1s;
+            box-shadow: none;
+        }
+
+        /* Icon Button Hovers */
+        .btn-icon:hover {
+            background-color: var(--nav-hover-bg);
+            transform: scale(1.05);
+            box-shadow: var(--shadow-paper);
         }
     }
 
-    .btn-icon:hover {
+    .btn-icon:focus-visible {
         background-color: var(--nav-hover-bg);
         transform: scale(1.05);
         box-shadow: var(--shadow-paper);
