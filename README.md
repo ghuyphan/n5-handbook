@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/siteIcon.png" alt="JLPT Handbook Logo" width="120">
+  <img src="./public/assets/siteIcon.png" alt="JLPT Handbook Logo" width="120">
 </p>
 
 <h1 align="center">JLPT Handbook</h1>
@@ -19,6 +19,11 @@
 
 <p align="center">
   <b><a href="https://ghuyphan.github.io/n5-handbook/" target="_blank">🚀 View the Live App 🚀</a></b>
+</p>
+
+<p align="center">
+  <img src="./AppDemo-Light.png" alt="App Preview Light" width="45%">
+  <img src="./AppDemo-Dark.png" alt="App Preview Dark" width="45%">
 </p>
 
 ---
