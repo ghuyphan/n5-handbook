@@ -255,15 +255,15 @@ export function createCard(item, category, backGradient) {
     const meaningText = getLangText(item, 'meaning');
 
     const frontContent = category === 'kanji'
-        ? `<p class="text-4xl sm:text-6xl font-bold noto-sans">${item.kanji}</p>`
-        : `<div class="text-center p-2"><p class="text-xl sm:text-2xl font-semibold noto-sans">${item.word}</p></div>`;
+        ? `<p class="text-3xl sm:text-6xl font-bold noto-sans">${item.kanji}</p>`
+        : `<div class="text-center p-2"><p class="text-lg sm:text-2xl font-semibold noto-sans">${item.word}</p></div>`;
 
     let backContent = '';
     if (category === 'kanji') {
-        backContent = `<div class="w-full text-center"><p class="font-bold text-xl mb-2">${meaningText}</p><div class="text-sm opacity-80"><p>On: ${item.onyomi}</p><p>Kun: ${item.kunyomi || '–'}</p></div></div>`;
+        backContent = `<div class="w-full text-center"><p class="font-bold text-lg sm:text-xl mb-2 leading-tight">${meaningText}</p><div class="text-xs sm:text-sm opacity-80"><p>On: ${item.onyomi}</p><p>Kun: ${item.kunyomi || '–'}</p></div></div>`;
         cardBack.style.justifyContent = 'center';
     } else {
-        backContent = `<p class="text-lg sm:text-xl font-bold">${item.reading}</p><p class="text-sm">${meaningText}</p>`;
+        backContent = `<p class="text-base sm:text-xl font-bold">${item.reading}</p><p class="text-xs sm:text-sm leading-tight">${meaningText}</p>`;
         cardBack.style.justifyContent = 'space-around';
     }
 

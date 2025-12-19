@@ -1176,7 +1176,7 @@ body.sidebar-open {
     background-color: var(--switch-bg);
     border: 1px solid var(--border-subtle);
     padding: 2px;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     min-height: 42px;
@@ -1188,7 +1188,7 @@ body.sidebar-open {
     background-color: var(--switch-bg);
     border: 1px solid var(--border-subtle);
     padding: 6px 8px;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1204,7 +1204,7 @@ body.sidebar-open {
     top: 50%;
     transform: translateY(-50%);
     height: calc(100% - 4px);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     background-color: var(--accent-vermilion);
     box-shadow: var(--shadow-paper);
     transition: transform 0.4s var(--ease-out-quint), width 0.4s var(--ease-out-quint);
@@ -1214,7 +1214,7 @@ body.sidebar-open {
     flex: 1;
     z-index: 2;
     padding: 0.5rem 1rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     font-weight: 600;
     font-size: 0.875rem;
     border: none;
@@ -1243,6 +1243,7 @@ body.sidebar-open {
 #progress-overview {
     height: 100%;
     overflow-y: auto;
+    overflow-x: clip;
     scrollbar-gutter: stable;
     scrollbar-width: none;
     -ms-overflow-style: none;
