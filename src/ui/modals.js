@@ -364,21 +364,26 @@ function closeNotesModal() {
 
 async function saveAndCloseNotesModal() {
     const content = els.notesTextarea.value;
-    await saveNote(state.currentLevel, state.activeTab, content);
-    state.notes.originalContent = content;
+    try {
+        await saveNote(state.currentLevel, state.activeTab, content);
+        state.notes.originalContent = content;
 
-    const notesButtons = document.querySelectorAll('.notes-header-btn');
-    notesButtons.forEach(btn => {
-        btn.classList.toggle('has-note', !!content.trim());
-    });
+        const notesButtons = document.querySelectorAll('.notes-header-btn');
+        notesButtons.forEach(btn => {
+            btn.classList.toggle('has-note', !!content.trim());
+        });
 
-    els.notesStatus.textContent = getUIText('savedStatus', 'Saved!');
-    els.notesStatus.style.opacity = '1';
+        els.notesStatus.textContent = getUIText('savedStatus');
+        els.notesStatus.style.opacity = '1';
 
-    setTimeout(() => {
-        closeNotesModal();
-        setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
-    }, 1000);
+        setTimeout(() => {
+            closeNotesModal();
+            setTimeout(() => { els.notesStatus.style.opacity = '0'; }, 500);
+        }, 1000);
+    } catch (error) {
+        console.error('Failed to save note:', error);
+        showCustomAlert(getUIText('errorTitle'), getUIText('errorSaveNote'));
+    }
 }
 
 
@@ -559,10 +564,10 @@ export function setupImportModal() {
                         resolve({ name: key, data: jsonData });
                     } catch (err) {
                         console.error(`Error processing ${file.name}:`, err);
-                        reject(`Error parsing ${file.name}`);
+                        reject(getUIText('importErrorParsing', { fileName: file.name }));
                     }
                 };
-                reader.onerror = () => reject(`Could not read ${file.name}`);
+                reader.onerror = () => reject(getUIText('importErrorReading', { fileName: file.name }));
                 reader.readAsText(file);
             });
         });
@@ -615,11 +620,11 @@ export function setupImportModal() {
 
             await setLevel(levelName);
 
-            showCustomAlert(getUIText('successTitle', 'Success'), getUIText('importSuccess', { levelName: levelName.toUpperCase() }));
+            showCustomAlert(getUIText('successTitle'), getUIText('importSuccess', { levelName: levelName.toUpperCase() }));
             closeModal();
         } catch (error) {
             console.error("Failed to save imported level:", error);
-            showCustomAlert(getUIText('errorTitle', 'Error'), getUIText('errorSaveImportedLevel', 'Error: Could not save the new level.'));
+            showCustomAlert(getUIText('errorTitle'), getUIText('errorSaveImportedLevel'));
         } finally {
             els.importBtn.disabled = false;
             els.importBtn.querySelector('span').textContent = getUIText('importButton');

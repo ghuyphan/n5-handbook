@@ -54,7 +54,7 @@ function handleWorkerResults(tabId, results, query) {
                 <svg class="w-16 h-16 mx-auto text-secondary opacity-50 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
-                <p class="text-secondary text-lg">No results found for "<span class="text-accent-teal font-semibold">${query}</span>"</p>
+                <p class="text-secondary text-lg">${getUIText('noResults')} "<span class="text-accent-teal font-semibold">${query}</span>"</p>
             `;
             container.appendChild(noResultsEl);
         } else {

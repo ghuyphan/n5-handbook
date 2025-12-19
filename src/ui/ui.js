@@ -561,7 +561,7 @@ export function buildLevelSwitcher(remoteLevels = [], customLevels = []) {
         const isDefault = level === config.defaultLevel;
         const canBeDeleted = customLevels.includes(level) && !isDefault;
 
-        const deleteButtonHTML = canBeDeleted ? `<button class="delete-level-btn" data-action="delete-level" data-level-name="${level}" title="Delete level ${level.toUpperCase()}"><svg class="w-4 h-4 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>` : '';
+        const deleteButtonHTML = canBeDeleted ? `<button class="delete-level-btn" data-action="delete-level" data-level-name="${level}" title="${getUIText('deleteLevelTitle', 'Delete level {level}').replace('{level}', level.toUpperCase())}"><svg class="w-4 h-4 pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>` : '';
         const itemWrapper = document.createElement('div');
         itemWrapper.className = 'level-switch-item-wrapper';
         itemWrapper.innerHTML = `<button data-action="set-level" data-level-name="${level}" class="level-switch-button">${level.toUpperCase()}</button>${deleteButtonHTML}`;
@@ -600,7 +600,7 @@ export function updateSearchPlaceholders(activeTabId) {
         : getUIText('searchTabPlaceholder', 'Search in this tab...');
 
     if (els.searchInput) {
-        els.searchInput.placeholder = isProgressTab ? "Search not available in Progress tab" : placeholderText;
+        els.searchInput.placeholder = isProgressTab ? getUIText('searchNotAvailable') : placeholderText;
         els.searchInput.disabled = isProgressTab;
     }
     if (els.mobileSearchInput) {
