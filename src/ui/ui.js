@@ -7,7 +7,7 @@
 
 import { els } from '../utils/dom.js';
 import { state, config } from '../config.js';
-import { generateSearchTerms } from '../utils/common.js';
+import { generateSearchTerms, getUIText } from '../utils/common.js';
 import { dbPromise } from '../services/database.js';
 import { playPronunciation } from '../services/audio.js';
 
@@ -21,22 +21,65 @@ import {
     createCard,
     createCardSection,
     createStaticSection,
-    createProgressItem,
-    prepareKanaData
+    createProgressItem
 } from './rendering.js';
+
+export function setupSidebarScrollIndicators() {
+    const sidebars = [
+        document.querySelector('.left-sidebar'),
+        document.querySelector('.right-sidebar')
+    ].filter(Boolean);
+
+    const updateIndicator = (el) => {
+        requestAnimationFrame(() => {
+            // Use a small buffer (5px) to account for sub-pixel rendering quirks
+            const scrollBottom = Math.ceil(el.scrollTop + el.clientHeight);
+            const isAtBottom = el.scrollHeight - scrollBottom <= 5;
+            const hasOverflow = el.scrollHeight > el.clientHeight;
+
+            // Only show mask if there is overflow AND we are not at the bottom
+            if (hasOverflow && !isAtBottom) {
+                el.classList.add('can-scroll');
+            } else {
+                el.classList.remove('can-scroll');
+            }
+        });
+    };
+
+    sidebars.forEach(sidebar => {
+        // Initial check with delay
+        setTimeout(() => updateIndicator(sidebar), 100);
+
+        // Check on scroll
+        sidebar.addEventListener('scroll', () => updateIndicator(sidebar), { passive: true });
+
+        // Check on window resize
+        window.addEventListener('resize', () => updateIndicator(sidebar), { passive: true });
+
+        // Use ResizeObserver for more robust size change detection
+        const resizeObserver = new ResizeObserver(() => updateIndicator(sidebar));
+        resizeObserver.observe(sidebar);
+        Array.from(sidebar.children).forEach(child => resizeObserver.observe(child));
+
+        // Observer for content changes
+        const observer = new MutationObserver((mutations) => {
+            updateIndicator(sidebar);
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) resizeObserver.observe(node);
+                });
+            });
+        });
+        observer.observe(sidebar, { childList: true, subtree: true, characterData: true });
+    });
+}
 
 
 export function renderContentNotAvailable(tabName) {
     const container = document.getElementById(tabName);
     if (!container) return;
 
-    const getUIText = (key, replacements = {}) => {
-        let text = state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
-        for (const [placeholder, value] of Object.entries(replacements)) {
-            text = text.replace(`{${placeholder}}`, value);
-        }
-        return text;
-    };
+
 
     const title = getUIText('errorContentNotAvailableTitle');
     const body = getUIText('errorContentNotAvailableBody', {
@@ -100,6 +143,30 @@ export function updateProgressDashboard() {
             container.appendChild(wrapper);
         } else {
             container.appendChild(wrapper);
+        }
+    });
+
+    // Force a check of scroll indicators after content update
+    requestAnimationFrame(() => {
+        // Dispatch resize to trigger observers
+        window.dispatchEvent(new Event('resize'));
+
+        // Manual check for right sidebar specifically
+        const rightSidebar = document.querySelector('.right-sidebar');
+        if (rightSidebar) {
+            const updateRight = () => {
+                const scrollBottom = Math.ceil(rightSidebar.scrollTop + rightSidebar.clientHeight);
+                const isAtBottom = rightSidebar.scrollHeight - scrollBottom <= 5;
+                const hasOverflow = rightSidebar.scrollHeight > rightSidebar.clientHeight;
+                if (hasOverflow && !isAtBottom) {
+                    rightSidebar.classList.add('can-scroll');
+                } else {
+                    rightSidebar.classList.remove('can-scroll');
+                }
+            };
+            // Run immediately, then after a short delay for layout stabilization
+            updateRight();
+            setTimeout(updateRight, 200);
         }
     });
 }
@@ -244,7 +311,7 @@ export function updateExternalSearchTab(type, data = {}, isInitialLoad = false) 
     if (!els.externalSearchTab) return;
 
     const { results, query } = data;
-    const getUIText = (key, fallback) => state.appData.ui?.[state.currentLang]?.[key] || fallback;
+
 
     const manualLoader = els.externalSearchTab.querySelector(':scope > .flex.justify-center.items-center');
     if (manualLoader) {
@@ -452,14 +519,14 @@ export async function renderContent(tabId = null) {
         hiragana: () => renderSafely(() => {
             if (els.hiraganaTab && state.appData.hiragana) {
                 els.hiraganaTab.innerHTML = '';
-                els.hiraganaTab.appendChild(createStaticSection(prepareKanaData(state.appData.hiragana), '🌸', 'var(--accent-pink)'));
+                els.hiraganaTab.appendChild(createStaticSection(state.appData.hiragana, '🌸', 'var(--accent-pink)'));
                 setupFuseForTab('hiragana');
             }
         }, 'hiragana'),
         katakana: () => renderSafely(() => {
             if (els.katakanaTab && state.appData.katakana) {
                 els.katakanaTab.innerHTML = '';
-                els.katakanaTab.appendChild(createStaticSection(prepareKanaData(state.appData.katakana), '🤖', 'var(--accent-blue)'));
+                els.katakanaTab.appendChild(createStaticSection(state.appData.katakana, '🤖', 'var(--accent-blue)'));
                 setupFuseForTab('katakana');
             }
         }, 'katakana'),
@@ -586,7 +653,7 @@ export function scrollActiveLevelIntoView() {
 }
 
 export function updateSearchPlaceholders(activeTabId) {
-    const getUIText = (key, fallback = '') => state.appData.ui?.[state.currentLang]?.[key] || fallback;
+
 
     const isDictionaryTab = activeTabId === 'external-search';
     const isProgressTab = activeTabId === 'progress';
@@ -685,7 +752,7 @@ export function showCustomDialog({ title, message, buttons, onOpen, onClose }) {
 }
 
 export function showCustomAlert(title, message) {
-    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+
     return showCustomDialog({
         title,
         message,
@@ -694,7 +761,7 @@ export function showCustomAlert(title, message) {
 }
 
 export function showCustomConfirm(title, message) {
-    const getUIText = (key) => state.appData.ui?.[state.currentLang]?.[key] || `[${key}]`;
+
     return showCustomDialog({
         title,
         message,

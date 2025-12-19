@@ -1,0 +1,529 @@
+{
+  "gojuon": {
+    "en": "Monographs (Gojūon)",
+    "vi": "Chữ đơn (Ngũ thập âm)",
+    "items": [
+      {
+        "kana": "あ",
+        "romaji": "a"
+      },
+      {
+        "kana": "い",
+        "romaji": "i"
+      },
+      {
+        "kana": "う",
+        "romaji": "u"
+      },
+      {
+        "kana": "え",
+        "romaji": "e"
+      },
+      {
+        "kana": "お",
+        "romaji": "o"
+      },
+      {
+        "kana": "か",
+        "romaji": "ka"
+      },
+      {
+        "kana": "き",
+        "romaji": "ki"
+      },
+      {
+        "kana": "く",
+        "romaji": "ku"
+      },
+      {
+        "kana": "け",
+        "romaji": "ke"
+      },
+      {
+        "kana": "こ",
+        "romaji": "ko"
+      },
+      {
+        "kana": "さ",
+        "romaji": "sa"
+      },
+      {
+        "kana": "し",
+        "romaji": "shi"
+      },
+      {
+        "kana": "す",
+        "romaji": "su"
+      },
+      {
+        "kana": "せ",
+        "romaji": "se"
+      },
+      {
+        "kana": "そ",
+        "romaji": "so"
+      },
+      {
+        "kana": "た",
+        "romaji": "ta"
+      },
+      {
+        "kana": "ち",
+        "romaji": "chi"
+      },
+      {
+        "kana": "つ",
+        "romaji": "tsu"
+      },
+      {
+        "kana": "て",
+        "romaji": "te"
+      },
+      {
+        "kana": "と",
+        "romaji": "to"
+      },
+      {
+        "kana": "な",
+        "romaji": "na"
+      },
+      {
+        "kana": "に",
+        "romaji": "ni"
+      },
+      {
+        "kana": "ぬ",
+        "romaji": "nu"
+      },
+      {
+        "kana": "ね",
+        "romaji": "ne"
+      },
+      {
+        "kana": "の",
+        "romaji": "no"
+      },
+      {
+        "kana": "は",
+        "romaji": "ha"
+      },
+      {
+        "kana": "ひ",
+        "romaji": "hi"
+      },
+      {
+        "kana": "ふ",
+        "romaji": "fu"
+      },
+      {
+        "kana": "へ",
+        "romaji": "he"
+      },
+      {
+        "kana": "ほ",
+        "romaji": "ho"
+      },
+      {
+        "kana": "ま",
+        "romaji": "ma"
+      },
+      {
+        "kana": "み",
+        "romaji": "mi"
+      },
+      {
+        "kana": "む",
+        "romaji": "mu"
+      },
+      {
+        "kana": "め",
+        "romaji": "me"
+      },
+      {
+        "kana": "も",
+        "romaji": "mo"
+      },
+      {
+        "kana": "や",
+        "romaji": "ya"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "ゆ",
+        "romaji": "yu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "よ",
+        "romaji": "yo"
+      },
+      {
+        "kana": "ら",
+        "romaji": "ra"
+      },
+      {
+        "kana": "り",
+        "romaji": "ri"
+      },
+      {
+        "kana": "る",
+        "romaji": "ru"
+      },
+      {
+        "kana": "れ",
+        "romaji": "re"
+      },
+      {
+        "kana": "ろ",
+        "romaji": "ro"
+      },
+      {
+        "kana": "わ",
+        "romaji": "wa"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "を",
+        "romaji": "wo"
+      },
+      {
+        "kana": "ん",
+        "romaji": "n"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "isPlaceholder": true
+      }
+    ]
+  },
+  "dakuon": {
+    "en": "Diacritics (Dakuten/Handakuten)",
+    "vi": "Âm đục / Bán âm đục",
+    "items": [
+      {
+        "kana": "が",
+        "romaji": "ga"
+      },
+      {
+        "kana": "ぎ",
+        "romaji": "gi"
+      },
+      {
+        "kana": "ぐ",
+        "romaji": "gu"
+      },
+      {
+        "kana": "げ",
+        "romaji": "ge"
+      },
+      {
+        "kana": "ご",
+        "romaji": "go"
+      },
+      {
+        "kana": "ざ",
+        "romaji": "za"
+      },
+      {
+        "kana": "じ",
+        "romaji": "ji"
+      },
+      {
+        "kana": "ず",
+        "romaji": "zu"
+      },
+      {
+        "kana": "ぜ",
+        "romaji": "ze"
+      },
+      {
+        "kana": "ぞ",
+        "romaji": "zo"
+      },
+      {
+        "kana": "だ",
+        "romaji": "da"
+      },
+      {
+        "kana": "ぢ",
+        "romaji": "di"
+      },
+      {
+        "kana": "づ",
+        "romaji": "dzu"
+      },
+      {
+        "kana": "で",
+        "romaji": "de"
+      },
+      {
+        "kana": "ど",
+        "romaji": "do"
+      },
+      {
+        "kana": "ば",
+        "romaji": "ba"
+      },
+      {
+        "kana": "び",
+        "romaji": "bi"
+      },
+      {
+        "kana": "ぶ",
+        "romaji": "bu"
+      },
+      {
+        "kana": "べ",
+        "romaji": "be"
+      },
+      {
+        "kana": "ぼ",
+        "romaji": "bo"
+      },
+      {
+        "kana": "ぱ",
+        "romaji": "pa"
+      },
+      {
+        "kana": "ぴ",
+        "romaji": "pi"
+      },
+      {
+        "kana": "ぷ",
+        "romaji": "pu"
+      },
+      {
+        "kana": "ぺ",
+        "romaji": "pe"
+      },
+      {
+        "kana": "ぽ",
+        "romaji": "po"
+      }
+    ]
+  },
+  "yoon": {
+    "en": "Digraphs (Yōon)",
+    "vi": "Âm ghép (拗音)",
+    "items": [
+      {
+        "kana": "きゃ",
+        "romaji": "kya"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "きゅ",
+        "romaji": "kyu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "きょ",
+        "romaji": "kyo"
+      },
+      {
+        "kana": "しゃ",
+        "romaji": "sha"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "しゅ",
+        "romaji": "shu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "しょ",
+        "romaji": "sho"
+      },
+      {
+        "kana": "ちゃ",
+        "romaji": "cha"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "ちゅ",
+        "romaji": "chu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "ちょ",
+        "romaji": "cho"
+      },
+      {
+        "kana": "にゃ",
+        "romaji": "nya"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "にゅ",
+        "romaji": "nyu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "にょ",
+        "romaji": "nyo"
+      },
+      {
+        "kana": "ひゃ",
+        "romaji": "hya"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "ひゅ",
+        "romaji": "hyu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "ひょ",
+        "romaji": "hyo"
+      },
+      {
+        "kana": "みゃ",
+        "romaji": "mya"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "みゅ",
+        "romaji": "myu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "みょ",
+        "romaji": "myo"
+      },
+      {
+        "kana": "りゃ",
+        "romaji": "rya"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "りゅ",
+        "romaji": "ryu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "りょ",
+        "romaji": "ryo"
+      },
+      {
+        "kana": "ぎゃ",
+        "romaji": "gya"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "ぎゅ",
+        "romaji": "gyu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "ぎょ",
+        "romaji": "gyo"
+      },
+      {
+        "kana": "じゃ",
+        "romaji": "ja"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "じゅ",
+        "romaji": "ju"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "じょ",
+        "romaji": "jo"
+      },
+      {
+        "kana": "びゃ",
+        "romaji": "bya"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "びゅ",
+        "romaji": "byu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "びょ",
+        "romaji": "byo"
+      },
+      {
+        "kana": "ぴゃ",
+        "romaji": "pya"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "ぴゅ",
+        "romaji": "pyu"
+      },
+      {
+        "isPlaceholder": true
+      },
+      {
+        "kana": "ぴょ",
+        "romaji": "pyo"
+      }
+    ]
+  }
+}

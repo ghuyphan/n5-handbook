@@ -16,7 +16,8 @@ import {
     dbPromise
 } from './database.js';
 import {
-    debounce
+    debounce,
+    getUIText
 } from '../utils/common.js';
 
 // --- Constants ---
@@ -220,10 +221,6 @@ async function cacheResult(db, query, data) {
 
 
 // --- UI Rendering ---
-
-function getUIText(key, fallback) {
-    return state.appData?.ui?.[state.currentLang]?.[key] || fallback;
-}
 
 function renderErrorState(error, query) {
     let errorMessage;

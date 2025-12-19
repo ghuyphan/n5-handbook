@@ -3,7 +3,7 @@
  * @description Provides utility functions for the application.
  */
 
-import * as wanakana from 'wanakana';
+import { isKana, isRomaji, toRomaji, toHiragana, toKatakana } from 'wanakana';
 import { state } from '../config.js';
 
 /**
@@ -37,12 +37,12 @@ export const generateSearchTerms = (texts = []) => {
         const lowerText = String(text).toLowerCase();
         termsSet.add(lowerText);
 
-        if (wanakana.isKana(lowerText)) {
-            termsSet.add(wanakana.toRomaji(lowerText));
+        if (isKana(lowerText)) {
+            termsSet.add(toRomaji(lowerText));
         }
-        if (wanakana.isRomaji(lowerText)) {
-            termsSet.add(wanakana.toHiragana(lowerText));
-            termsSet.add(wanakana.toKatakana(lowerText));
+        if (isRomaji(lowerText)) {
+            termsSet.add(toHiragana(lowerText));
+            termsSet.add(toKatakana(lowerText));
         }
     });
     return Array.from(termsSet).join(' ');

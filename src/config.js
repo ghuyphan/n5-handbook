@@ -9,6 +9,15 @@ export const config = {
     dataPath: 'https://raw.githubusercontent.com/ghuyphan/JLPT_Datas/main',
 };
 
+// Breakpoints for responsive design
+export const BREAKPOINTS = {
+    mobile: 768,
+    tablet: 1024,
+};
+
+// Helper function for mobile detection
+export const isMobile = () => window.innerWidth <= BREAKPOINTS.mobile;
+
 // Dynamic state of the application, which will be modified during runtime
 export const state = {
     appData: {},
@@ -29,7 +38,6 @@ export const state = {
     universalFuse: null,
     currentQuery: '',
     lastDictionaryQuery: '',
-    tabScrollPositions: new Map(),
     renderedTabs: new Map(),
     openAccordions: new Map(),
     externalDB: {

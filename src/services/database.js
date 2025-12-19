@@ -25,111 +25,111 @@ export const dbPromise = openDB('HandbookDB', 3, {
     },
 });
 
+// Fallback UI data (critical keys) - defined at module level for performance
+const FALLBACK_UI = {
+    en: {
+        dictionarySearch: "Dictionary Search",
+        keyPoints: "Key Points",
+        vocabulary: "Vocabulary",
+        grammar: "Grammar",
+        dashboard: "ダッシュボード",
+        dashboardSubtitle: "Your learning progress",
+        progressOverview: "Progress Overview",
+        dictionarySubtitle: "Universal Dictionary",
+        dictionaryNotice: "Select a category to start searching",
+        searchPlaceholder: "Search for words...",
+        progress: "Progress",
+        levelNameLabel: "Level Name",
+        levelNamePlaceholder: "e.g. N5",
+        level: "Level",
+        uploadLabel: "Upload Level File (.csv)",
+        importButton: "Import",
+        importLevel: "Import Level",
+        footerText: "Made with ❤️ by",
+        saveNotes: "Save Notes",
+        notesPlaceholder: "Type your notes here / Gõ ghi chú của bạn ở đây...",
+        modalExamples: "Examples",
+        modalInfo: "Info",
+        modalRadical: "Radical",
+        modalMnemonic: "Mnemonic",
+        noResults: "No results for",
+        noResultsSubtitle: "Try checking your spelling or switching tabs.",
+        searchErrorTitle: "Search failed",
+        searchError: "Something went wrong while searching. Please try again.",
+        retryButton: "Retry",
+        vocabResults: "Vocabulary Results",
+        kanjiResults: "Kanji Results",
+        noDefinition: "No definition found.",
+        onyomi: "On'yomi:",
+        kunyomi: "Kun'yomi:",
+        supportLabel: "Support",
+        supportDeveloper: "Support the Developer",
+        buyMeCoffee: "Buy me a coffee",
+        momo: "Momo",
+        vietqr: "VietQR",
+        madeWithLove: "Made with ❤️ by",
+        supportMessage: "If you find this handbook helpful, consider supporting its development!",
+        installAppTitle: "Install App",
+        installBannerHint: "Add to home screen for offline access",
+        installButton: "Install",
+        installHintIOS: "Tap Share ⬆ then \"Add to Home Screen\"",
+        installHintAndroid: "Tap menu ⋮ then \"Install app\""
+    },
+    vi: {
+        dictionarySearch: "Tra Từ Điển",
+        keyPoints: "Điểm Chính",
+        vocabulary: "Từ Vựng",
+        grammar: "Ngữ Pháp",
+        dashboard: "ダッシュボード",
+        dashboardSubtitle: "Tiến độ học tập của bạn",
+        progressOverview: "Tổng quan tiến độ",
+        dictionarySubtitle: "Từ điển tổng hợp",
+        dictionaryNotice: "Chọn một danh mục để bắt đầu tìm kiếm",
+        searchPlaceholder: "Tìm kiếm từ vựng...",
+        progress: "Tiến Độ",
+        levelNameLabel: "Tên Cấp Độ",
+        levelNamePlaceholder: "ví dụ: N5",
+        level: "Cấp độ",
+        uploadLabel: "Tải lên tệp cấp độ (.csv)",
+        importButton: "Nhập",
+        importLevel: "Nhập Cấp Độ",
+        footerText: "Được làm bằng ❤️ bởi",
+        saveNotes: "Lưu Ghi Chú",
+        notesPlaceholder: "Gõ ghi chú của bạn ở đây...",
+        modalExamples: "Ví dụ",
+        modalInfo: "Thông tin",
+        modalRadical: "Bộ thủ",
+        modalMnemonic: "Gợi nhớ",
+        noResults: "Không tìm thấy kết quả cho",
+        noResultsSubtitle: "Hãy thử kiểm tra chính tả hoặc chuyển tab.",
+        searchErrorTitle: "Tìm kiếm thất bại",
+        searchError: "Đã xảy ra lỗi khi tìm kiếm. Vui lòng thử lại.",
+        retryButton: "Thử lại",
+        vocabResults: "Kết quả Từ Vựng",
+        kanjiResults: "Kết quả Hán Tự",
+        noDefinition: "Không tìm thấy định nghĩa.",
+        onyomi: "Âm On:",
+        kunyomi: "Âm Kun:",
+        supportLabel: "Ủng hộ",
+        supportDeveloper: "Ủng hộ nhà phát triển",
+        buyMeCoffee: "Mua cho tôi ly cà phê",
+        momo: "Momo",
+        vietqr: "VietQR",
+        madeWithLove: "Được làm bằng ❤️ bởi",
+        supportMessage: "Nếu bạn thấy sổ tay này hữu ích, hãy cân nhắc ủng hộ nhé!",
+        installAppTitle: "Cài Đặt Ứng Dụng",
+        installBannerHint: "Thêm vào màn hình chính để sử dụng ngoại tuyến",
+        installButton: "Cài Đặt",
+        installHintIOS: "Nhấn Chia sẻ ⬆ rồi \"Thêm vào Màn hình chính\"",
+        installHintAndroid: "Nhấn menu ⋮ rồi \"Cài đặt ứng dụng\""
+    }
+};
+
 /**
- * ADDED: Loads the essential global UI translations.
+ * Loads the essential global UI translations.
  * This should be called once at startup before any rendering occurs.
  */
 export async function loadGlobalUI() {
-    // Fallback UI data (critical keys)
-    const fallbackUI = {
-        en: {
-            dictionarySearch: "Dictionary Search",
-            keyPoints: "Key Points",
-            vocabulary: "Vocabulary",
-            grammar: "Grammar",
-            dashboard: "ダッシュボード",
-            dashboardSubtitle: "Your learning progress",
-            progressOverview: "Progress Overview",
-            dictionarySubtitle: "Universal Dictionary", // Added missing key
-            dictionaryNotice: "Select a category to start searching",
-            searchPlaceholder: "Search for words...",
-            progress: "Progress",
-            levelNameLabel: "Level Name",
-            levelNamePlaceholder: "e.g. N5",
-            level: "Level", // Added missing key
-            uploadLabel: "Upload Level File (.csv)",
-            importButton: "Import",
-            importLevel: "Import Level",
-            footerText: "Made with ❤️ by",
-            saveNotes: "Save Notes",
-            notesPlaceholder: "Type your notes here / Gõ ghi chú của bạn ở đây...",
-            modalExamples: "Examples",
-            modalInfo: "Info",
-            modalRadical: "Radical",
-            modalMnemonic: "Mnemonic",
-            noResults: "No results for",
-            noResultsSubtitle: "Try checking your spelling or switching tabs.",
-            searchErrorTitle: "Search failed",
-            searchError: "Something went wrong while searching. Please try again.",
-            retryButton: "Retry",
-            vocabResults: "Vocabulary Results",
-            kanjiResults: "Kanji Results",
-            noDefinition: "No definition found.",
-            onyomi: "On'yomi:",
-            kunyomi: "Kun'yomi:",
-            supportLabel: "Support",
-            supportDeveloper: "Support the Developer",
-            buyMeCoffee: "Buy me a coffee",
-            momo: "Momo",
-            vietqr: "VietQR",
-            madeWithLove: "Made with ❤️ by",
-            supportMessage: "If you find this handbook helpful, consider supporting its development!",
-            installAppTitle: "Install App",
-            installBannerHint: "Add to home screen for offline access",
-            installButton: "Install",
-            installHintIOS: "Tap Share ⬆ then \"Add to Home Screen\"",
-            installHintAndroid: "Tap menu ⋮ then \"Install app\""
-        },
-        vi: {
-            dictionarySearch: "Tra Từ Điển",
-            keyPoints: "Điểm Chính",
-            vocabulary: "Từ Vựng",
-            grammar: "Ngữ Pháp",
-            dashboard: "ダッシュボード",
-            dashboardSubtitle: "Tiến độ học tập của bạn",
-            progressOverview: "Tổng quan tiến độ",
-            dictionarySubtitle: "Từ điển tổng hợp", // Added missing key
-            dictionaryNotice: "Chọn một danh mục để bắt đầu tìm kiếm",
-            searchPlaceholder: "Tìm kiếm từ vựng...",
-            progress: "Tiến Độ",
-            levelNameLabel: "Tên Cấp Độ",
-            levelNamePlaceholder: "ví dụ: N5",
-            level: "Cấp độ", // Added missing key
-            uploadLabel: "Tải lên tệp cấp độ (.csv)",
-            importButton: "Nhập",
-            importLevel: "Nhập Cấp Độ",
-            footerText: "Được làm bằng ❤️ bởi",
-            saveNotes: "Lưu Ghi Chú",
-            notesPlaceholder: "Gõ ghi chú của bạn ở đây...",
-            modalExamples: "Ví dụ",
-            modalInfo: "Thông tin",
-            modalRadical: "Bộ thủ",
-            modalMnemonic: "Gợi nhớ",
-            noResults: "Không tìm thấy kết quả cho",
-            noResultsSubtitle: "Hãy thử kiểm tra chính tả hoặc chuyển tab.",
-            searchErrorTitle: "Tìm kiếm thất bại",
-            searchError: "Đã xảy ra lỗi khi tìm kiếm. Vui lòng thử lại.",
-            retryButton: "Thử lại",
-            vocabResults: "Kết quả Từ Vựng",
-            kanjiResults: "Kết quả Hán Tự",
-            noDefinition: "Không tìm thấy định nghĩa.",
-            onyomi: "Âm On:",
-            kunyomi: "Âm Kun:",
-            supportLabel: "Ủng hộ",
-            supportDeveloper: "Ủng hộ nhà phát triển",
-            buyMeCoffee: "Mua cho tôi ly cà phê",
-            momo: "Momo",
-            vietqr: "VietQR",
-            madeWithLove: "Được làm bằng ❤️ bởi",
-            supportMessage: "Nếu bạn thấy sổ tay này hữu ích, hãy cân nhắc ủng hộ nhé!",
-            installAppTitle: "Cài Đặt Ứng Dụng",
-            installBannerHint: "Thêm vào màn hình chính để sử dụng ngoại tuyến",
-            installButton: "Cài Đặt",
-            installHintIOS: "Nhấn Chia sẻ ⬆ rồi \"Thêm vào Màn hình chính\"",
-            installHintAndroid: "Nhấn menu ⋮ rồi \"Cài đặt ứng dụng\""
-        }
-    };
-
     try {
         // Direct fetch from remote, skipping local check to avoid 404s
         let response = await fetch(`${config.dataPath}/ui.json`);
@@ -143,14 +143,14 @@ export async function loadGlobalUI() {
 
         // Merge fallback into remote (remote takes priority for existing keys)
         state.appData.ui = {
-            en: { ...fallbackUI.en, ...(remoteUI.en || {}) },
-            vi: { ...fallbackUI.vi, ...(remoteUI.vi || {}) }
+            en: { ...FALLBACK_UI.en, ...(remoteUI.en || {}) },
+            vi: { ...FALLBACK_UI.vi, ...(remoteUI.vi || {}) }
         };
 
     } catch (error) {
         console.error("Fatal: Could not load the global ui.json file.", error);
         // Use full fallback
-        state.appData.ui = fallbackUI;
+        state.appData.ui = FALLBACK_UI;
     }
 }
 
@@ -232,7 +232,13 @@ export async function loadTabData(level, tabId) {
     }
 
     try {
-        const response = await fetch(`${config.dataPath}/${level}/${tabId}.json`);
+        // Kana data is shared across all levels, so load from root
+        const isSharedData = ['hiragana', 'katakana'].includes(tabId);
+        const dataPath = isSharedData
+            ? `${config.dataPath}/${tabId}.json`
+            : `${config.dataPath}/${level}/${tabId}.json`;
+
+        const response = await fetch(dataPath);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

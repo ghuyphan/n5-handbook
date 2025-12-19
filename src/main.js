@@ -10,7 +10,7 @@ import { els, populateEls } from './utils/dom.js';
 import { state, config } from './config.js';
 import { dbPromise, loadState, loadAllData, loadTabData, saveNote, loadNote, saveSetting, loadGlobalUI } from './services/database.js';
 import { debounce, getUIText } from './utils/common.js';
-import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm } from './ui/ui.js';
+import { updateProgressDashboard, setupTheme, moveLangPill, updatePinButtonState, updateSidebarPinIcons, closeSidebar, buildLevelSwitcher, scrollActiveLevelIntoView, setupTabsForLevel, showCustomAlert, showCustomConfirm, setupSidebarScrollIndicators } from './ui/ui.js';
 import { setLanguage, toggleTheme, handleSearch, changeTab as originalChangeTab, togglePin, toggleSidebarPin, jumpToSection, toggleLearned, deleteLevel, setLevel, toggleAccordion, setupMobileHeaderScroll } from './handlers.js';
 import { initPWAListeners, setupPWAInstallBanner, shouldShowPWAInstallPrompt, openPWAInstallBanner } from './services/pwa.js';
 import { playPronunciation, initVoices } from './services/audio.js';
@@ -409,6 +409,7 @@ async function init() {
                 module.setupImportModal();
                 module.setupSupportModal();
             });
+            setupSidebarScrollIndicators();
         }
 
         setupPWAInstallBanner();
