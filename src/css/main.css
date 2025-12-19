@@ -404,6 +404,10 @@ body.sidebar-open {
     /* Performance-optimized Washi texture */
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
 
+    /* Scroll Hint Gradient - fades bottom content to indicate scrollability */
+    /* Matches modal fade visual depth (approx 80px) */
+    mask-image: linear-gradient(to bottom, black calc(100% - 80px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 80px), transparent 100%);
 }
 
 .right-sidebar {
@@ -1192,6 +1196,29 @@ body.sidebar-open {
         /* Slide slightly right instead of lift */
         box-shadow: none;
         /* No shadow for hover */
+    }
+
+    /* Consisent Hover for Right Sidebar (Desktop) */
+    .progress-item-wrapper:hover,
+    .support-option-card:hover {
+        transform: translateX(4px) translateY(-1px);
+        /* Combine slide with existing lift */
+    }
+
+    /* Desktop Press Animation */
+    @media (hover: hover) {
+
+        .nav-item-wrapper:active .nav-item:not(.active),
+        .progress-item-wrapper:active {
+            transform: scale(0.98) translateX(4px);
+            /* Keep slide but scale down */
+            transition-duration: 0.1s;
+        }
+
+        /* For progress items specifically if they don't have the slide */
+        .progress-item-wrapper:active {
+            transform: scale(0.98);
+        }
     }
 
     .btn-icon:hover {
