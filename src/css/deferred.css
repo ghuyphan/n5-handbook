@@ -1904,7 +1904,9 @@ mark.search-highlight {
 
 #progress-overview::-webkit-scrollbar,
 .left-sidebar::-webkit-scrollbar {
-    width: 8px;
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 #progress-overview::-webkit-scrollbar-track,
@@ -1914,15 +1916,12 @@ mark.search-highlight {
 
 #progress-overview::-webkit-scrollbar-thumb,
 .left-sidebar::-webkit-scrollbar-thumb {
-    background-color: rgba(107, 114, 128, 0.25);
-    border-radius: var(--radius-full);
-    border: 2px solid transparent;
-    background-clip: content-box;
+    background-color: transparent;
 }
 
 #progress-overview::-webkit-scrollbar-thumb:hover,
 .left-sidebar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(107, 114, 128, 0.4);
+    background-color: transparent;
 }
 
 .theme-switch-wrapper {
